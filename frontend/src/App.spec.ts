@@ -4,21 +4,17 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, it } from 'vitest'
 
 import App from './App.vue'
-import HomeView from './views/HomeView.vue'
+import DeclarationCreateView from './views/DeclarationCreateView.vue'
 
 describe('App', () => {
-  it('renders the bootstrap home page through the router', async () => {
+  it('renders the declaration page through the router', async () => {
     const router = createRouter({
       history: createMemoryHistory(),
-      routes: [{ path: '/', component: HomeView }],
+      routes: [{ path: '/', component: DeclarationCreateView }],
     })
     router.push('/')
     await router.isReady()
-
-    const wrapper = mount(App, {
-      global: { plugins: [router, ElementPlus] },
-    })
-
-    expect(wrapper.get('h1').text()).toContain('综合素质测评管理系统')
+    const wrapper = mount(App, { global: { plugins: [router, ElementPlus] } })
+    expect(wrapper.get('h1').text()).toContain('创建草稿')
   })
 })

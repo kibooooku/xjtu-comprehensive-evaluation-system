@@ -5,69 +5,21 @@
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-.page-shell {
-  width: min(1040px, calc(100% - 40px));
-  margin: 0 auto;
-  padding: 72px 0;
-}
-
-.hero {
-  padding: 48px;
-  border: 1px solid #dbe3ec;
-  border-radius: 18px;
-  background: #fff;
-}
-
-.eyebrow {
-  margin: 0 0 12px;
-  color: #9a3412;
-  font-weight: 700;
-}
-
-h1 {
-  max-width: 760px;
-  margin: 0;
-  font-size: clamp(2rem, 5vw, 3.4rem);
-  line-height: 1.15;
-}
-
-.summary {
-  max-width: 760px;
-  margin: 24px 0;
-  color: #4b5563;
-  font-size: 1.05rem;
-  line-height: 1.8;
-}
-
-.module-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin-top: 24px;
-}
-
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+.page-shell { width: min(1040px, calc(100% - 40px)); margin: 0 auto; padding: 48px 0; }
+.hero { padding: 40px 48px; border: 1px solid #dbe3ec; border-radius: 18px; background: #fff; margin-bottom: 24px; }
+.eyebrow { margin: 0 0 12px; color: #9a3412; font-weight: 700; }
+h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; }
+.summary { max-width: 760px; margin: 20px 0 0; color: #4b5563; line-height: 1.8; }
+.form-card, .preview-card, .el-alert { margin-top: 20px; }
+.declaration-row { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid #ebeef5; }
+.declaration-row:last-child { border-bottom: 0; }
+.declaration-row p { margin: 8px 0 0; color: #606266; }
+.preview-card object { display: block; width: 100%; height: 70vh; min-height: 520px; border: 0; }
 @media (max-width: 680px) {
-  .page-shell {
-    width: min(100% - 24px, 1040px);
-    padding: 24px 0;
-  }
-
-  .hero {
-    padding: 28px 24px;
-  }
-
-  .module-grid {
-    grid-template-columns: 1fr;
-  }
+  .page-shell { width: min(100% - 24px, 1040px); padding: 24px 0; }
+  .hero { padding: 28px 24px; }
+  .declaration-row { align-items: flex-start; flex-direction: column; }
+  .preview-card object { min-height: 420px; }
 }

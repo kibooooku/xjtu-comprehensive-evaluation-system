@@ -1,15 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HomeView from '@/views/HomeView.vue'
+import DeclarationCreateView from '@/views/DeclarationCreateView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomeView,
-    },
+    { path: '/', redirect: '/declarations/new' },
+    { path: '/declarations/new', name: 'declaration-create', component: DeclarationCreateView },
   ],
 })
 

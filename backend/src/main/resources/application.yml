@@ -8,10 +8,15 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
 
 app:
   storage:
     root: ${APP_STORAGE_ROOT:./var/uploads}
+    max-pdf-bytes: ${APP_MAX_PDF_BYTES:10485760}
 
 server:
   port: ${BACKEND_PORT:8080}

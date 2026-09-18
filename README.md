@@ -2,7 +2,7 @@
 
 本仓库是“软件系统分析与设计”课程项目的工程骨架。系统将综合素质测评中的申报条目、证明文件、OCR 文本与坐标、人工证据标注、确定性评分规则、审核记录和最终汇总建立可追溯关联。
 
-当前版本只完成项目初始化。它不包含登录、班级管理、申报、审核、评分引擎、完整 OCR 或 Excel 导出业务。
+当前版本已完成首个纵向业务切片：数据库用户认证、班级成员与学生/班委角色、学生草稿申报、私有 PDF 上传和本人重新查看。暂不包含 OCR、评分、审核、证据框选或 Excel 导出。
 
 ## 架构
 
@@ -69,6 +69,11 @@ cd backend
 mvn spring-boot:run
 ```
 
+首次手工验证可启用仅限开发环境的虚构数据：
+
+    APP_DEMO_PASSWORD=<仅保存在本机的密码> mvn spring-boot:run -Dspring-boot.run.profiles=dev
+
+开发账号为 student-demo（学生）和 committee-demo（班委），密码由本机 APP_DEMO_PASSWORD 环境变量提供；变量缺失时 dev profile 会拒绝启动。这些账号只由 dev profile 初始化，不会由正式 Flyway migration 写入生产数据库。前端凭证仅保存在页面内存中；正式部署必须使用独立账号开通流程和 HTTPS。
 健康检查：`GET http://localhost:8080/api/health`。测试和打包：
 
 ```bash
