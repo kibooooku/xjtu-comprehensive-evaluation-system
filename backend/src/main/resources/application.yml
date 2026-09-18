@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: xjtu-evaluation-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/xjtu_evaluation?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${SPRING_DATASOURCE_USERNAME:xjtu_app}
+    password: ${SPRING_DATASOURCE_PASSWORD:change-me}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+app:
+  storage:
+    root: ${APP_STORAGE_ROOT:./var/uploads}
+
+server:
+  port: ${BACKEND_PORT:8080}

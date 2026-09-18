@@ -1,0 +1,58 @@
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# IDE and operating system
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+# Backend
+backend/target/
+
+# Python
+ocr-service/.venv/
+ocr-service/venv/
+ocr-service/__pycache__/
+ocr-service/.pytest_cache/
+ocr-service/.ruff_cache/
+ocr-service/.coverage
+*.py[cod]
+
+# OCR models and caches
+.paddleocr/
+PaddleOCR/
+inference/
+ocr-models/
+ocr-cache/
+
+# Runtime data
+var/uploads/
+var/ocr-output/
+var/mysql/
+mysql-data/
+uploads/
+ocr-output/
+*.tmp.pdf
+*.ocr.json
+
+# Private source material and student data
+*综合素质评定汇总表*.xlsx
+*学生*.xlsx
+docs/reference/private/
+
+# Local tooling and scratch files
+.tmp/
+.tools/
+
+*.egg-info/

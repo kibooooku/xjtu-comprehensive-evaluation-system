@@ -1,0 +1,4 @@
+# Install this optional group only when implementing OCR inference.
+# Select the PaddlePaddle CPU/GPU wheel from the official installation guide first.
+paddlepaddle>=3.0,<4
+paddleocr>=3.0,<4

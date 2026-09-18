@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:evaluation;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  flyway:
+    enabled: true
+
+app:
+  storage:
+    root: ${java.io.tmpdir}/xjtu-evaluation-test-uploads
