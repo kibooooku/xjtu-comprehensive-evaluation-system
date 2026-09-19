@@ -19,7 +19,7 @@ export interface Declaration {
   title: string
   status: 'DRAFT'
   hasPdf: boolean
-  pdf: null | { originalFilename: string; sizeBytes: number; sha256: string }
+  pdf: null | { originalFilename: string; sizeBytes: number; sha256: string; documentVersion: number }
   createdAt: string
   updatedAt: string
 }
@@ -29,7 +29,7 @@ export interface Credentials {
   password: string
 }
 
-function authorization(credentials: Credentials): string {
+export function authorization(credentials: Credentials): string {
   const bytes = new TextEncoder().encode(`${credentials.username}:${credentials.password}`)
   const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join('')
   return `Basic ${btoa(binary)}`
@@ -58,6 +58,8 @@ export const declarationApi = {
   me: (credentials: Credentials) => request<Me>('/api/me', credentials),
   mine: (credentials: Credentials) =>
     request<Declaration[]>('/api/declarations/mine', credentials),
+  get: (credentials: Credentials, id: number) =>
+    request<Declaration>('/api/declarations/' + id, credentials),
   create: (credentials: Credentials, classId: number, title: string) =>
     request<Declaration>('/api/declarations', credentials, {
       method: 'POST',
@@ -69,6 +71,14 @@ export const declarationApi = {
     form.append('file', file)
     return request<Declaration>(`/api/declarations/${id}/pdf`, credentials, {
       method: 'POST',
+      body: form,
+    })
+  },
+  replacePdf: (credentials: Credentials, id: number, file: File) => {
+    const form = new FormData()
+    form.append('file', file)
+    return request<Declaration>('/api/declarations/' + id + '/pdf', credentials, {
+      method: 'PUT',
       body: form,
     })
   },

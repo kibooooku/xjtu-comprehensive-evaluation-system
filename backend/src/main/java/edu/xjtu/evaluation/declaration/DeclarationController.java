@@ -43,6 +43,11 @@ public class DeclarationController {
         return ResponseEntity.status(201).body(service.upload(principal, id, file));
     }
 
+    @PutMapping(path="/{id}/pdf", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
+    ResponseEntity<DeclarationView> replacePdf(Principal principal, @PathVariable long id,
+            @RequestPart("file") MultipartFile file) {
+        return ResponseEntity.ok(service.replacePdf(principal, id, file));
+    }
     @GetMapping(path="/{id}/pdf", produces=MediaType.APPLICATION_PDF_VALUE)
     ResponseEntity<InputStreamResource> pdf(Principal principal, @PathVariable long id) {
         Download pdf = service.download(principal, id);

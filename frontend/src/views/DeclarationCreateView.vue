@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, ref } from 'vue'
+import EvidenceEditor from '@/views/EvidenceEditor.vue'
 
 import {
   declarationApi,
@@ -20,23 +21,17 @@ const fileInput = ref<HTMLInputElement>()
 const busy = ref(false)
 const error = ref('')
 const notice = ref('')
-const previewUrl = ref('')
-const previewTitle = ref('')
+const selectedDeclarationId = ref<number>()
+const selectedDeclaration = computed(() => declarations.value.find((item) => item.id === selectedDeclarationId.value))
 
 const canSubmit = computed(
   () => Boolean(credentials.value && classId.value && title.value.trim() && pdfFile.value),
 )
 
-function clearPreview() {
-  if (previewUrl.value) URL.revokeObjectURL(previewUrl.value)
-  previewUrl.value = ''
-  previewTitle.value = ''
-}
-
 async function login() {
   error.value = ''
   notice.value = ''
-  clearPreview()
+  selectedDeclarationId.value = undefined
   busy.value = true
   const next = { username: username.value.trim(), password: password.value }
   try {
@@ -117,22 +112,8 @@ async function createDeclaration() {
 }
 
 async function viewPdf(item: Declaration) {
-  if (!credentials.value) return
-  error.value = ''
-  busy.value = true
-  clearPreview()
-  try {
-    const blob = await declarationApi.pdf(credentials.value, item.id)
-    previewUrl.value = URL.createObjectURL(blob)
-    previewTitle.value = item.pdf?.originalFilename ?? item.title
-  } catch (reason) {
-    error.value = reason instanceof Error ? reason.message : 'PDF 获取失败'
-  } finally {
-    busy.value = false
-  }
+  selectedDeclarationId.value = item.id
 }
-
-onBeforeUnmount(clearPreview)
 </script>
 
 <template>
@@ -193,7 +174,7 @@ onBeforeUnmount(clearPreview)
             <strong>{{ item.title }}</strong>
             <p>{{ item.className }} · {{ item.status }} · {{ item.pdf?.originalFilename ?? '未上传 PDF' }}</p>
           </div>
-          <el-button v-if="item.hasPdf" :disabled="busy" @click="viewPdf(item)">重新查看本人 PDF</el-button>
+          <el-button v-if="item.hasPdf" :disabled="busy" @click="viewPdf(item)">查看并标注本人 PDF</el-button>
           <el-button
             v-else
             type="primary"
@@ -206,11 +187,13 @@ onBeforeUnmount(clearPreview)
         </div>
       </el-card>
 
-      <el-card v-if="previewUrl" shadow="never" class="preview-card">
-        <template #header>{{ previewTitle }}</template>
-        <object :data="previewUrl" type="application/pdf" aria-label="本人 PDF 预览">
-          当前浏览器无法内嵌预览 PDF。
-        </object>
+      <el-card v-if="selectedDeclaration && credentials" shadow="never" class="preview-card">
+        <EvidenceEditor
+          :key="selectedDeclaration.id"
+          :credentials="credentials"
+          :declaration="selectedDeclaration"
+          @updated="replaceDeclaration"
+        />
       </el-card>
     </template>
   </main>

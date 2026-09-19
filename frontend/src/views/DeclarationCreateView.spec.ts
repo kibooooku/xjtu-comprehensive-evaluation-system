@@ -13,6 +13,9 @@ const api = vi.hoisted(() => ({
 }))
 
 vi.mock('@/api/declarations', () => ({ declarationApi: api }))
+vi.mock('./EvidenceEditor.vue', () => ({
+  default: { props: ['credentials', 'declaration'], template: '<div data-test="evidence-editor">{{ declaration.title }}</div>' },
+}))
 
 const profile = {
   id: 1,
@@ -38,18 +41,12 @@ const draft = {
 const saved = {
   ...draft,
   hasPdf: true,
-  pdf: { originalFilename: 'evidence.pdf', sizeBytes: 12, sha256: 'fictional-sha' },
+  pdf: { originalFilename: 'evidence.pdf', sizeBytes: 12, sha256: 'fictional-sha', documentVersion: 1 },
 }
 
 describe('DeclarationCreateView', () => {
-  const createObjectUrl = vi.fn()
-  const revokeObjectUrl = vi.fn()
-
   beforeEach(() => {
     vi.clearAllMocks()
-    createObjectUrl.mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second')
-    Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectUrl })
-    Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: revokeObjectUrl })
     api.me.mockResolvedValue(profile)
     api.mine.mockResolvedValue([])
   })
@@ -69,7 +66,7 @@ describe('DeclarationCreateView', () => {
     expect(wrapper.text()).toContain('暂无草稿')
   })
 
-  it('creates before uploading and previews authenticated Blob while revoking old URLs', async () => {
+  it('creates before uploading and opens the PDF.js evidence editor', async () => {
     const callOrder: string[] = []
     api.create.mockImplementation(async () => {
       callOrder.push('create')
@@ -78,10 +75,6 @@ describe('DeclarationCreateView', () => {
     api.uploadPdf.mockImplementation(async () => {
       callOrder.push('upload')
       return saved
-    })
-    api.pdf.mockImplementation(async () => {
-      callOrder.push('pdf')
-      return new Blob(['%PDF-1.4'], { type: 'application/pdf' })
     })
 
     const wrapper = mount(DeclarationCreateView, { global: { plugins: [ElementPlus] } })
@@ -99,27 +92,20 @@ describe('DeclarationCreateView', () => {
     await flushPromises()
 
     const credentials = { username: 'student-a', password: 'test-password' }
-    expect(callOrder).toEqual(['create', 'upload', 'pdf'])
+    expect(callOrder).toEqual(['create', 'upload'])
     expect(api.create).toHaveBeenCalledWith(credentials, 10, '虚构竞赛证明')
     expect(api.uploadPdf).toHaveBeenCalledWith(credentials, 42, file)
-    expect(api.pdf).toHaveBeenCalledWith(credentials, 42)
     expect((input.element as HTMLInputElement).value).toBe('')
-    expect(createObjectUrl).toHaveBeenCalledTimes(1)
-    expect(wrapper.get('object').attributes('data')).toBe('blob:first')
+    expect(wrapper.get('[data-test="evidence-editor"]').text()).toContain('虚构竞赛证明')
 
     const viewButton = wrapper.findAll('button').find((button) =>
-      button.text().includes('重新查看本人 PDF'),
+      button.text().includes('查看并标注本人 PDF'),
     )
     expect(viewButton).toBeDefined()
     await viewButton!.trigger('click')
     await flushPromises()
+    expect(wrapper.get('[data-test="evidence-editor"]').text()).toContain('虚构竞赛证明')
 
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:first')
-    expect(createObjectUrl).toHaveBeenCalledTimes(2)
-    expect(wrapper.get('object').attributes('data')).toBe('blob:second')
-
-    wrapper.unmount()
-    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:second')
   })
 
   it('keeps a created draft and the selected PDF available for retry after upload failure', async () => {

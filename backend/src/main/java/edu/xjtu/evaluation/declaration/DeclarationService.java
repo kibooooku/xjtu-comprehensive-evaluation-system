@@ -71,7 +71,7 @@ public class DeclarationService {
     @Transactional
     public DeclarationView upload(Principal principal, long id, MultipartFile file) {
         long userId = userId(principal);
-        owned(id, userId);
+        lockOwnedDraft(id, userId);
         if (pdfExists(id)) throw new ResponseStatusException(HttpStatus.CONFLICT, "PDF already uploaded");
         byte[] bytes = validate(file);
         String key = "declarations/" + id + "/" + UUID.randomUUID() + ".pdf";
@@ -93,6 +93,42 @@ public class DeclarationService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not store PDF", e);
         } catch (RuntimeException e) {
             deleteQuietly(key);
+            throw e;
+        }
+        return owned(id, userId);
+    }
+    @Transactional
+    public DeclarationView replacePdf(Principal principal, long id, MultipartFile file) {
+        long userId = userId(principal);
+        lockOwnedDraft(id, userId);
+        ExistingPdf previous = jdbc.sql("SELECT id,storage_key FROM declaration_pdf WHERE declaration_id=:id")
+                .param("id", id)
+                .query((rs, n) -> new ExistingPdf(rs.getLong("id"), rs.getString("storage_key")))
+                .optional()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "No PDF to replace"));
+
+        byte[] bytes = validate(file);
+        String newKey = "declarations/" + id + "/" + UUID.randomUUID() + ".pdf";
+        String filename = safeFilename(file.getOriginalFilename());
+        String sha = sha256(bytes);
+        try {
+            storage.store(newKey, new ByteArrayInputStream(bytes));
+            deleteIfTransactionRollsBack(newKey);
+            jdbc.sql("DELETE FROM evidence_region WHERE document_id=:documentId")
+                    .param("documentId", previous.id()).update();
+            jdbc.sql("""
+                    UPDATE declaration_pdf
+                    SET original_filename=:name,media_type='application/pdf',size_bytes=:size,
+                        storage_key=:key,sha256=:sha,document_version=document_version+1,created_at=CURRENT_TIMESTAMP
+                    WHERE id=:documentId
+                    """).param("name", filename).param("size", bytes.length).param("key", newKey)
+                    .param("sha", sha).param("documentId", previous.id()).update();
+            deleteAfterCommit(previous.key());
+        } catch (IOException e) {
+            deleteQuietly(newKey);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not store PDF", e);
+        } catch (RuntimeException e) {
+            deleteQuietly(newKey);
             throw e;
         }
         return owned(id, userId);
@@ -129,7 +165,7 @@ public class DeclarationService {
     private List<DeclarationView> queryOwned(String suffix, long userId, Long id) {
         var spec = jdbc.sql("""
                 SELECT d.id,cg.id class_id,cg.name class_name,d.title,d.status,d.created_at,d.updated_at,
-                       p.original_filename,p.size_bytes,p.sha256
+                       p.original_filename,p.size_bytes,p.sha256,p.document_version
                 FROM declaration d JOIN class_membership cm ON cm.id=d.class_membership_id
                 JOIN class_group cg ON cg.id=cm.class_id LEFT JOIN declaration_pdf p ON p.declaration_id=d.id
                 WHERE cm.user_id=:uid
@@ -137,13 +173,21 @@ public class DeclarationService {
         if (id != null) spec.param("id", id);
         return spec.query((rs, n) -> {
             String name = rs.getString("original_filename");
-            PdfInfo pdf = name == null ? null : new PdfInfo(name, rs.getLong("size_bytes"), rs.getString("sha256"));
+            PdfInfo pdf = name == null ? null : new PdfInfo(name, rs.getLong("size_bytes"), rs.getString("sha256"), rs.getLong("document_version"));
             return new DeclarationView(rs.getLong("id"), rs.getLong("class_id"), rs.getString("class_name"),
                     rs.getString("title"), rs.getString("status"), pdf != null, pdf,
                     instant(rs.getTimestamp("created_at")), instant(rs.getTimestamp("updated_at")));
         }).list();
     }
 
+    private void lockOwnedDraft(long id, long userId) {
+        boolean allowed = jdbc.sql("""
+                SELECT d.id FROM declaration d
+                JOIN class_membership cm ON cm.id=d.class_membership_id
+                WHERE d.id=:id AND cm.user_id=:userId AND d.status='DRAFT' FOR UPDATE
+                """).param("id", id).param("userId", userId).query(Long.class).optional().isPresent();
+        if (!allowed) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Declaration not found");
+    }
     private boolean pdfExists(long id) {
         return jdbc.sql("SELECT COUNT(*) FROM declaration_pdf WHERE declaration_id=:id")
                 .param("id", id).query(Integer.class).single() > 0;
@@ -188,6 +232,14 @@ public class DeclarationService {
             }
         });
     }
+    private void deleteAfterCommit(String key) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                deleteQuietly(key);
+            }
+        });
+    }
     private void deleteQuietly(String key) {
         try { storage.delete(key); } catch (IOException ignored) { }
     }
@@ -195,9 +247,10 @@ public class DeclarationService {
     private Instant instant(Timestamp value) { return value.toInstant(); }
 
     public record CreateRequest(@NotNull Long classId, @NotBlank @Size(max=200) String title) {}
-    public record PdfInfo(String originalFilename, long sizeBytes, String sha256) {}
+    public record PdfInfo(String originalFilename, long sizeBytes, String sha256, long documentVersion) {}
     public record DeclarationView(long id, long classId, String className, String title, String status,
             boolean hasPdf, PdfInfo pdf, Instant createdAt, Instant updatedAt) {}
     public record Download(String filename, long size, InputStream content) {}
     private record StoredPdf(String key, String filename, long size) {}
+    private record ExistingPdf(long id, String key) {}
 }
