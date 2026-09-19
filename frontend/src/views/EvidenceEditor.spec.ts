@@ -27,6 +27,7 @@ const credentials = { username: 'owner', password: 'test-password' }
 const declaration = {
   id: 42, classId: 10, className: '虚构一班', title: '虚构证明',
   status: 'DRAFT' as const, hasPdf: true,
+  submissionVersion: 0, latestReasonCode: null, latestCustomReason: null,
   pdf: { originalFilename: 'old.pdf', sizeBytes: 20, sha256: 'fictional', documentVersion: 1 },
   createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z',
 }
@@ -53,7 +54,7 @@ function button(wrapper: ReturnType<typeof mount>, phrase: string) {
 
 describe('EvidenceEditor', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    vi.resetAllMocks()
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({} as CanvasRenderingContext2D)
     mocks.pdf.mockResolvedValue({ arrayBuffer: async () => new Uint8Array([1, 2]).buffer })
     mocks.get.mockResolvedValue(declaration)
@@ -175,7 +176,7 @@ describe('EvidenceEditor', () => {
     expect(mocks.pdf).toHaveBeenCalledTimes(1)
     expect(mocks.list).toHaveBeenCalledTimes(1)
     expect(mocks.getDocument).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('PDF 在加载过程中已被替换')
+    expect(wrapper.text()).toContain('PDF 或申报状态在加载过程中已变化')
     expect(wrapper.text()).toContain('重新加载 PDF')
     expect(wrapper.text()).toContain('已保存区域（0）')
     expect(wrapper.findAll('.evidence-box')).toHaveLength(0)
@@ -188,7 +189,7 @@ describe('EvidenceEditor', () => {
     await flushPromises()
     expect(mocks.get).toHaveBeenCalledTimes(4)
     expect(mocks.getDocument).toHaveBeenCalledTimes(1)
-    expect(wrapper.text()).not.toContain('PDF 在加载过程中已被替换')
+    expect(wrapper.text()).not.toContain('PDF 或申报状态在加载过程中已变化')
     wrapper.unmount()
   })
 
@@ -227,7 +228,7 @@ describe('EvidenceEditor', () => {
 
     await button(wrapper, '重新加载 PDF').trigger('click')
     await flushPromises()
-    expect(wrapper.text()).toContain('PDF 在加载过程中已被替换')
+    expect(wrapper.text()).toContain('PDF 或申报状态在加载过程中已变化')
     expect(wrapper.findAll('.selection-box')).toHaveLength(0)
     expect(button(wrapper, '保存区域').attributes('disabled')).toBeDefined()
     expect(mocks.create).toHaveBeenCalledTimes(1)
@@ -244,6 +245,22 @@ describe('EvidenceEditor', () => {
     await flushPromises()
     expect(mocks.create).toHaveBeenCalledTimes(2)
     expect(mocks.create.mock.calls[1]?.[2]).toBe(2)
+    wrapper.unmount()
+  })
+
+  it('renders pending evidence read-only without edit or replacement controls', async () => {
+    mocks.list.mockResolvedValue([region])
+    mocks.get.mockResolvedValue({ ...declaration, status: 'PENDING', submissionVersion: 1 })
+    const wrapper = mount(EvidenceEditor, {
+      props: { credentials, declaration: { ...declaration, status: 'PENDING', submissionVersion: 1 }, readOnly: true },
+      global: { plugins: [ElementPlus] },
+    })
+    await flushPromises()
+    expect(wrapper.text()).toContain('当前为只读材料')
+    expect(wrapper.findAll('.evidence-box')).toHaveLength(1)
+    expect(wrapper.find('.evidence-actions').exists()).toBe(false)
+    expect(wrapper.find('.replace-panel').exists()).toBe(false)
+    expect(wrapper.findAll('button').some((item) => item.text().includes('删除'))).toBe(false)
     wrapper.unmount()
   })
 

@@ -17,11 +17,14 @@ export interface Declaration {
   classId: number
   className: string
   title: string
-  status: 'DRAFT'
+  status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'
   hasPdf: boolean
   pdf: null | { originalFilename: string; sizeBytes: number; sha256: string; documentVersion: number }
   createdAt: string
   updatedAt: string
+  submissionVersion: number
+  latestReasonCode: string | null
+  latestCustomReason: string | null
 }
 
 export interface Credentials {
@@ -66,7 +69,12 @@ export const declarationApi = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ classId, title }),
     }),
-  uploadPdf: (credentials: Credentials, id: number, file: File) => {
+  updateTitle: (credentials: Credentials, id: number, title: string) =>
+    request<Declaration>('/api/declarations/' + id, credentials, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    }),  uploadPdf: (credentials: Credentials, id: number, file: File) => {
     const form = new FormData()
     form.append('file', file)
     return request<Declaration>(`/api/declarations/${id}/pdf`, credentials, {

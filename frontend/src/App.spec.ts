@@ -15,6 +15,6 @@ describe('App', () => {
     router.push('/')
     await router.isReady()
     const wrapper = mount(App, { global: { plugins: [router, ElementPlus] } })
-    expect(wrapper.get('h1').text()).toContain('创建草稿')
+    expect(wrapper.get('h1').text()).toContain('班级综合素质测评申报')
   })
 })

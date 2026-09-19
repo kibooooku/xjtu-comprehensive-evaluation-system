@@ -2,7 +2,7 @@
 
 本仓库是“软件系统分析与设计”课程项目的工程骨架。系统将综合素质测评中的申报条目、证明文件、OCR 文本与坐标、人工证据标注、确定性评分规则、审核记录和最终汇总建立可追溯关联。
 
-当前版本支持数据库用户认证、班级成员与学生/班委角色、学生草稿申报、私有 PDF 上传，以及在 PDF.js 页面上人工框选、保存、编辑和删除身份信息或材料有效性证据区域。替换 PDF 会清除原证据区域。暂不包含 OCR、评分、审核或 Excel 导出。
+当前版本支持学生草稿申报、私有 PDF 上传与人工证据标注，以及正式提交、班委审核、驳回后修改并重新提交。每次正式提交保留不可变 PDF 与标注快照，审核记录可按 submissionVersion 追溯。暂不包含 OCR、评分或 Excel 导出。
 
 ## 架构
 
@@ -117,3 +117,23 @@ pytest
 证据区域使用未旋转 PDF 页面左上角为原点的归一化坐标（x、y、width、height 均为页面宽高的比例），不持久化 Canvas 或屏幕像素。后端验证页码为正数和矩形边界；当前未在服务端解析 PDF 页数，因此尚不能验证页码不超过实际页数。前端 PDF.js 只允许在实际页面范围内翻页。
 
 PUT /api/declarations/{id}/pdf 可替换本人草稿的 PDF；操作会在同一数据库事务中清除旧标注，并递增 documentVersion。替换前页面会提示用户。证据区域 POST、PUT、DELETE 必须在 If-Match 请求头提交当前数字版本；旧标签页的过期写入返回 409，需重新打开 PDF。旧文件在提交成功后尽力删除，新文件在事务回滚时删除。当前没有 OCR 或有效性自动判断。
+
+
+## 提交与审核状态机
+
+申报只能按以下业务操作转换：DRAFT → PENDING → APPROVED/REJECTED；学生对已驳回申报执行“修改申报”后 REJECTED → DRAFT，修改完成可再次提交。第一次正式提交的 submissionVersion 为 1，之后每次正式提交加 1。documentVersion 仅表示 PDF 替换次数，两者互不混用。
+
+正式提交前，后端要求当前 PDF、至少一个 IDENTITY 区域及至少一个 VALIDITY 区域。提交时会把 PDF 和当时的证据区域复制为不可变快照；驳回后即使替换 PDF，旧审核仍指向原提交版本的快照。当前快照仅用于内部追溯，尚未提供历史 PDF 页面。
+
+DRAFT 仅申报所有者可读写。PENDING、APPROVED、REJECTED 允许所有者与本班 CLASS_COMMITTEE 读取；班委不能编辑学生申报，并且不能审核自己的申报。学生在 PENDING 状态不能改标题、PDF 或证据。审核通过不能携带驳回原因；驳回必须选择原因，OTHER 还须填写说明。所有状态检查和班级权限均在后端执行。
+
+主要接口：
+
+- POST /api/declarations/{id}/submit：所有者正式提交；If-Match 为当前 PDF 的 documentVersion。
+- POST /api/declarations/{id}/revise：所有者将驳回申报转回草稿；If-Match 为当前 submissionVersion。
+- PATCH /api/declarations/{id}：仅草稿所有者修改标题。
+- GET /api/declarations/{id}/reviews：查看审核历史。
+- GET /api/review/classes/{classId}/pending：本班班委待审队列。
+- POST /api/review/declarations/{id}/decision：本班班委提交审核决议，JSON 包含 submissionVersion、result；驳回时还需 reasonCode，OTHER 还需 customReason。
+
+本机没有 Docker CLI 时，仅使用 H2 MySQL 模式验证 Flyway；真实 MySQL 8 仍需在具备 Docker 的环境中单独验证。
