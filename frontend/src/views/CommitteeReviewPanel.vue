@@ -4,6 +4,7 @@ import { computed, onMounted, ref } from 'vue'
 import { declarationApi, type Credentials, type Declaration, type Membership } from '@/api/declarations'
 import { workflowApi, type QueueItem, type ReasonCode } from '@/api/workflow'
 import EvidenceEditor from '@/views/EvidenceEditor.vue'
+import ScoreItemsPanel from '@/views/ScoreItemsPanel.vue'
 
 const props = defineProps<{ credentials: Credentials; memberships: Membership[] }>()
 const committees = computed(() => props.memberships.filter((item) => item.role === 'CLASS_COMMITTEE'))
@@ -119,6 +120,7 @@ onMounted(() => { void loadQueue() })
     </div>
 
     <template v-if="selected && declaration">
+      <ScoreItemsPanel :key="'score-' + selected.id" :credentials="credentials" :declaration="declaration" read-only />
       <EvidenceEditor
         :key="selected.id"
         :credentials="credentials"

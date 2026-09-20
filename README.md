@@ -137,3 +137,11 @@ DRAFT 仅申报所有者可读写。PENDING、APPROVED、REJECTED 允许所有�
 - POST /api/review/declarations/{id}/decision：本班班委提交审核决议，JSON 包含 submissionVersion、result；驳回时还需 reasonCode，OTHER 还需 customReason。
 
 本机没有 Docker CLI 时，仅使用 H2 MySQL 模式验证 Flyway；真实 MySQL 8 仍需在具备 Docker 的环境中单独验证。
+
+## 结构化加分条目与确定性计分
+
+V5 增加 `score_rule_set`、`score_rule`、`score_item` 和 `submission_score_item`，并将班级显式绑定到规则集版本。学校版规则集 `XJTU_SCHOOL_2018_V1` 的来源为用户提供的《西安交通大学本科生综合素质测评成绩评定办法》第 6 页“学术科研及创新创业·学科竞赛”。高水平国际、国家级一/二/三等奖分别为 10/9/8；省级为 8/6/4；校级、地方行政部门、行业/企业、学会/协会一/二/三/优秀奖为 4/3/2/1；特等奖按同级一等奖计。只实现上述有明确依据的组合。书院规则版本及覆盖口径仍待确认，不能从示例 Excel 推导。规则行视为不可变：规则调整必须用新的 Flyway migration 新增规则集版本及规则行，再明确更新班级绑定；禁止原位 UPDATE 旧规则分值或来源。已提交快照始终保留原版本及原分数。
+
+学生在草稿中维护多条结构化 ScoreItem。`GET /api/score-rules?classId={classId}` 提供该班级当前启用规则和来源；`GET/POST /api/declarations/{id}/score-items`、`PUT/DELETE /api/declarations/{id}/score-items/{itemId}` 提供条目操作。写请求的 `If-Match` 为当前 `submissionVersion`，服务端锁定申报行并要求所有者处于 DRAFT。请求不接受 `calculatedScore` 作为计分依据，服务端按启用规则重新匹配；无匹配规则时拒绝。正式提交要求至少一项有效条目，事务内再次计分，并把当时的分类、级别、奖项、分数、规则版本及来源写入不可变提交快照。班委只能读取非草稿条目及系统建议分，不能改分。
+
+“同项目取最高”原则与学术科研类别 10 分上限已在项目规范确认，但项目唯一性尚未定义，跨多份申报的类别汇总不在本轮范围。因此当前分数是逐项建议分，不是最终累计分或封顶分；后续统计切片需先确认 `docs/OPEN_QUESTIONS.md` 中的口径。

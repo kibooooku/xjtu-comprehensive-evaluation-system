@@ -14,6 +14,10 @@ vi.mock('./EvidenceEditor.vue', () => ({
   default: { props: { readOnly: Boolean }, template: '<div data-test="review-evidence">{{ readOnly ? "只读" : "可写" }}</div>' },
 }))
 
+vi.mock('./ScoreItemsPanel.vue', () => ({
+  default: { props: { readOnly: Boolean }, template: '<div data-test="review-score">{{ readOnly ? "只读评分摘要" : "可编辑评分" }}</div>' },
+}))
+
 const credentials = { username: 'committee', password: 'test-password' }
 const memberships = [{ classId: 10, classCode: 'DEMO-01', className: '虚构一班', role: 'CLASS_COMMITTEE' as const }]
 const pending = {
