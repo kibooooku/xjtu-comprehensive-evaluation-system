@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   getDocument,
   GlobalWorkerOptions,
@@ -15,7 +15,8 @@ import { normalizeDrag, toViewportRect, type NormalizedRect, type Point } from '
 
 GlobalWorkerOptions.workerSrc = workerUrl
 
-const props = defineProps<{ credentials: Credentials; declaration: Declaration }>()
+const props = defineProps<{ credentials: Credentials; declaration: Declaration; readOnly?: boolean }>()
+const canEdit = computed(() => !props.readOnly && props.declaration.status === 'DRAFT')
 const emit = defineEmits<{ updated: [declaration: Declaration] }>()
 
 const canvas = ref<HTMLCanvasElement>()
@@ -62,7 +63,7 @@ function pointFromPointer(event: PointerEvent): Point {
 }
 
 function startDrag(event: PointerEvent) {
-  if (busy.value || !document.value) return
+  if (busy.value || !document.value || !canEdit.value) return
   dragStart.value = pointFromPointer(event)
   dragEnd.value = dragStart.value
   overlay.value?.setPointerCapture(event.pointerId)
@@ -90,6 +91,7 @@ function changePage(next: number) {
   pageNumber.value = next
 }
 function editRegion(region: EvidenceRegion) {
+  if (!canEdit.value) return
   pageNumber.value = region.pageNumber
   selectedRect.value = {
     x: region.x, y: region.y, width: region.width, height: region.height,
@@ -105,7 +107,7 @@ function clearSelection() {
 }
 
 async function saveRegion() {
-  if (!selectedRect.value || !document.value) return
+  if (!selectedRect.value || !document.value || !canEdit.value) return
   busy.value = true
   error.value = ''
   try {
@@ -127,6 +129,7 @@ async function saveRegion() {
 }
 
 async function deleteRegion(region: EvidenceRegion) {
+  if (!canEdit.value) return
   busy.value = true
   error.value = ''
   try {
@@ -200,9 +203,12 @@ async function loadDocument() {
     ])
     if (version !== loadVersion) return
     const after = await declarationApi.get(props.credentials, props.declaration.id)
-    if (before.pdf?.documentVersion !== after.pdf?.documentVersion) {
+    if (version !== loadVersion) return
+    if (before.pdf?.documentVersion !== after.pdf?.documentVersion
+        || before.status !== after.status
+        || before.submissionVersion !== after.submissionVersion) {
       emit('updated', after)
-      throw new Error('PDF 在加载过程中已被替换，请重新加载。')
+      throw new Error('PDF 或申报状态在加载过程中已变化，请重新加载。')
     }
     emit('updated', after)
     const task = getDocument({ data: new Uint8Array(await blob.arrayBuffer()) })
@@ -227,6 +233,7 @@ async function loadDocument() {
 }
 
 async function replacePdf(event: Event) {
+  if (!canEdit.value) return
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
@@ -271,7 +278,8 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
         <el-button :disabled="busy || scale >= 2.5" @click="scale = Math.min(2.5, scale + 0.25)">放大</el-button>
       </div>
     </div>
-    <p>在 PDF 上拖拽矩形，然后选择“身份信息”或“材料有效性”并保存。选择已有区域后可重新框选。</p>
+    <p v-if="canEdit">在 PDF 上拖拽矩形，然后选择“身份信息”或“材料有效性”并保存。选择已有区域后可重新框选。</p>
+    <p v-else>当前为只读材料。提交后学生及班委均不能在此修改 PDF 或证据区域。</p>
     <el-alert v-if="error" :title="error" type="error" :closable="false" />
     <el-button v-if="error" @click="loadDocument">重新加载 PDF</el-button>
     <el-alert v-if="notice" :title="notice" type="success" :closable="false" />
@@ -282,6 +290,7 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
         <div
           ref="overlay"
           class="pdf-overlay"
+          :class="{ readonly: !canEdit }"
           aria-label="PDF 证据框选层"
           @pointerdown="startDrag"
           @pointermove="moveDrag"
@@ -305,7 +314,7 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
       </div>
     </div>
 
-    <div class="evidence-actions">
+    <div v-if="canEdit" class="evidence-actions">
       <el-select v-model="selectedType" aria-label="证据类型" :disabled="!selectedRect || busy">
         <el-option label="身份信息（IDENTITY）" value="IDENTITY" />
         <el-option label="材料有效性（VALIDITY）" value="VALIDITY" />
@@ -320,14 +329,14 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
       <strong>已保存区域（{{ regions.length }}）</strong>
       <div v-for="region in regions" :key="region.id" class="region-row">
         <span>第 {{ region.pageNumber }} 页 · {{ region.type === 'IDENTITY' ? '身份信息' : '材料有效性' }} · {{ region.source }}</span>
-        <div>
+        <div v-if="canEdit">
           <el-button size="small" :disabled="busy" @click="editRegion(region)">编辑/重新框选</el-button>
           <el-button size="small" type="danger" plain :disabled="busy" @click="deleteRegion(region)">删除</el-button>
         </div>
       </div>
     </div>
 
-    <div class="replace-panel">
+    <div v-if="canEdit" class="replace-panel">
       <strong>替换证明文件</strong>
       <p>替换证明文件会清除已有证据标注，需要重新标注。</p>
       <input ref="replacementInput" type="file" accept="application/pdf,.pdf" :disabled="busy" @change="replacePdf" />

@@ -82,12 +82,22 @@ public class EvidenceRegionService {
     }
 
     private long ownedDocumentId(Principal principal, long declarationId, boolean lock, Long expectedVersion) {
+        String permission = lock
+                ? "u.username=:username AND u.enabled=TRUE AND d.status='DRAFT'"
+                : """
+                  (u.username=:username OR (d.status<>'DRAFT' AND EXISTS (
+                      SELECT 1 FROM class_membership reviewer
+                      JOIN app_user reader ON reader.id=reviewer.user_id
+                      WHERE reviewer.class_id=cm.class_id AND reviewer.role='CLASS_COMMITTEE'
+                        AND reader.username=:username AND reader.enabled=TRUE
+                  )))
+                  """;
         String sql = """
                 SELECT d.id FROM declaration d
                 JOIN class_membership cm ON cm.id=d.class_membership_id
                 JOIN app_user u ON u.id=cm.user_id
-                WHERE d.id=:declarationId AND u.username=:username AND u.enabled=TRUE AND d.status='DRAFT'
-                """ + (lock ? " FOR UPDATE" : "");
+                WHERE d.id=:declarationId AND
+                """ + permission + (lock ? " FOR UPDATE" : "");
         boolean owned = jdbc.sql(sql).param("declarationId", declarationId)
                 .param("username", principal.getName()).query(Long.class).optional().isPresent();
         if (!owned) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Declaration not found");

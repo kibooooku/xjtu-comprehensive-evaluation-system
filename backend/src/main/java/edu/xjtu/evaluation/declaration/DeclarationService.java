@@ -60,14 +60,27 @@ public class DeclarationService {
 
     @Transactional(readOnly = true)
     public List<DeclarationView> mine(Principal principal) {
-        return queryOwned(" ORDER BY d.created_at DESC,d.id DESC", userId(principal), null);
+        return queryOwned(" ORDER BY d.created_at DESC,d.id DESC", userId(principal), null, false);
     }
 
     @Transactional(readOnly = true)
     public DeclarationView get(Principal principal, long id) {
-        return owned(id, userId(principal));
+        return queryOwned(" AND d.id=:id", userId(principal), id, true).stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Declaration not found"));
     }
 
+    @Transactional
+    public DeclarationView updateTitle(Principal principal, long id, String title) {
+        long userId = userId(principal);
+        lockOwnedDraft(id, userId);
+        String normalized = title == null ? "" : title.trim();
+        if (normalized.isBlank() || normalized.length() > 200) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title must be 1-200 characters");
+        }
+        jdbc.sql("UPDATE declaration SET title=:title,updated_at=CURRENT_TIMESTAMP WHERE id=:id")
+                .param("title", normalized).param("id", id).update();
+        return owned(id, userId);
+    }
     @Transactional
     public DeclarationView upload(Principal principal, long id, MultipartFile file) {
         long userId = userId(principal);
@@ -141,7 +154,15 @@ public class DeclarationService {
                 SELECT p.storage_key,p.original_filename,p.size_bytes FROM declaration_pdf p
                 JOIN declaration d ON d.id=p.declaration_id
                 JOIN class_membership cm ON cm.id=d.class_membership_id
-                WHERE p.declaration_id=:id AND cm.user_id=:uid
+                WHERE p.declaration_id=:id AND (
+                    cm.user_id=:uid OR (
+                        d.status<>'DRAFT' AND EXISTS (
+                            SELECT 1 FROM class_membership reviewer
+                            WHERE reviewer.class_id=cm.class_id AND reviewer.user_id=:uid
+                              AND reviewer.role='CLASS_COMMITTEE'
+                        )
+                    )
+                )
                 """).param("id", id).param("uid", userId)
                 .query((rs, n) -> new StoredPdf(rs.getString(1), rs.getString(2), rs.getLong(3)))
                 .optional().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PDF not found"));
@@ -158,25 +179,32 @@ public class DeclarationService {
     }
 
     private DeclarationView owned(long id, long userId) {
-        return queryOwned(" AND d.id=:id", userId, id).stream().findFirst()
+        return queryOwned(" AND d.id=:id", userId, id, false).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Declaration not found"));
     }
 
-    private List<DeclarationView> queryOwned(String suffix, long userId, Long id) {
+    private List<DeclarationView> queryOwned(String suffix, long userId, Long id, boolean readable) {
         var spec = jdbc.sql("""
                 SELECT d.id,cg.id class_id,cg.name class_name,d.title,d.status,d.created_at,d.updated_at,
-                       p.original_filename,p.size_bytes,p.sha256,p.document_version
+                       p.original_filename,p.size_bytes,p.sha256,p.document_version,
+                       d.submission_version,r.reason_code,r.custom_reason
                 FROM declaration d JOIN class_membership cm ON cm.id=d.class_membership_id
                 JOIN class_group cg ON cg.id=cm.class_id LEFT JOIN declaration_pdf p ON p.declaration_id=d.id
-                WHERE cm.user_id=:uid
-                """ + suffix).param("uid", userId);
+                LEFT JOIN review_record r ON r.declaration_id=d.id
+                    AND r.submission_version=d.submission_version AND r.result='REJECTED'
+                WHERE (cm.user_id=:uid OR (:readable=TRUE AND d.status<>'DRAFT' AND EXISTS (
+                    SELECT 1 FROM class_membership reviewer
+                    WHERE reviewer.class_id=cm.class_id AND reviewer.user_id=:uid
+                      AND reviewer.role='CLASS_COMMITTEE')))
+                """ + suffix).param("uid", userId).param("readable", readable);
         if (id != null) spec.param("id", id);
         return spec.query((rs, n) -> {
             String name = rs.getString("original_filename");
             PdfInfo pdf = name == null ? null : new PdfInfo(name, rs.getLong("size_bytes"), rs.getString("sha256"), rs.getLong("document_version"));
             return new DeclarationView(rs.getLong("id"), rs.getLong("class_id"), rs.getString("class_name"),
                     rs.getString("title"), rs.getString("status"), pdf != null, pdf,
-                    instant(rs.getTimestamp("created_at")), instant(rs.getTimestamp("updated_at")));
+                    instant(rs.getTimestamp("created_at")), instant(rs.getTimestamp("updated_at")),
+                    rs.getLong("submission_version"), rs.getString("reason_code"), rs.getString("custom_reason"));
         }).list();
     }
 
@@ -249,7 +277,8 @@ public class DeclarationService {
     public record CreateRequest(@NotNull Long classId, @NotBlank @Size(max=200) String title) {}
     public record PdfInfo(String originalFilename, long sizeBytes, String sha256, long documentVersion) {}
     public record DeclarationView(long id, long classId, String className, String title, String status,
-            boolean hasPdf, PdfInfo pdf, Instant createdAt, Instant updatedAt) {}
+            boolean hasPdf, PdfInfo pdf, Instant createdAt, Instant updatedAt,
+            long submissionVersion, String latestReasonCode, String latestCustomReason) {}
     public record Download(String filename, long size, InputStream content) {}
     private record StoredPdf(String key, String filename, long size) {}
     private record ExistingPdf(long id, String key) {}

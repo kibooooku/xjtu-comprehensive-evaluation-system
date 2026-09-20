@@ -37,6 +37,14 @@ public class DeclarationController {
     @GetMapping("/{id}")
     DeclarationView get(Principal principal, @PathVariable long id) { return service.get(principal, id); }
 
+    @PatchMapping("/{id}")
+    DeclarationView updateTitle(Principal principal, @PathVariable long id,
+            @Valid @RequestBody UpdateTitleRequest request) {
+        return service.updateTitle(principal, id, request.title());
+    }
+
+    public record UpdateTitleRequest(@jakarta.validation.constraints.NotBlank
+            @jakarta.validation.constraints.Size(max=200) String title) {}
     @PostMapping(path="/{id}/pdf", consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
     ResponseEntity<DeclarationView> upload(Principal principal, @PathVariable long id,
             @RequestPart("file") MultipartFile file) {

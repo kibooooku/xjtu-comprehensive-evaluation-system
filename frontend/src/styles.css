@@ -50,3 +50,14 @@ h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; }
 .evidence-actions .el-select { width: 230px; }
 .region-list, .replace-panel { margin-top: 22px; padding-top: 18px; border-top: 1px solid #ebeef5; }
 .region-row { justify-content: space-between; padding: 10px 0; }
+.declaration-actions, .committee-controls, .title-edit, .review-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.committee-controls, .title-edit, .review-actions { margin: 16px 0; }
+.committee-controls .el-select { width: min(320px, 100%); }
+.title-edit .el-input { max-width: 480px; }
+.review-actions { align-items: flex-start; flex-direction: column; border-top: 1px solid #ebeef5; padding-top: 20px; }
+.reject-form { display: flex; gap: 10px; flex-wrap: wrap; width: min(640px, 100%); }
+.reject-form .el-select { width: 240px; }
+.reject-form .el-textarea { flex-basis: 100%; }
+.pdf-overlay.readonly { cursor: default; pointer-events: none; }
