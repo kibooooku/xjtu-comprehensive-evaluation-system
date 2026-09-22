@@ -43,7 +43,7 @@ class EvidenceRegionFlowTest {
     Path storageRoot=Path.of(System.getProperty("java.io.tmpdir"),"xjtu-evaluation-test-uploads");
 
     @BeforeEach void seed() {
-        for(String table:new String[]{"review_record","submission_evidence_region","declaration_submission","evidence_region","declaration_pdf","declaration","class_membership","class_group","app_user"})
+        for(String table:new String[]{"review_record","submission_score_item","submission_evidence_region","declaration_submission","score_item","evidence_region","declaration_pdf","declaration","class_membership","class_group","app_user"})
             jdbc.sql("DELETE FROM "+table).update();
         String[] names={"owner","classmate","committee","outsider"};
         for(int i=0;i<names.length;i++)

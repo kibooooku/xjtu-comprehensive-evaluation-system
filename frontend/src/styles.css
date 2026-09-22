@@ -60,4 +60,10 @@ h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; }
 .reject-form { display: flex; gap: 10px; flex-wrap: wrap; width: min(640px, 100%); }
 .reject-form .el-select { width: 240px; }
 .reject-form .el-textarea { flex-basis: 100%; }
-.pdf-overlay.readonly { cursor: default; pointer-events: none; }
+.pdf-overlay.readonly { cursor: default; pointer-events: none; }.score-panel { border-top: 1px solid #ebeef5; margin-top: 24px; padding-top: 18px; }
+.score-panel h3 { margin: 0 0 14px; }
+.score-form { margin-top: 22px; padding: 18px; border: 1px solid #e3e8ef; border-radius: 8px; }
+.score-form h4 { margin: 0 0 14px; }
+.score-selects { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
+.score-selects .el-select { width: 100%; }
+.score-form p { color: #374151; font-weight: 600; }

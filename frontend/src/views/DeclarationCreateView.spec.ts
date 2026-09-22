@@ -20,6 +20,9 @@ vi.mock('@/api/workflow', () => ({ workflowApi: workflow }))
 vi.mock('./EvidenceEditor.vue', () => ({
   default: { props: ['credentials', 'declaration', 'readOnly'], template: '<div data-test="evidence-editor">{{ declaration.title }} {{ readOnly ? "只读" : "可编辑" }}</div>' },
 }))
+vi.mock('./ScoreItemsPanel.vue', () => ({
+  default: { props: ['credentials', 'declaration', 'readOnly'], template: '<div data-test="score-panel">{{ readOnly ? "只读评分" : "可编辑评分" }}</div>' },
+}))
 vi.mock('./CommitteeReviewPanel.vue', () => ({
   default: { template: '<div data-test="committee-panel">班委审核</div>' },
 }))

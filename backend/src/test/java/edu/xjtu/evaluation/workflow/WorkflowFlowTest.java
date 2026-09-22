@@ -38,7 +38,7 @@ class WorkflowFlowTest {
     @Autowired FileStorageService storage;
 
     @BeforeEach void seed() {
-        for (String table : new String[]{"review_record","submission_evidence_region","declaration_submission",
+        for (String table : new String[]{"review_record","submission_score_item","submission_evidence_region","declaration_submission","score_item",
                 "evidence_region","declaration_pdf","declaration","class_membership","class_group","app_user"})
             jdbc.sql("DELETE FROM "+table).update();
         String[] names={"owner","classmate","committee","outside-committee","committee-two"};
@@ -64,6 +64,7 @@ class WorkflowFlowTest {
                 .andExpect(status().isNotFound());
         mvc.perform(post("/api/declarations/{id}/submit",id).with(auth("owner")).header("If-Match","2"))
                 .andExpect(status().isConflict());
+        scoreAs("owner",id,0);
         submit(id,1,1);
         assertThat(count("declaration_submission")).isEqualTo(1);
         assertThat(count("submission_evidence_region")).isEqualTo(2);
@@ -166,7 +167,7 @@ class WorkflowFlowTest {
         long id=draft("committee",10,"班委本人申报");
         mvc.perform(multipart("/api/declarations/{id}/pdf",id).file(pdf("own.pdf",OLD)).with(auth("committee")))
                 .andExpect(status().isCreated());
-        regionAs("committee",id,"IDENTITY",1); regionAs("committee",id,"VALIDITY",1);
+        regionAs("committee",id,"IDENTITY",1); regionAs("committee",id,"VALIDITY",1); scoreAs("committee",id,0);
         mvc.perform(post("/api/declarations/{id}/submit",id).with(auth("committee")).header("If-Match","1"))
                 .andExpect(status().isOk());
         mvc.perform(post(decisionPath(id)).with(auth("committee")).contentType(MediaType.APPLICATION_JSON)
@@ -240,7 +241,7 @@ class WorkflowFlowTest {
     long readyDraft() throws Exception {
         long id=draft("owner",10,"最初标题");
         upload(id,OLD,"old.pdf");
-        region(id,"IDENTITY",1); region(id,"VALIDITY",1);
+        region(id,"IDENTITY",1); region(id,"VALIDITY",1); scoreAs("owner",id,0);
         return id;
     }
     long draft(String owner,long classId,String title) throws Exception {
@@ -258,6 +259,12 @@ class WorkflowFlowTest {
         mvc.perform(post("/api/declarations/{id}/evidence-regions",id).with(auth(user))
                 .header("If-Match",String.valueOf(version)).contentType(MediaType.APPLICATION_JSON)
                 .content(regionBody(type))).andExpect(status().isCreated());
+    }
+    void scoreAs(String user,long id,int version) throws Exception {
+        mvc.perform(post("/api/declarations/{id}/score-items",id).with(auth(user))
+                .header("If-Match",String.valueOf(version)).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"activityName\":\"虚构学科竞赛\",\"category\":\"ABILITY_EXPANSION\",\"subcategory\":\"ACADEMIC_RESEARCH_INNOVATION\",\"itemType\":\"DISCIPLINE_COMPETITION\",\"level\":\"NATIONAL\",\"award\":\"FIRST\"}"))
+                .andExpect(status().isCreated());
     }
     void submit(long id,int documentVersion,int submissionVersion) throws Exception {
         mvc.perform(post("/api/declarations/{id}/submit",id).with(auth("owner"))

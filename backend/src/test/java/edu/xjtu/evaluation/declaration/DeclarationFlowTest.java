@@ -51,8 +51,10 @@ class DeclarationFlowTest {
     @BeforeEach
     void seedFictionalUsers() {
         jdbc.sql("DELETE FROM review_record").update();
+        jdbc.sql("DELETE FROM submission_score_item").update();
         jdbc.sql("DELETE FROM submission_evidence_region").update();
         jdbc.sql("DELETE FROM declaration_submission").update();
+        jdbc.sql("DELETE FROM score_item").update();
         jdbc.sql("DELETE FROM evidence_region").update();
         jdbc.sql("DELETE FROM declaration_pdf").update();
         jdbc.sql("DELETE FROM declaration").update();

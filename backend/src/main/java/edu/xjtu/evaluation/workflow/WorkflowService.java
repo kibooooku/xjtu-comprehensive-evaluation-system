@@ -19,15 +19,18 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.xjtu.evaluation.storage.FileStorageService;
+import edu.xjtu.evaluation.score.ScoreService;
 
 @Service
 public class WorkflowService {
     private final JdbcClient jdbc;
     private final FileStorageService storage;
+    private final ScoreService scores;
 
-    public WorkflowService(JdbcClient jdbc, FileStorageService storage) {
+    public WorkflowService(JdbcClient jdbc, FileStorageService storage, ScoreService scores) {
         this.jdbc = jdbc;
         this.storage = storage;
+        this.scores = scores;
     }
 
     @Transactional
@@ -53,6 +56,8 @@ public class WorkflowService {
         if (!types.contains("IDENTITY")) throw businessError("提交前必须标注身份信息证据");
         if (!types.contains("VALIDITY")) throw businessError("提交前必须标注材料有效性证据");
 
+        scores.validateAndRecalculateForSubmit(declarationId);
+
         long nextVersion = declaration.submissionVersion() + 1;
         String snapshotKey = "submissions/" + declarationId + "/" + nextVersion + "/" + UUID.randomUUID() + ".pdf";
         try (InputStream source = storage.open(pdf.storageKey())) {
@@ -75,6 +80,7 @@ public class WorkflowService {
                 .param("sha", pdf.sha256()).param("documentVersion", pdf.documentVersion())
                 .update(key, "id");
         long submissionId = key.getKey().longValue();
+        scores.snapshot(declarationId, submissionId);
         jdbc.sql("""
                 INSERT INTO submission_evidence_region
                     (submission_id,type,page_number,x,y,width,height,source)

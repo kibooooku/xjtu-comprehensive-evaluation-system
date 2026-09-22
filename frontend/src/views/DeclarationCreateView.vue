@@ -5,6 +5,7 @@ import { declarationApi, type Credentials, type Declaration, type Me } from '@/a
 import { workflowApi } from '@/api/workflow'
 import CommitteeReviewPanel from '@/views/CommitteeReviewPanel.vue'
 import EvidenceEditor from '@/views/EvidenceEditor.vue'
+import ScoreItemsPanel from '@/views/ScoreItemsPanel.vue'
 
 const username = ref('')
 const password = ref('')
@@ -247,6 +248,10 @@ async function revise(item: Declaration) {
           <el-input v-model="editTitle" maxlength="200" aria-label="修改申报标题" />
           <el-button :disabled="busy || !editTitle.trim()" @click="saveTitle">保存标题</el-button>
         </div>
+        <ScoreItemsPanel
+          :key="'score-' + selectedDeclaration.id + '-' + selectedDeclaration.status + '-' + selectedDeclaration.submissionVersion"
+          :credentials="credentials" :declaration="selectedDeclaration" :read-only="selectedDeclaration.status !== 'DRAFT'"
+        />
         <EvidenceEditor
           :key="selectedDeclaration.id + '-' + selectedDeclaration.status + '-' + selectedDeclaration.submissionVersion"
           :credentials="credentials"
