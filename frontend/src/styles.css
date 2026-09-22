@@ -67,3 +67,8 @@ h1 { margin: 0; font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.15; }
 .score-selects { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 12px; }
 .score-selects .el-select { width: 100%; }
 .score-form p { color: #374151; font-weight: 600; }
+
+.candidate-panel { margin-top: 18px; padding: 16px; border: 1px solid #d5e7e0; border-radius: 8px; background: #f3faf7; }
+.candidate-panel p { margin: 10px 0; color: #375149; line-height: 1.6; }
+.candidate-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.candidate-box { position: absolute; border: 2px solid #18a058; background: rgba(24, 160, 88, .16); pointer-events: none; }

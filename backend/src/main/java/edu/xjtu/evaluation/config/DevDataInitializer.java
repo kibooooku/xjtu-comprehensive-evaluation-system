@@ -31,6 +31,8 @@ public class DevDataInitializer implements CommandLineRunner {
         }
         createUser("student-demo", "演示学生");
         createUser("committee-demo", "演示班委");
+        jdbc.sql("UPDATE app_user SET student_number=COALESCE(student_number,'000000000001'),"
+                + "student_name=COALESCE(student_name,'虚构学生') WHERE username='student-demo'").update();
         createMembership("student-demo", "STUDENT");
         createMembership("committee-demo", "CLASS_COMMITTEE");
     }

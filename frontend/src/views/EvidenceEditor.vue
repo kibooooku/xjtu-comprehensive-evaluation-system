@@ -11,6 +11,7 @@ import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url'
 
 import { declarationApi, type Credentials, type Declaration } from '@/api/declarations'
 import { evidenceApi, type EvidenceRegion, type EvidenceType } from '@/api/evidence'
+import { identityCandidateApi, type AnalysisStatus, type IdentityCandidate } from '@/api/identityCandidates'
 import { normalizeDrag, toViewportRect, type NormalizedRect, type Point } from '@/evidence/coordinates'
 
 GlobalWorkerOptions.workerSrc = workerUrl
@@ -31,6 +32,12 @@ const scale = ref(1)
 const viewportWidth = ref(0)
 const viewportHeight = ref(0)
 const regions = ref<EvidenceRegion[]>([])
+const candidates = ref<IdentityCandidate[]>([])
+const analysisStatus = ref<AnalysisStatus>()
+const candidateIndex = ref(0)
+const candidatesIgnored = ref(false)
+const candidateLoading = ref(false)
+const candidateError = ref('')
 const selectedRect = ref<NormalizedRect>()
 const selectedType = ref<EvidenceType>('IDENTITY')
 const editingId = ref<number>()
@@ -41,6 +48,7 @@ const error = ref('')
 const notice = ref('')
 let renderVersion = 0
 let loadVersion = 0
+const activeCandidate = computed(() => candidatesIgnored.value ? undefined : candidates.value[candidateIndex.value])
 
 function rectStyle(rect: NormalizedRect) {
   const box = toViewportRect(rect, viewportWidth.value, viewportHeight.value)
@@ -144,6 +152,32 @@ async function deleteRegion(region: EvidenceRegion) {
   }
 }
 
+function showCandidate(index: number) {
+  if (!candidates.value[index]) return
+  candidateIndex.value = index
+  pageNumber.value = candidates.value[index].pageNumber
+  clearSelection()
+}
+
+async function confirmCandidate() {
+  const candidate = activeCandidate.value
+  if (!candidate || !canEdit.value || !props.declaration.pdf) return
+  busy.value = true
+  candidateError.value = ''
+  try {
+    const saved = await identityCandidateApi.confirm(
+      props.credentials, props.declaration.id, candidate.id, props.declaration.pdf.documentVersion,
+    )
+    regions.value = [...regions.value, saved]
+    candidatesIgnored.value = true
+    notice.value = '身份信息候选区域已确认为证据。'
+  } catch (reason) {
+    candidateError.value = reason instanceof Error ? reason.message : '候选确认失败'
+  } finally {
+    busy.value = false
+  }
+}
+
 async function renderPage() {
   const pdf = document.value
   const target = canvas.value
@@ -188,6 +222,7 @@ async function disposeDocument() {
 async function loadDocument() {
   const version = ++loadVersion
   busy.value = true
+  candidateLoading.value = canEdit.value
   error.value = ''
   try {
     await disposeDocument()
@@ -195,6 +230,11 @@ async function loadDocument() {
     viewportWidth.value = 0
     viewportHeight.value = 0
     regions.value = []
+    candidates.value = []
+    analysisStatus.value = undefined
+    candidateIndex.value = 0
+    candidatesIgnored.value = false
+    candidateError.value = ''
     clearSelection()
     const before = await declarationApi.get(props.credentials, props.declaration.id)
     const [blob, savedRegions] = await Promise.all([
@@ -225,9 +265,28 @@ async function loadDocument() {
     clearSelection()
     await nextTick()
     await renderPage()
+    if (canEdit.value) {
+      candidateLoading.value = true
+      try {
+        const result = await identityCandidateApi.list(props.credentials, props.declaration.id)
+        if (version !== loadVersion) return
+        if (result.documentVersion !== after.pdf?.documentVersion) {
+          throw new Error('PDF 已变化，请重新加载候选区域。')
+        }
+        analysisStatus.value = result.analysisStatus
+        candidates.value = result.candidates
+      } catch (reason) {
+        if (version === loadVersion) {
+          candidateError.value = reason instanceof Error ? reason.message : '候选区域加载失败'
+        }
+      } finally {
+        candidateLoading.value = false
+      }
+    }
   } catch (reason) {
     error.value = reason instanceof Error ? reason.message : 'PDF 加载失败'
   } finally {
+    candidateLoading.value = false
     busy.value = false
   }
 }
@@ -284,6 +343,33 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
     <el-button v-if="error" @click="loadDocument">重新加载 PDF</el-button>
     <el-alert v-if="notice" :title="notice" type="success" :closable="false" />
 
+    <div v-if="canEdit" class="candidate-panel">
+      <strong>身份信息文本候选</strong>
+      <p v-if="candidateLoading">正在检查 PDF 原生文本层…</p>
+      <p v-else-if="candidateError" role="alert">{{ candidateError }}。仍可人工框选。</p>
+      <p v-else-if="analysisStatus === 'NO_TEXT' || analysisStatus === 'FAILED'">
+        未检测到可搜索文本，可人工框选；扫描件将在后续 OCR 功能支持。
+      </p>
+      <p v-else-if="analysisStatus === 'TEXT_AVAILABLE' && candidates.length === 0">
+        未找到与当前学号或姓名完全匹配的文本，可核对上方身份信息或人工框选。
+      </p>
+      <template v-if="!candidatesIgnored && candidates.length > 0">
+        <p>找到 {{ candidates.length }} 处候选。请逐一核对 PDF 内容，确认后才会保存为身份信息证据。</p>
+        <div class="candidate-actions">
+          <el-button v-for="(candidate, index) in candidates" :key="candidate.id"
+            :type="candidateIndex === index ? 'primary' : 'default'" size="small"
+            :disabled="busy" @click="showCandidate(index)">
+            候选 {{ index + 1 }} · 第 {{ candidate.pageNumber }} 页 · {{ candidate.matchedBy === 'STUDENT_NUMBER' ? '学号' : '姓名' }}
+          </el-button>
+        </div>
+        <p v-if="activeCandidate">匹配内容：{{ activeCandidate.matchedText }} · {{ activeCandidate.certainty === 'MULTIPLE' ? '多处匹配，请仔细核对' : '单处匹配' }}</p>
+        <div class="candidate-actions">
+          <el-button type="primary" :disabled="busy || !activeCandidate" @click="confirmCandidate">确认此处身份信息</el-button>
+          <el-button :disabled="busy" @click="candidatesIgnored = true">忽略候选，人工框选</el-button>
+        </div>
+      </template>
+    </div>
+
     <div class="pdf-scroll">
       <div class="pdf-page" :style="{ width: `${viewportWidth}px`, height: `${viewportHeight}px` }">
         <canvas ref="canvas" />
@@ -308,6 +394,8 @@ onBeforeUnmount(() => { loadVersion++; void disposeDocument() })
             @pointerdown.stop
             @click.stop="editRegion(region)"
           />
+          <div v-if="activeCandidate && activeCandidate.pageNumber === pageNumber"
+            class="candidate-box" :style="rectStyle(activeCandidate)" />
           <div v-if="selectedRect" class="selection-box" :style="rectStyle(selectedRect)" />
           <div v-if="currentDrag()" class="selection-box" :style="rectStyle(currentDrag()!)" />
         </div>
