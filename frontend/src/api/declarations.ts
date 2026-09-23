@@ -9,6 +9,8 @@ export interface Me {
   id: number
   username: string
   displayName: string
+  studentNumber: string | null
+  studentName: string | null
   memberships: Membership[]
 }
 
@@ -19,7 +21,7 @@ export interface Declaration {
   title: string
   status: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'
   hasPdf: boolean
-  pdf: null | { originalFilename: string; sizeBytes: number; sha256: string; documentVersion: number }
+  pdf: null | { originalFilename: string; sizeBytes: number; sha256: string; documentVersion: number; pageCount: number | null; analysisStatus: string }
   createdAt: string
   updatedAt: string
   submissionVersion: number
@@ -59,6 +61,11 @@ async function request<T>(
 
 export const declarationApi = {
   me: (credentials: Credentials) => request<Me>('/api/me', credentials),
+  updateIdentity: (credentials: Credentials, studentNumber: string, studentName: string) =>
+    request<Me>('/api/me/identity', credentials, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentNumber, studentName }),
+    }),
   mine: (credentials: Credentials) =>
     request<Declaration[]>('/api/declarations/mine', credentials),
   get: (credentials: Credentials, id: number) =>
@@ -74,7 +81,8 @@ export const declarationApi = {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
-    }),  uploadPdf: (credentials: Credentials, id: number, file: File) => {
+    }),
+  uploadPdf: (credentials: Credentials, id: number, file: File) => {
     const form = new FormData()
     form.append('file', file)
     return request<Declaration>(`/api/declarations/${id}/pdf`, credentials, {

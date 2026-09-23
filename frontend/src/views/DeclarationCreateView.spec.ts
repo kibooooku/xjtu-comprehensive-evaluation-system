@@ -103,7 +103,7 @@ describe('DeclarationCreateView', () => {
     const input = wrapper.get('input[type="file"]')
     Object.defineProperty(input.element, 'files', { configurable: true, value: [file] })
     await input.trigger('change')
-    await wrapper.get('form').trigger('submit')
+    await wrapper.findAll('form')[1]!.trigger('submit')
     await flushPromises()
 
     const credentials = { username: 'student-a', password: 'test-password' }
@@ -146,7 +146,7 @@ describe('DeclarationCreateView', () => {
       value: 'C:\\fakepath\\evidence.pdf',
     })
     await input.trigger('change')
-    await wrapper.get('form').trigger('submit')
+    await wrapper.findAll('form')[1]!.trigger('submit')
     await flushPromises()
 
     expect(wrapper.text()).toContain('草稿已创建，但 PDF 上传失败')

@@ -2,7 +2,7 @@ import { authorization, type Credentials } from './declarations'
 import type { NormalizedRect } from '@/evidence/coordinates'
 
 export type EvidenceType = 'IDENTITY' | 'VALIDITY'
-export type EvidenceSource = 'MANUAL' | 'OCR'
+export type EvidenceSource = 'MANUAL' | 'OCR' | 'PDF_TEXT_AUTO'
 
 export interface EvidenceInput extends NormalizedRect {
   type: EvidenceType

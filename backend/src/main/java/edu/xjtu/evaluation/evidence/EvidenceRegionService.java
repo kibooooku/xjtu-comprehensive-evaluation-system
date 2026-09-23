@@ -6,6 +6,7 @@ import java.security.Principal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import edu.xjtu.evaluation.pdftext.IdentityLocator.Candidate;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -40,6 +41,7 @@ public class EvidenceRegionService {
     public Region create(Principal principal, long declarationId, long expectedVersion, RegionInput input) {
         long documentId = ownedDocumentId(principal, declarationId, true, expectedVersion);
         Coordinates c = coordinates(input);
+        validatePage(documentId, input.pageNumber());
         try {
             var key = new org.springframework.jdbc.support.GeneratedKeyHolder();
             jdbc.sql("""
@@ -58,6 +60,7 @@ public class EvidenceRegionService {
     public Region update(Principal principal, long declarationId, long regionId, long expectedVersion, RegionInput input) {
         long documentId = ownedDocumentId(principal, declarationId, true, expectedVersion);
         Coordinates c = coordinates(input);
+        validatePage(documentId, input.pageNumber());
         try {
             int count = jdbc.sql("""
                     UPDATE evidence_region SET type=:type,page_number=:page,x=:x,y=:y,width=:width,
@@ -81,6 +84,33 @@ public class EvidenceRegionService {
         if (count == 0) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Evidence region not found");
     }
 
+    @Transactional
+    public Region confirmCandidate(Principal principal, long declarationId, long expectedVersion, Candidate candidate) {
+        long documentId = ownedDocumentId(principal, declarationId, true, expectedVersion);
+        if (candidate == null || candidate.pageNumber() < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "候选区域无效");
+        }
+        validatePage(documentId, candidate.pageNumber());
+        RegionInput input = new RegionInput(Type.IDENTITY, candidate.pageNumber(),
+                BigDecimal.valueOf(candidate.x()), BigDecimal.valueOf(candidate.y()),
+                BigDecimal.valueOf(candidate.width()), BigDecimal.valueOf(candidate.height()));
+        Coordinates c = coordinates(input);
+        var key = new org.springframework.jdbc.support.GeneratedKeyHolder();
+        jdbc.sql("""
+                INSERT INTO evidence_region(document_id,type,page_number,x,y,width,height,source)
+                VALUES(:documentId,'IDENTITY',:page,:x,:y,:width,:height,'PDF_TEXT_AUTO')
+                """).param("documentId",documentId).param("page",candidate.pageNumber())
+                .param("x",c.x()).param("y",c.y()).param("width",c.width()).param("height",c.height())
+                .update(key,"id");
+        return requireRegion(key.getKey().longValue(),documentId);
+    }
+
+    private void validatePage(long documentId, int pageNumber) {
+        Integer pageCount = jdbc.sql("SELECT page_count FROM declaration_pdf WHERE id=:id")
+                .param("id",documentId).query(Integer.class).optional().orElse(null);
+        if (pageCount != null && pageNumber > pageCount)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"页码超出当前 PDF 页数");
+    }
     private long ownedDocumentId(Principal principal, long declarationId, boolean lock, Long expectedVersion) {
         String permission = lock
                 ? "u.username=:username AND u.enabled=TRUE AND d.status='DRAFT'"
@@ -121,7 +151,8 @@ public class EvidenceRegionService {
         if (input.pageNumber() < 1) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page number must be positive");
         if (!fitsPage(input.x(), input.y(), input.width(), input.height())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Normalized coordinates must fit within the page");
-        }        BigDecimal x = rounded(input.x()), y = rounded(input.y());
+        }
+        BigDecimal x = rounded(input.x()), y = rounded(input.y());
         BigDecimal width = rounded(input.width()), height = rounded(input.height());
         if (x.compareTo(ZERO) < 0 || x.compareTo(ONE) >= 0
                 || y.compareTo(ZERO) < 0 || y.compareTo(ONE) >= 0
@@ -166,7 +197,7 @@ public class EvidenceRegionService {
     }
 
     public enum Type { IDENTITY, VALIDITY }
-    public enum Source { MANUAL, OCR }
+    public enum Source { MANUAL, OCR, PDF_TEXT_AUTO }
     public record RegionInput(@NotNull Type type, @NotNull Integer pageNumber,
             @NotNull BigDecimal x, @NotNull BigDecimal y,
             @NotNull BigDecimal width, @NotNull BigDecimal height) {}

@@ -11,6 +11,8 @@ const username = ref('')
 const password = ref('')
 const credentials = ref<Credentials | null>(null)
 const me = ref<Me | null>(null)
+const studentNumber = ref('')
+const studentName = ref('')
 const declarations = ref<Declaration[]>([])
 const classId = ref<number>()
 const title = ref('')
@@ -62,12 +64,30 @@ async function login() {
     ])
     credentials.value = next
     me.value = profile
+    studentNumber.value = profile.studentNumber ?? ''
+    studentName.value = profile.studentName ?? ''
     declarations.value = mine
     classId.value = profile.memberships[0]?.classId
   } catch (reason) {
     credentials.value = null
     me.value = null
     error.value = reason instanceof Error ? reason.message : '登录失败'
+  } finally {
+    busy.value = false
+  }
+}
+
+async function saveIdentity() {
+  if (!credentials.value || !studentNumber.value.trim() || !studentName.value.trim()) return
+  busy.value = true
+  error.value = ''
+  try {
+    me.value = await declarationApi.updateIdentity(
+      credentials.value, studentNumber.value.trim(), studentName.value.trim(),
+    )
+    notice.value = '身份信息已保存，PDF 身份候选区域将按新信息重新查找。'
+  } catch (reason) {
+    error.value = reason instanceof Error ? reason.message : '身份信息保存失败'
   } finally {
     busy.value = false
   }
@@ -200,6 +220,17 @@ async function revise(item: Declaration) {
 
     <template v-else>
       <el-card shadow="never" class="form-card">
+        <template #header>身份信息（用于查找 PDF 文本）</template>
+        <el-form label-position="top" @submit.prevent="saveIdentity">
+          <el-form-item label="学号"><el-input v-model="studentNumber" maxlength="32" /></el-form-item>
+          <el-form-item label="姓名"><el-input v-model="studentName" maxlength="100" /></el-form-item>
+          <el-button native-type="submit" :disabled="busy || !studentNumber.trim() || !studentName.trim()" :loading="busy">
+            保存身份信息
+          </el-button>
+        </el-form>
+      </el-card>
+
+      <el-card shadow="never" class="form-card">
         <template #header>{{ me.displayName }} · 新建草稿</template>
         <el-form label-position="top" @submit.prevent="createDeclaration">
           <el-form-item label="所属班级">
@@ -253,7 +284,7 @@ async function revise(item: Declaration) {
           :credentials="credentials" :declaration="selectedDeclaration" :read-only="selectedDeclaration.status !== 'DRAFT'"
         />
         <EvidenceEditor
-          :key="selectedDeclaration.id + '-' + selectedDeclaration.status + '-' + selectedDeclaration.submissionVersion"
+          :key="selectedDeclaration.id + '-' + selectedDeclaration.status + '-' + selectedDeclaration.submissionVersion + '-' + (me.studentNumber ?? '') + '-' + (me.studentName ?? '')"
           :credentials="credentials"
           :declaration="selectedDeclaration"
           :read-only="selectedDeclaration.status !== 'DRAFT'"

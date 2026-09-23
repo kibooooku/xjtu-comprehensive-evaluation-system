@@ -29,18 +29,21 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import edu.xjtu.evaluation.storage.FileStorageService;
+import edu.xjtu.evaluation.pdftext.PdfAnalysisCache;
 
 @Service
 public class DeclarationService {
     private static final byte[] PDF_SIGNATURE = {'%', 'P', 'D', 'F', '-'};
     private final JdbcClient jdbc;
     private final FileStorageService storage;
+    private final PdfAnalysisCache analysisCache;
     private final long maxBytes;
 
-    public DeclarationService(JdbcClient jdbc, FileStorageService storage,
+    public DeclarationService(JdbcClient jdbc, FileStorageService storage, PdfAnalysisCache analysisCache,
             @Value("${app.storage.max-pdf-bytes:10485760}") long maxBytes) {
         this.jdbc = jdbc;
         this.storage = storage;
+        this.analysisCache = analysisCache;
         this.maxBytes = maxBytes;
     }
 
@@ -87,6 +90,7 @@ public class DeclarationService {
         lockOwnedDraft(id, userId);
         if (pdfExists(id)) throw new ResponseStatusException(HttpStatus.CONFLICT, "PDF already uploaded");
         byte[] bytes = validate(file);
+        var analysis = analysisCache.analyze(bytes);
         String key = "declarations/" + id + "/" + UUID.randomUUID() + ".pdf";
         String filename = safeFilename(file.getOriginalFilename());
         String sha = sha256(bytes);
@@ -94,10 +98,14 @@ public class DeclarationService {
             storage.store(key, new ByteArrayInputStream(bytes));
             deleteIfTransactionRollsBack(key);
             jdbc.sql("""
-                    INSERT INTO declaration_pdf(declaration_id,original_filename,media_type,size_bytes,storage_key,sha256)
-                    VALUES(:id,:name,'application/pdf',:size,:key,:sha)
+                    INSERT INTO declaration_pdf(declaration_id,original_filename,media_type,size_bytes,storage_key,sha256,page_count,text_analysis_status)
+                    VALUES(:id,:name,'application/pdf',:size,:key,:sha,:pageCount,:analysisStatus)
                     """).param("id", id).param("name", filename).param("size", bytes.length)
-                    .param("key", key).param("sha", sha).update();
+                    .param("key", key).param("sha", sha)
+                    .param("pageCount", analysis.pageCount()).param("analysisStatus", analysis.status().name()).update();
+            long documentId = jdbc.sql("SELECT id FROM declaration_pdf WHERE declaration_id=:id")
+                    .param("id", id).query(Long.class).single();
+            analysisCache.storeAfterCommit(documentId, 1, analysis, null);
         } catch (DataIntegrityViolationException e) {
             deleteQuietly(key);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "PDF already uploaded", e);
@@ -114,13 +122,14 @@ public class DeclarationService {
     public DeclarationView replacePdf(Principal principal, long id, MultipartFile file) {
         long userId = userId(principal);
         lockOwnedDraft(id, userId);
-        ExistingPdf previous = jdbc.sql("SELECT id,storage_key FROM declaration_pdf WHERE declaration_id=:id")
+        ExistingPdf previous = jdbc.sql("SELECT id,storage_key,document_version FROM declaration_pdf WHERE declaration_id=:id")
                 .param("id", id)
-                .query((rs, n) -> new ExistingPdf(rs.getLong("id"), rs.getString("storage_key")))
+                .query((rs, n) -> new ExistingPdf(rs.getLong("id"), rs.getString("storage_key"), rs.getLong("document_version")))
                 .optional()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "No PDF to replace"));
 
         byte[] bytes = validate(file);
+        var analysis = analysisCache.analyze(bytes);
         String newKey = "declarations/" + id + "/" + UUID.randomUUID() + ".pdf";
         String filename = safeFilename(file.getOriginalFilename());
         String sha = sha256(bytes);
@@ -132,10 +141,14 @@ public class DeclarationService {
             jdbc.sql("""
                     UPDATE declaration_pdf
                     SET original_filename=:name,media_type='application/pdf',size_bytes=:size,
-                        storage_key=:key,sha256=:sha,document_version=document_version+1,created_at=CURRENT_TIMESTAMP
+                        storage_key=:key,sha256=:sha,page_count=:pageCount,text_analysis_status=:analysisStatus,
+                        document_version=document_version+1,created_at=CURRENT_TIMESTAMP
                     WHERE id=:documentId
                     """).param("name", filename).param("size", bytes.length).param("key", newKey)
-                    .param("sha", sha).param("documentId", previous.id()).update();
+                    .param("sha", sha).param("pageCount", analysis.pageCount())
+                    .param("analysisStatus", analysis.status().name())
+                    .param("documentId", previous.id()).update();
+            analysisCache.storeAfterCommit(previous.id(), previous.version() + 1, analysis, previous.version());
             deleteAfterCommit(previous.key());
         } catch (IOException e) {
             deleteQuietly(newKey);
@@ -186,7 +199,7 @@ public class DeclarationService {
     private List<DeclarationView> queryOwned(String suffix, long userId, Long id, boolean readable) {
         var spec = jdbc.sql("""
                 SELECT d.id,cg.id class_id,cg.name class_name,d.title,d.status,d.created_at,d.updated_at,
-                       p.original_filename,p.size_bytes,p.sha256,p.document_version,
+                       p.original_filename,p.size_bytes,p.sha256,p.document_version,p.page_count,p.text_analysis_status,
                        d.submission_version,r.reason_code,r.custom_reason
                 FROM declaration d JOIN class_membership cm ON cm.id=d.class_membership_id
                 JOIN class_group cg ON cg.id=cm.class_id LEFT JOIN declaration_pdf p ON p.declaration_id=d.id
@@ -200,7 +213,8 @@ public class DeclarationService {
         if (id != null) spec.param("id", id);
         return spec.query((rs, n) -> {
             String name = rs.getString("original_filename");
-            PdfInfo pdf = name == null ? null : new PdfInfo(name, rs.getLong("size_bytes"), rs.getString("sha256"), rs.getLong("document_version"));
+            PdfInfo pdf = name == null ? null : new PdfInfo(name, rs.getLong("size_bytes"), rs.getString("sha256"), rs.getLong("document_version"),
+                    (Integer) rs.getObject("page_count"), rs.getString("text_analysis_status"));
             return new DeclarationView(rs.getLong("id"), rs.getLong("class_id"), rs.getString("class_name"),
                     rs.getString("title"), rs.getString("status"), pdf != null, pdf,
                     instant(rs.getTimestamp("created_at")), instant(rs.getTimestamp("updated_at")),
@@ -275,11 +289,12 @@ public class DeclarationService {
     private Instant instant(Timestamp value) { return value.toInstant(); }
 
     public record CreateRequest(@NotNull Long classId, @NotBlank @Size(max=200) String title) {}
-    public record PdfInfo(String originalFilename, long sizeBytes, String sha256, long documentVersion) {}
+    public record PdfInfo(String originalFilename, long sizeBytes, String sha256, long documentVersion,
+            Integer pageCount, String analysisStatus) {}
     public record DeclarationView(long id, long classId, String className, String title, String status,
             boolean hasPdf, PdfInfo pdf, Instant createdAt, Instant updatedAt,
             long submissionVersion, String latestReasonCode, String latestCustomReason) {}
     public record Download(String filename, long size, InputStream content) {}
     private record StoredPdf(String key, String filename, long size) {}
-    private record ExistingPdf(long id, String key) {}
+    private record ExistingPdf(long id, String key, long version) {}
 }

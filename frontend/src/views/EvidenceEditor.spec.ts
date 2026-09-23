@@ -11,11 +11,16 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
+  candidateList: vi.fn(),
+  candidateConfirm: vi.fn(),
   getDocument: vi.fn(),
 }))
 vi.mock('@/api/declarations', () => ({ declarationApi: { pdf: mocks.pdf, get: mocks.get, replacePdf: mocks.replacePdf } }))
 vi.mock('@/api/evidence', () => ({ evidenceApi: {
   list: mocks.list, create: mocks.create, update: mocks.update, delete: mocks.delete,
+} }))
+vi.mock('@/api/identityCandidates', () => ({ identityCandidateApi: {
+  list: mocks.candidateList, confirm: mocks.candidateConfirm,
 } }))
 vi.mock('pdfjs-dist', () => ({
   GlobalWorkerOptions: {},
@@ -59,6 +64,7 @@ describe('EvidenceEditor', () => {
     mocks.pdf.mockResolvedValue({ arrayBuffer: async () => new Uint8Array([1, 2]).buffer })
     mocks.get.mockResolvedValue(declaration)
     mocks.list.mockResolvedValue([])
+    mocks.candidateList.mockResolvedValue({ documentVersion: 1, pageCount: 2, analysisStatus: 'NO_TEXT', candidates: [] })
     mocks.getDocument.mockImplementation(() => ({
       promise: Promise.resolve({
         numPages: 2,
@@ -277,4 +283,47 @@ describe('EvidenceEditor', () => {
     expect(wrapper.findAll('.evidence-box')).toHaveLength(1)
     wrapper.unmount()
   })
-})
+  it('shows native-text candidates and confirms server geometry at the current version', async () => {
+    const candidate = {
+      id: 'candidate-fictional', pageNumber: 2, x: 0.2, y: 0.3, width: 0.2, height: 0.1,
+      matchedText: '2400000001', matchedBy: 'STUDENT_NUMBER', source: 'PDF_TEXT', certainty: 'HIGH',
+    }
+    mocks.candidateList.mockResolvedValue({
+      documentVersion: 1, pageCount: 2, analysisStatus: 'TEXT_AVAILABLE', candidates: [candidate],
+    })
+    mocks.candidateConfirm.mockResolvedValue({ ...region, pageNumber: 2, source: 'PDF_TEXT_AUTO' })
+    const wrapper = await renderEditor()
+    expect(wrapper.text()).toContain('2400000001')
+    expect(wrapper.text()).toContain('候选 1 · 第 2 页 · 学号')
+    await button(wrapper, '候选 1').trigger('click')
+    await flushPromises()
+    expect(wrapper.text()).toContain('2 / 2')
+    await button(wrapper, '确认此处身份信息').trigger('click')
+    await flushPromises()
+    expect(mocks.candidateConfirm).toHaveBeenCalledWith(credentials, 42, candidate.id, 1)
+    expect(wrapper.findAll('.evidence-box')).toHaveLength(1)
+    expect(wrapper.text()).not.toContain('忽略候选，人工框选')
+    wrapper.unmount()
+  })
+
+  it('can ignore text candidates and manually annotate a PDF without text', async () => {
+    mocks.candidateList.mockResolvedValue({
+      documentVersion: 1, pageCount: 2, analysisStatus: 'NO_TEXT', candidates: [],
+    })
+    const blank = await renderEditor()
+    expect(blank.text()).toContain('未检测到可搜索文本')
+    expect(blank.get('[aria-label="PDF 证据框选层"]').exists()).toBe(true)
+    blank.unmount()
+
+    mocks.candidateList.mockResolvedValue({
+      documentVersion: 1, pageCount: 2, analysisStatus: 'TEXT_AVAILABLE',
+      candidates: [{ id: 'candidate-fictional', pageNumber: 1, x: 0.1, y: 0.1, width: 0.2,
+        height: 0.1, matchedText: 'Alex Example', matchedBy: 'NAME', source: 'PDF_TEXT', certainty: 'HIGH' }],
+    })
+    const wrapper = await renderEditor()
+    await button(wrapper, '忽略候选，人工框选').trigger('click')
+    expect(wrapper.text()).not.toContain('确认此处身份信息')
+    expect(wrapper.get('[aria-label="PDF 证据框选层"]').exists()).toBe(true)
+    expect(mocks.candidateConfirm).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })})
