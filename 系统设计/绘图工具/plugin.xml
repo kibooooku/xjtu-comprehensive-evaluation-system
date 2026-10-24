@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin id="deyu.design.review.v1" name="Deyu Design Review Generator" description="Local UML, DFD and ER design artifact generation only" provider="Project Design" class="deyu.design.DesignPlugin">
+  <runtime><library path="classes"/></runtime>
+</plugin>

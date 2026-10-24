@@ -1,0 +1,421 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2105px" height="1363px" viewBox="0 0 2105 1363"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">数据流图：P2 材料识别与人工确认</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">逻辑 DFD · 流编号对应完整数据流字典；箭头表示数据内容 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 1239.36)">
+<title>Design</title>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-1239.36 2076.47,-1239.36 2076.47,28.8 -28.8,28.8"/>
+<!-- E1&#45;&gt;P2.1 -->
+<g id="e0" class="edge">
+<title>E1&#45;&gt;P2.1</title>
+<g id="a_e0"><a xlink:title="申请原件；所选学年、大类及草稿字段">
+<path fill="none" stroke="#326a80" d="M1124.9,-1171.26C920.33,-1135.66 391.33,-1043.6 391.33,-1043.6 391.33,-1043.6 365.83,-1038.14 335.86,-1031.72"/>
+<polygon fill="#326a80" stroke="#326a80" points="336.47,-1029.52 329.63,-1030.39 335.51,-1033.97 336.47,-1029.52"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="822.21,-1083.6 822.21,-1121.6 976.21,-1121.6 976.21,-1083.6 822.21,-1083.6"/>
+<text xml:space="preserve" text-anchor="start" x="884.48" y="-1107.6" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F01</text>
+<text xml:space="preserve" text-anchor="start" x="884.21" y="-1089.6" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">申请原件</text>
+</g>
+<!-- E1&#45;&gt;P2.4 -->
+<g id="e17" class="edge">
+<title>E1&#45;&gt;P2.4</title>
+<g id="a_e17"><a xlink:title="学生确认值、活动匹配修正及手动截图修订">
+<path fill="none" stroke="#326a80" d="M1232.27,-1161.31C1288.14,-1113.76 1408.33,-1011.48 1408.33,-1011.48 1408.33,-1011.48 1408.33,-1011.48 1408.33,-605 1408.33,-605 1383.33,-476.88 1383.33,-476.88 1383.33,-476.88 773.38,-430.23 534.58,-411.97"/>
+<polygon fill="#326a80" stroke="#326a80" points="535.1,-409.73 528.45,-411.5 534.75,-414.26 535.1,-409.73"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1408.33,-780.24 1408.33,-836.24 1562.33,-836.24 1562.33,-780.24 1408.33,-780.24"/>
+<text xml:space="preserve" text-anchor="start" x="1470.61" y="-822.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F18</text>
+<text xml:space="preserve" text-anchor="start" x="1440.33" y="-804.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">学生确认值、活动匹配修正</text>
+<text xml:space="preserve" text-anchor="start" x="1462.83" y="-786.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">及手动截图…</text>
+</g>
+<!-- E4&#45;&gt;P2.2 -->
+<g id="e7" class="edge">
+<title>E4&#45;&gt;P2.2</title>
+<g id="a_e7"><a xlink:title="文字、置信度及位置；印章内容及位置；失败／额度耗尽结果">
+<path fill="none" stroke="#326a80" d="M487.34,-985.47C484.72,-964.49 481.33,-937.36 481.33,-937.36 481.33,-937.36 481.33,-881.36 481.33,-881.36 481.33,-881.36 508.91,-863.92 536.93,-846.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="538.11,-848.13 542.39,-842.73 535.68,-844.29 538.11,-848.13"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="481.33,-890.36 481.33,-928.36 635.33,-928.36 635.33,-890.36 481.33,-890.36"/>
+<text xml:space="preserve" text-anchor="start" x="543.61" y="-914.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F08</text>
+<text xml:space="preserve" text-anchor="start" x="524.58" y="-896.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">文字、置信度及位置</text>
+</g>
+<!-- E5&#45;&gt;P2.3 -->
+<g id="e13" class="edge">
+<title>E5&#45;&gt;P2.3</title>
+<g id="a_e13"><a xlink:title="条目细项、建议分值、活动匹配建议；失败结果">
+<path fill="none" stroke="#326a80" d="M389.7,-783.44C390.28,-746.39 391.33,-679.12 391.33,-679.12 391.33,-679.12 402.3,-662.97 413.86,-645.96"/>
+<polygon fill="#326a80" stroke="#326a80" points="415.51,-647.59 417.28,-640.94 411.74,-645.03 415.51,-647.59"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="391.33,-679.12 391.33,-735.12 545.33,-735.12 545.33,-679.12 391.33,-679.12"/>
+<text xml:space="preserve" text-anchor="start" x="453.61" y="-721.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F14</text>
+<text xml:space="preserve" text-anchor="start" x="423.33" y="-703.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">条目细项、建议分值、活动</text>
+<text xml:space="preserve" text-anchor="start" x="453.33" y="-685.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">匹配建议</text>
+</g>
+<!-- P2.1&#45;&gt;P2.2 -->
+<g id="e4" class="edge">
+<title>P2.1&#45;&gt;P2.2</title>
+<g id="a_e4"><a xlink:title="待识别文件页及材料引用">
+<path fill="none" stroke="#326a80" d="M260.71,-976.82C283.22,-938.86 317.33,-881.36 317.33,-881.36 317.33,-881.36 488.33,-841.36 488.33,-841.36 488.33,-841.36 493.36,-839.85 501.23,-837.49"/>
+<polygon fill="#326a80" stroke="#326a80" points="501.44,-839.8 507.01,-835.75 500.13,-835.44 501.44,-839.8"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="317.33,-890.36 317.33,-928.36 471.33,-928.36 471.33,-890.36 317.33,-890.36"/>
+<text xml:space="preserve" text-anchor="start" x="379.61" y="-914.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F05</text>
+<text xml:space="preserve" text-anchor="start" x="353.08" y="-896.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">待识别文件页及材料引用</text>
+</g>
+<!-- P2.1&#45;&gt;P2.4 -->
+<g id="e5" class="edge">
+<title>P2.1&#45;&gt;P2.4</title>
+<g id="a_e5"><a xlink:title="学年、大类、草稿字段及材料引用">
+<path fill="none" stroke="#326a80" d="M239.55,-976.93C235.58,-904.25 226.33,-735.12 226.33,-735.12 226.33,-735.12 226.33,-679.12 226.33,-679.12 226.33,-679.12 351.14,-519.11 410.13,-443.48"/>
+<polygon fill="#326a80" stroke="#326a80" points="411.81,-445.03 414.01,-438.5 408.22,-442.23 411.81,-445.03"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="226.33,-679.12 226.33,-735.12 380.33,-735.12 380.33,-679.12 226.33,-679.12"/>
+<text xml:space="preserve" text-anchor="start" x="288.61" y="-721.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F06</text>
+<text xml:space="preserve" text-anchor="start" x="258.33" y="-703.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">学年、大类、草稿字段及材</text>
+<text xml:space="preserve" text-anchor="start" x="292.08" y="-685.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">料引用</text>
+</g>
+<!-- P2.1&#45;&gt;D4 -->
+<g id="e3" class="edge">
+<title>P2.1&#45;&gt;D4</title>
+<g id="a_e3"><a xlink:title="原件、文件页信息及所属申请">
+<path fill="none" stroke="#a08e68" d="M204.84,-976.86C141.37,-920.12 17.33,-809.24 17.33,-809.24 17.33,-809.24 17.33,-809.24 17.33,-200.52 17.33,-200.52 66.33,-72.4 66.33,-72.4 66.33,-72.4 79.52,-54.2 90.75,-38.7"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="92.54,-40.11 94.51,-33.51 88.86,-37.44 92.54,-40.11"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="17.33,-476.88 17.33,-532.88 171.33,-532.88 171.33,-476.88 17.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="79.61" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F04</text>
+<text xml:space="preserve" text-anchor="start" x="49.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">原件、文件页信息及所属申</text>
+<text xml:space="preserve" text-anchor="start" x="90.58" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">请</text>
+</g>
+<!-- P2.2&#45;&gt;E4 -->
+<g id="e6" class="edge">
+<title>P2.2&#45;&gt;E4</title>
+<g id="a_e6"><a xlink:title="待识别文件页；文字／印章识别类型">
+<path fill="none" stroke="#326a80" d="M617.99,-841.92C631.22,-861.01 645.33,-881.36 645.33,-881.36 645.33,-881.36 645.33,-937.36 645.33,-937.36 645.33,-937.36 593.02,-961.7 549.18,-982.1"/>
+<polygon fill="#326a80" stroke="#326a80" points="548.25,-980.02 543.32,-984.83 550.17,-984.15 548.25,-980.02"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="645.33,-890.36 645.33,-928.36 799.33,-928.36 799.33,-890.36 645.33,-890.36"/>
+<text xml:space="preserve" text-anchor="start" x="707.61" y="-914.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F07</text>
+<text xml:space="preserve" text-anchor="start" x="699.83" y="-896.36" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">待识别文件页</text>
+</g>
+<!-- P2.2&#45;&gt;P2.3 -->
+<g id="e8" class="edge">
+<title>P2.2&#45;&gt;P2.3</title>
+<g id="a_e8"><a xlink:title="可用识别文本与识别结果说明">
+<path fill="none" stroke="#326a80" d="M584.12,-774.58C571.08,-736.62 551.33,-679.12 551.33,-679.12 551.33,-679.12 524.48,-661.68 497.19,-643.94"/>
+<polygon fill="#326a80" stroke="#326a80" points="498.6,-642.14 491.91,-640.51 496.12,-645.96 498.6,-642.14"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="569.39,-679.12 569.39,-735.12 723.39,-735.12 723.39,-679.12 569.39,-679.12"/>
+<text xml:space="preserve" text-anchor="start" x="631.67" y="-721.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F09</text>
+<text xml:space="preserve" text-anchor="start" x="601.39" y="-703.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">可用识别文本与识别结果说</text>
+<text xml:space="preserve" text-anchor="start" x="642.64" y="-685.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">明</text>
+</g>
+<!-- P2.2&#45;&gt;P2.4 -->
+<g id="e9" class="edge">
+<title>P2.2&#45;&gt;P2.4</title>
+<g id="a_e9"><a xlink:title="文字／印章定位候选；缺失证据及人工补填信息">
+<path fill="none" stroke="#326a80" d="M657.87,-774.56C694.39,-755.47 733.33,-735.12 733.33,-735.12 733.33,-735.12 733.33,-679.12 733.33,-679.12 733.33,-679.12 604.33,-476.88 604.33,-476.88 604.33,-476.88 562.97,-458.69 521.79,-440.58"/>
+<polygon fill="#326a80" stroke="#326a80" points="522.91,-438.59 516.04,-438.05 521.08,-442.75 522.91,-438.59"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="707.26,-587 707.26,-625 861.26,-625 861.26,-587 707.26,-587"/>
+<text xml:space="preserve" text-anchor="start" x="769.53" y="-611" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F10</text>
+<text xml:space="preserve" text-anchor="start" x="750.51" y="-593" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">文字／印章定位候选</text>
+</g>
+<!-- P2.3&#45;&gt;E5 -->
+<g id="e12" class="edge">
+<title>P2.3&#45;&gt;E5</title>
+<g id="a_e12"><a xlink:title="识别文本、学生所选大类、适用评分标准、规范活动候选">
+<path fill="none" stroke="#326a80" d="M527.08,-626.61C621.54,-647.97 759.33,-679.12 759.33,-679.12 759.33,-679.12 759.33,-735.12 759.33,-735.12 759.33,-735.12 489.33,-775.12 489.33,-775.12 489.33,-775.12 482.09,-777.45 471.5,-780.85"/>
+<polygon fill="#326a80" stroke="#326a80" points="471.03,-778.61 465.54,-782.76 472.42,-782.94 471.03,-778.61"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="759.33,-679.12 759.33,-735.12 913.33,-735.12 913.33,-679.12 759.33,-679.12"/>
+<text xml:space="preserve" text-anchor="start" x="821.61" y="-721.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F13</text>
+<text xml:space="preserve" text-anchor="start" x="791.33" y="-703.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">识别文本、学生所选大类、</text>
+<text xml:space="preserve" text-anchor="start" x="813.83" y="-685.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">适用评分标…</text>
+</g>
+<!-- P2.3&#45;&gt;P2.4 -->
+<g id="e14" class="edge">
+<title>P2.3&#45;&gt;P2.4</title>
+<g id="a_e14"><a xlink:title="条目／分值／活动建议；待人工补填字段">
+<path fill="none" stroke="#326a80" d="M440.33,-572.38C440.33,-537.62 440.33,-482.53 440.33,-445.08"/>
+<polygon fill="#326a80" stroke="#326a80" points="442.61,-445.38 440.33,-438.88 438.06,-445.38 442.61,-445.38"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="440.33,-485.88 440.33,-523.88 594.33,-523.88 594.33,-485.88 440.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="502.61" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F15</text>
+<text xml:space="preserve" text-anchor="start" x="479.83" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">条目／分值／活动建议</text>
+</g>
+<!-- P2.4&#45;&gt;E1 -->
+<g id="e16" class="edge">
+<title>P2.4&#45;&gt;E1</title>
+<g id="a_e16"><a xlink:title="AI建议、候选截图、待人工补填信息">
+<path fill="none" stroke="#326a80" d="M527.28,-434.2C586.17,-454.14 653.33,-476.88 653.33,-476.88 653.33,-476.88 871.33,-572.88 871.33,-572.88 871.33,-572.88 985.33,-679.12 985.33,-679.12 985.33,-679.12 1005.33,-841.36 1005.33,-841.36 1005.33,-841.36 1242.33,-881.36 1242.33,-881.36 1242.33,-881.36 1308.33,-1083.6 1308.33,-1083.6 1308.33,-1083.6 1308.33,-1121.6 1308.33,-1121.6 1308.33,-1121.6 1278.14,-1140.03 1250.29,-1157.03"/>
+<polygon fill="#326a80" stroke="#326a80" points="1249.31,-1154.96 1244.94,-1160.29 1251.68,-1158.85 1249.31,-1154.96"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1005.33,-780.24 1005.33,-836.24 1159.33,-836.24 1159.33,-780.24 1005.33,-780.24"/>
+<text xml:space="preserve" text-anchor="start" x="1067.61" y="-822.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F17</text>
+<text xml:space="preserve" text-anchor="start" x="1035.81" y="-804.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">AI建议、候选截图、待人工</text>
+<text xml:space="preserve" text-anchor="start" x="1067.33" y="-786.24" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">补填信息</text>
+</g>
+<!-- P2.4&#45;&gt;P2.5 -->
+<g id="e18" class="edge">
+<title>P2.4&#45;&gt;P2.5</title>
+<g id="a_e18"><a xlink:title="确认后的草稿、两类截图、来源定位及手动改分标记">
+<path fill="none" stroke="#326a80" d="M414.5,-370.08C399.42,-350.99 383.33,-330.64 383.33,-330.64 383.33,-330.64 383.33,-274.64 383.33,-274.64 383.33,-274.64 384.18,-259.33 385.1,-242.82"/>
+<polygon fill="#326a80" stroke="#326a80" points="387.35,-243.33 385.44,-236.71 382.8,-243.08 387.35,-243.33"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="383.33,-274.64 383.33,-330.64 537.33,-330.64 537.33,-274.64 383.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="445.61" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F19</text>
+<text xml:space="preserve" text-anchor="start" x="415.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">确认后的草稿、两类截图、</text>
+<text xml:space="preserve" text-anchor="start" x="437.83" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">来源定位及…</text>
+</g>
+<!-- P2.5&#45;&gt;E1 -->
+<g id="e22" class="edge">
+<title>P2.5&#45;&gt;E1</title>
+<g id="a_e22"><a xlink:title="草稿保存结果">
+<path fill="none" stroke="#326a80" d="M377.11,-234.94C361.71,-283.79 334.33,-370.64 334.33,-370.64 334.33,-370.64 334.33,-436.88 334.33,-436.88 334.33,-436.88 604.33,-476.88 604.33,-476.88 604.33,-476.88 871.33,-572.88 871.33,-572.88 871.33,-572.88 1165.33,-775.12 1165.33,-775.12 1165.33,-775.12 1282.33,-881.36 1282.33,-881.36 1282.33,-881.36 1315.33,-977.36 1315.33,-977.36 1315.33,-977.36 1339.33,-1083.6 1339.33,-1083.6 1339.33,-1083.6 1339.33,-1121.6 1339.33,-1121.6 1339.33,-1121.6 1299.14,-1140.5 1262.61,-1157.68"/>
+<polygon fill="#326a80" stroke="#326a80" points="1261.65,-1155.61 1256.74,-1160.44 1263.59,-1159.73 1261.65,-1155.61"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1107.05,-688.12 1107.05,-726.12 1261.05,-726.12 1261.05,-688.12 1107.05,-688.12"/>
+<text xml:space="preserve" text-anchor="start" x="1169.32" y="-712.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">P2&#45;F23</text>
+<text xml:space="preserve" text-anchor="start" x="1161.55" y="-694.12" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">草稿保存结果</text>
+</g>
+<!-- P2.5&#45;&gt;D3 -->
+<g id="e19" class="edge">
+<title>P2.5&#45;&gt;D3</title>
+<g id="a_e19"><a xlink:title="工作草稿、修订版本、AI建议及手动改分标记">
+<path fill="none" stroke="#a08e68" d="M386.98,-168.17C386.58,-131.37 385.93,-72.22 385.58,-39.97"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="387.86,-39.99 385.51,-33.52 383.31,-40.04 387.86,-39.99"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="386.51,-72.4 386.51,-128.4 540.51,-128.4 540.51,-72.4 386.51,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="448.79" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F20</text>
+<text xml:space="preserve" text-anchor="start" x="416.99" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">工作草稿、修订版本、AI建</text>
+<text xml:space="preserve" text-anchor="start" x="444.76" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">议及手动…</text>
+</g>
+<!-- P2.5&#45;&gt;D4 -->
+<g id="e20" class="edge">
+<title>P2.5&#45;&gt;D4</title>
+<g id="a_e20"><a xlink:title="两类关键截图及原件页／坐标关联">
+<path fill="none" stroke="#a08e68" d="M312.56,-167.84C268.9,-148.75 222.33,-128.4 222.33,-128.4 222.33,-128.4 160.95,-69.56 127.49,-37.48"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="129.34,-36.1 123.07,-33.24 126.19,-39.38 129.34,-36.1"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="222.33,-72.4 222.33,-128.4 376.33,-128.4 376.33,-72.4 222.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="284.61" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F21</text>
+<text xml:space="preserve" text-anchor="start" x="254.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">两类关键截图及原件页／坐</text>
+<text xml:space="preserve" text-anchor="start" x="288.08" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">标关联</text>
+</g>
+<!-- P2.5&#45;&gt;D6 -->
+<g id="e21" class="edge">
+<title>P2.5&#45;&gt;D6</title>
+<g id="a_e21"><a xlink:title="草稿修订审计及版本引用">
+<path fill="none" stroke="#a08e68" d="M461.2,-167.84C504.33,-148.75 550.33,-128.4 550.33,-128.4 550.33,-128.4 596.13,-70.52 621.65,-38.28"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="623.28,-39.89 625.53,-33.38 619.71,-37.07 623.28,-39.89"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="594.33,-81.4 594.33,-119.4 748.33,-119.4 748.33,-81.4 594.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="656.61" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F22</text>
+<text xml:space="preserve" text-anchor="start" x="630.08" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">草稿修订审计及版本引用</text>
+</g>
+<!-- D1&#45;&gt;P2.1 -->
+<g id="e1" class="edge">
+<title>D1&#45;&gt;P2.1</title>
+<g id="a_e1"><a xlink:title="本人身份与所属班级">
+<path fill="none" stroke="#a08e68" d="M1368.11,-1169.89C1242.86,-1141.58 986.33,-1083.6 986.33,-1083.6 986.33,-1083.6 391.33,-1043.6 391.33,-1043.6 391.33,-1043.6 365.83,-1038.14 335.86,-1031.72"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="336.47,-1029.52 329.63,-1030.39 335.51,-1033.97 336.47,-1029.52"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1144.38,-1083.6 1144.38,-1121.6 1298.38,-1121.6 1298.38,-1083.6 1144.38,-1083.6"/>
+<text xml:space="preserve" text-anchor="start" x="1206.65" y="-1107.6" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F02</text>
+<text xml:space="preserve" text-anchor="start" x="1187.63" y="-1089.6" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">本人身份与所属班级</text>
+</g>
+<!-- D2&#45;&gt;P2.3 -->
+<g id="e10" class="edge">
+<title>D2&#45;&gt;P2.3</title>
+<g id="a_e10"><a xlink:title="所选学年及七类评分标准">
+<path fill="none" stroke="#a08e68" d="M1639.19,-1169.96C1464.41,-1116.17 883.33,-937.36 883.33,-937.36 883.33,-937.36 828.33,-841.36 828.33,-841.36 828.33,-841.36 828.33,-775.12 828.33,-775.12 828.33,-775.12 923.33,-735.12 923.33,-735.12 923.33,-735.12 923.33,-679.12 923.33,-679.12 923.33,-679.12 675.75,-642.15 535.1,-621.15"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="535.5,-618.91 528.74,-620.2 534.83,-623.41 535.5,-618.91"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="883.33,-890.36 883.33,-928.36 1037.33,-928.36 1037.33,-890.36 883.33,-890.36"/>
+<text xml:space="preserve" text-anchor="start" x="945.61" y="-914.36" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F11</text>
+<text xml:space="preserve" text-anchor="start" x="919.08" y="-896.36" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">所选学年及七类评分标准</text>
+</g>
+<!-- D3&#45;&gt;P2.1 -->
+<g id="e2" class="edge">
+<title>D3&#45;&gt;P2.1</title>
+<g id="a_e2"><a xlink:title="现有工作草稿及当前提交轮次">
+<path fill="none" stroke="#a08e68" d="M321.91,-32.36C253.52,-48.7 154.33,-72.4 154.33,-72.4 154.33,-72.4 154.33,-128.4 154.33,-128.4 154.33,-128.4 334.33,-436.88 334.33,-436.88 334.33,-436.88 1180.33,-476.88 1180.33,-476.88 1180.33,-476.88 1219.33,-532.88 1219.33,-532.88 1219.33,-532.88 1336.33,-679.12 1336.33,-679.12 1336.33,-679.12 1336.33,-735.12 1336.33,-735.12 1336.33,-735.12 1246.33,-937.36 1246.33,-937.36 1246.33,-937.36 391.33,-977.36 391.33,-977.36 391.33,-977.36 365.83,-982.82 335.86,-989.24"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="335.51,-986.99 329.63,-990.57 336.47,-991.44 335.51,-986.99"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1219.33,-476.88 1219.33,-532.88 1373.33,-532.88 1373.33,-476.88 1219.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="1281.61" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F03</text>
+<text xml:space="preserve" text-anchor="start" x="1251.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">现有工作草稿及当前提交轮</text>
+<text xml:space="preserve" text-anchor="start" x="1292.58" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">次</text>
+</g>
+<!-- D4&#45;&gt;P2.4 -->
+<g id="e15" class="edge">
+<title>D4&#45;&gt;P2.4</title>
+<g id="a_e15"><a xlink:title="已有原件页及证据来源定位">
+<path fill="none" stroke="#a08e68" d="M212.6,-30.56C342.53,-46.9 545.33,-72.4 545.33,-72.4 545.33,-72.4 545.33,-128.4 545.33,-128.4 545.33,-128.4 543.33,-330.64 543.33,-330.64 543.33,-330.64 518.63,-347.94 493.42,-365.59"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="492.27,-363.62 488.25,-369.21 494.88,-367.34 492.27,-363.62"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="544.93,-182.52 544.93,-220.52 698.93,-220.52 698.93,-182.52 544.93,-182.52"/>
+<text xml:space="preserve" text-anchor="start" x="607.2" y="-206.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F16</text>
+<text xml:space="preserve" text-anchor="start" x="576.93" y="-188.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">已有原件页及证据来源定位</text>
+</g>
+<!-- D5&#45;&gt;P2.3 -->
+<g id="e11" class="edge">
+<title>D5&#45;&gt;P2.3</title>
+<g id="a_e11"><a xlink:title="规范活动、别名及资格适用范围">
+<path fill="none" stroke="#a08e68" d="M1888.89,-1169.96C1702.39,-1116.17 1082.33,-937.36 1082.33,-937.36 1082.33,-937.36 1043.33,-881.36 1043.33,-881.36 1043.33,-881.36 920.33,-841.36 920.33,-841.36 920.33,-841.36 920.33,-775.12 920.33,-775.12 920.33,-775.12 954.33,-735.12 954.33,-735.12 954.33,-735.12 954.33,-679.12 954.33,-679.12 954.33,-679.12 656.33,-639.12 656.33,-639.12 656.33,-639.12 593.08,-629.71 535.04,-621.08"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="535.52,-618.85 528.75,-620.15 534.85,-623.35 535.52,-618.85"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1082.33,-881.36 1082.33,-937.36 1236.33,-937.36 1236.33,-881.36 1082.33,-881.36"/>
+<text xml:space="preserve" text-anchor="start" x="1144.61" y="-923.36" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">P2&#45;F12</text>
+<text xml:space="preserve" text-anchor="start" x="1114.33" y="-905.36" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">规范活动、别名及资格适用</text>
+<text xml:space="preserve" text-anchor="start" x="1151.83" y="-887.36" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">范围</text>
+</g>
+<!-- E1 -->
+<g id="node1" class="node">
+<title>E1</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="1283.53,-1210.56 1125.13,-1210.56 1125.13,-1161.6 1283.53,-1161.6 1283.53,-1210.56"/>
+<text xml:space="preserve" text-anchor="middle" x="1204.33" y="-1189.68" font-family="Microsoft YaHei" font-size="12.00">E1</text>
+<text xml:space="preserve" text-anchor="middle" x="1204.33" y="-1175.28" font-family="Microsoft YaHei" font-size="12.00">学生用户</text>
+</g>
+<!-- E4 -->
+<g id="node2" class="node">
+<title>E4</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="569.53,-1034.96 411.13,-1034.96 411.13,-986 569.53,-986 569.53,-1034.96"/>
+<text xml:space="preserve" text-anchor="middle" x="490.33" y="-1014.08" font-family="Microsoft YaHei" font-size="12.00">E4</text>
+<text xml:space="preserve" text-anchor="middle" x="490.33" y="-999.68" font-family="Microsoft YaHei" font-size="12.00">腾讯云 OCR</text>
+</g>
+<!-- E5 -->
+<g id="node3" class="node">
+<title>E5</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="468.53,-832.72 310.13,-832.72 310.13,-783.76 468.53,-783.76 468.53,-832.72"/>
+<text xml:space="preserve" text-anchor="middle" x="389.33" y="-811.84" font-family="Microsoft YaHei" font-size="12.00">E5</text>
+<text xml:space="preserve" text-anchor="middle" x="389.33" y="-797.44" font-family="Microsoft YaHei" font-size="12.00">DeepSeek</text>
+</g>
+<!-- P2.1 -->
+<g id="node4" class="node">
+<title>P2.1</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M315.73,-1043.6C315.73,-1043.6 166.93,-1043.6 166.93,-1043.6 160.93,-1043.6 154.93,-1037.6 154.93,-1031.6 154.93,-1031.6 154.93,-989.36 154.93,-989.36 154.93,-983.36 160.93,-977.36 166.93,-977.36 166.93,-977.36 315.73,-977.36 315.73,-977.36 321.73,-977.36 327.73,-983.36 327.73,-989.36 327.73,-989.36 327.73,-1031.6 327.73,-1031.6 327.73,-1037.6 321.73,-1043.6 315.73,-1043.6"/>
+<text xml:space="preserve" text-anchor="middle" x="241.33" y="-1021.28" font-family="Microsoft YaHei" font-size="12.00">P2.1</text>
+<text xml:space="preserve" text-anchor="middle" x="241.33" y="-1006.88" font-family="Microsoft YaHei" font-size="12.00">接收并校验</text>
+<text xml:space="preserve" text-anchor="middle" x="241.33" y="-992.48" font-family="Microsoft YaHei" font-size="12.00">草稿与原件</text>
+</g>
+<!-- P2.2 -->
+<g id="node5" class="node">
+<title>P2.2</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M669.73,-841.36C669.73,-841.36 520.93,-841.36 520.93,-841.36 514.93,-841.36 508.93,-835.36 508.93,-829.36 508.93,-829.36 508.93,-787.12 508.93,-787.12 508.93,-781.12 514.93,-775.12 520.93,-775.12 520.93,-775.12 669.73,-775.12 669.73,-775.12 675.73,-775.12 681.73,-781.12 681.73,-787.12 681.73,-787.12 681.73,-829.36 681.73,-829.36 681.73,-835.36 675.73,-841.36 669.73,-841.36"/>
+<text xml:space="preserve" text-anchor="middle" x="595.33" y="-819.04" font-family="Microsoft YaHei" font-size="12.00">P2.2</text>
+<text xml:space="preserve" text-anchor="middle" x="595.33" y="-804.64" font-family="Microsoft YaHei" font-size="12.00">获取文字与</text>
+<text xml:space="preserve" text-anchor="middle" x="595.33" y="-790.24" font-family="Microsoft YaHei" font-size="12.00">印章定位结果</text>
+</g>
+<!-- P2.3 -->
+<g id="node6" class="node">
+<title>P2.3</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M514.73,-639.12C514.73,-639.12 365.93,-639.12 365.93,-639.12 359.93,-639.12 353.93,-633.12 353.93,-627.12 353.93,-627.12 353.93,-584.88 353.93,-584.88 353.93,-578.88 359.93,-572.88 365.93,-572.88 365.93,-572.88 514.73,-572.88 514.73,-572.88 520.73,-572.88 526.73,-578.88 526.73,-584.88 526.73,-584.88 526.73,-627.12 526.73,-627.12 526.73,-633.12 520.73,-639.12 514.73,-639.12"/>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-616.8" font-family="Microsoft YaHei" font-size="12.00">P2.3</text>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-602.4" font-family="Microsoft YaHei" font-size="12.00">形成计分与</text>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-588" font-family="Microsoft YaHei" font-size="12.00">活动匹配建议</text>
+</g>
+<!-- P2.4 -->
+<g id="node7" class="node">
+<title>P2.4</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M514.73,-436.88C514.73,-436.88 365.93,-436.88 365.93,-436.88 359.93,-436.88 353.93,-430.88 353.93,-424.88 353.93,-424.88 353.93,-382.64 353.93,-382.64 353.93,-376.64 359.93,-370.64 365.93,-370.64 365.93,-370.64 514.73,-370.64 514.73,-370.64 520.73,-370.64 526.73,-376.64 526.73,-382.64 526.73,-382.64 526.73,-424.88 526.73,-424.88 526.73,-430.88 520.73,-436.88 514.73,-436.88"/>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-414.56" font-family="Microsoft YaHei" font-size="12.00">P2.4</text>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-400.16" font-family="Microsoft YaHei" font-size="12.00">接收学生确认</text>
+<text xml:space="preserve" text-anchor="middle" x="440.33" y="-385.76" font-family="Microsoft YaHei" font-size="12.00">与手动补填截图</text>
+</g>
+<!-- P2.5 -->
+<g id="node8" class="node">
+<title>P2.5</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M461.73,-234.64C461.73,-234.64 312.93,-234.64 312.93,-234.64 306.93,-234.64 300.93,-228.64 300.93,-222.64 300.93,-222.64 300.93,-180.4 300.93,-180.4 300.93,-174.4 306.93,-168.4 312.93,-168.4 312.93,-168.4 461.73,-168.4 461.73,-168.4 467.73,-168.4 473.73,-174.4 473.73,-180.4 473.73,-180.4 473.73,-222.64 473.73,-222.64 473.73,-228.64 467.73,-234.64 461.73,-234.64"/>
+<text xml:space="preserve" text-anchor="middle" x="387.33" y="-212.32" font-family="Microsoft YaHei" font-size="12.00">P2.5</text>
+<text xml:space="preserve" text-anchor="middle" x="387.33" y="-197.92" font-family="Microsoft YaHei" font-size="12.00">保存草稿版本</text>
+<text xml:space="preserve" text-anchor="middle" x="387.33" y="-183.52" font-family="Microsoft YaHei" font-size="12.00">及证据关联</text>
+</g>
+<!-- D1 -->
+<g id="node9" class="node">
+<title>D1</title>
+<polygon fill="#fff3d8" stroke="none" points="1329,-1169.88 1329,-1202.28 1361.67,-1202.28 1361.67,-1169.88 1329,-1169.88"/>
+<polygon fill="none" stroke="#8b754b" points="1329,-1169.88 1329,-1202.28 1361.67,-1202.28 1361.67,-1169.88 1329,-1169.88"/>
+<text xml:space="preserve" text-anchor="start" x="1338" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">D1</text>
+<polygon fill="#fff3d8" stroke="none" points="1361.67,-1169.88 1361.67,-1202.28 1541.67,-1202.28 1541.67,-1169.88 1361.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="1361.67,-1169.88 1541.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="1541.67,-1202.28 1361.67,-1202.28"/>
+<text xml:space="preserve" text-anchor="start" x="1406.67" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">账号、角色与组织权限</text>
+</g>
+<!-- D2 -->
+<g id="node10" class="node">
+<title>D2</title>
+<polygon fill="#fff3d8" stroke="none" points="1582,-1169.88 1582,-1202.28 1614.67,-1202.28 1614.67,-1169.88 1582,-1169.88"/>
+<polygon fill="none" stroke="#8b754b" points="1582,-1169.88 1582,-1202.28 1614.67,-1202.28 1614.67,-1169.88 1582,-1169.88"/>
+<text xml:space="preserve" text-anchor="start" x="1591" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">D2</text>
+<polygon fill="#fff3d8" stroke="none" points="1614.67,-1169.88 1614.67,-1202.28 1794.67,-1202.28 1794.67,-1169.88 1614.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="1614.67,-1169.88 1794.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="1794.67,-1202.28 1614.67,-1202.28"/>
+<text xml:space="preserve" text-anchor="start" x="1673.17" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">学年与评分标准</text>
+</g>
+<!-- D3 -->
+<g id="node11" class="node">
+<title>D3</title>
+<polygon fill="#fff3d8" stroke="none" points="279,0 279,-32.4 311.67,-32.4 311.67,0 279,0"/>
+<polygon fill="none" stroke="#8b754b" points="279,0 279,-32.4 311.67,-32.4 311.67,0 279,0"/>
+<text xml:space="preserve" text-anchor="start" x="288" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D3</text>
+<polygon fill="#fff3d8" stroke="none" points="311.67,0 311.67,-32.4 491.67,-32.4 491.67,0 311.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="311.67,0 491.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="491.67,-32.4 311.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="356.67" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">申请、版本与提交轮次</text>
+</g>
+<!-- D4 -->
+<g id="node12" class="node">
+<title>D4</title>
+<polygon fill="#fff3d8" stroke="none" points="0,0 0,-32.4 32.67,-32.4 32.67,0 0,0"/>
+<polygon fill="none" stroke="#8b754b" points="0,0 0,-32.4 32.67,-32.4 32.67,0 0,0"/>
+<text xml:space="preserve" text-anchor="start" x="9" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D4</text>
+<polygon fill="#fff3d8" stroke="none" points="32.67,0 32.67,-32.4 212.67,-32.4 212.67,0 32.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="32.67,0 212.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="212.67,-32.4 32.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="86.67" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">原文件与关键证据</text>
+</g>
+<!-- D5 -->
+<g id="node13" class="node">
+<title>D5</title>
+<polygon fill="#fff3d8" stroke="none" points="1835,-1169.88 1835,-1202.28 1867.67,-1202.28 1867.67,-1169.88 1835,-1169.88"/>
+<polygon fill="none" stroke="#8b754b" points="1835,-1169.88 1835,-1202.28 1867.67,-1202.28 1867.67,-1169.88 1835,-1169.88"/>
+<text xml:space="preserve" text-anchor="start" x="1844" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">D5</text>
+<polygon fill="#fff3d8" stroke="none" points="1867.67,-1169.88 1867.67,-1202.28 2047.67,-1202.28 2047.67,-1169.88 1867.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="1867.67,-1169.88 2047.67,-1169.88"/>
+<polyline fill="none" stroke="#8b754b" points="2047.67,-1202.28 1867.67,-1202.28"/>
+<text xml:space="preserve" text-anchor="start" x="1917.17" y="-1181.28" font-family="Microsoft YaHei" font-size="12.00">活动规范与资格认定</text>
+</g>
+<!-- D6 -->
+<g id="node14" class="node">
+<title>D6</title>
+<polygon fill="#fff3d8" stroke="none" points="532,0 532,-32.4 564.67,-32.4 564.67,0 532,0"/>
+<polygon fill="none" stroke="#8b754b" points="532,0 532,-32.4 564.67,-32.4 564.67,0 532,0"/>
+<text xml:space="preserve" text-anchor="start" x="541" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D6</text>
+<polygon fill="#fff3d8" stroke="none" points="564.67,0 564.67,-32.4 744.67,-32.4 744.67,0 564.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="564.67,0 744.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="744.67,-32.4 564.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="614.17" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">审核与奖项替代履历</text>
+</g>
+</g>
+</g></svg>

@@ -1,0 +1,442 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2430px" height="1127px" viewBox="0 0 2430 1127"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">数据库 ER：版本、审核与奖项替代</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">逻辑 ER · PK 主键 / FK 外键 / ? 可空；完整字段约束见数据字典 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 1002.8)">
+<title>Design</title>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-1002.8 2400.97,-1002.8 2400.97,28.8 -28.8,28.8"/>
+<!-- users&#45;&gt;review_decisions -->
+<g id="e9" class="edge">
+<title>users&#45;&gt;review_decisions</title>
+<path fill="none" stroke="#93602b" d="M1785.96,-803.3C1842.37,-803.3 1909.67,-803.3 1972.43,-803.3"/>
+<polygon fill="#93602b" stroke="#93602b" points="1780.44,-806.55 1780.44,-800.05 1781.74,-800.05 1781.74,-806.55 1780.44,-806.55"/>
+<polyline fill="none" stroke="#93602b" points="1779.79,-803.3 1783.04,-803.3"/>
+<polygon fill="#93602b" stroke="#93602b" points="1783.69,-806.55 1783.69,-800.05 1784.99,-800.05 1784.99,-806.55 1783.69,-806.55"/>
+<polyline fill="none" stroke="#93602b" points="1783.04,-803.3 1786.29,-803.3"/>
+<polygon fill="#93602b" stroke="#93602b" points="1978.5,-803.3 1985,-806.23 1982.08,-803.3 1984.67,-803.3 1984.67,-803.3 1984.67,-803.3 1982.08,-803.3 1985,-800.38 1978.5,-803.3"/>
+<ellipse fill="none" stroke="#93602b" cx="1974.18" cy="-803.3" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1916.29" y="-806.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">actor_id</text>
+</g>
+<!-- enrollments&#45;&gt;applications -->
+<g id="e0" class="edge">
+<title>enrollments&#45;&gt;applications</title>
+<path fill="none" stroke="#93602b" d="M258.07,-452.27C294.8,-448.06 335.62,-443.38 375.53,-438.81"/>
+<polygon fill="#93602b" stroke="#93602b" points="252.86,-456.14 252.12,-449.68 253.42,-449.54 254.16,-455.99 252.86,-456.14"/>
+<polyline fill="none" stroke="#93602b" points="251.85,-452.99 255.08,-452.62"/>
+<polygon fill="#93602b" stroke="#93602b" points="256.09,-455.77 255.35,-449.31 256.64,-449.17 257.38,-455.62 256.09,-455.77"/>
+<polyline fill="none" stroke="#93602b" points="255.08,-452.62 258.31,-452.25"/>
+<polygon fill="#93602b" stroke="#93602b" points="381.67,-438.11 388.46,-440.27 385.23,-437.7 387.79,-437.4 387.79,-437.4 387.79,-437.4 385.23,-437.7 387.79,-434.46 381.67,-438.11"/>
+<ellipse fill="none" stroke="#93602b" cx="377.38" cy="-438.6" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="320.05" y="-450.49" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">enrollment_id</text>
+</g>
+<!-- ai_analyses&#45;&gt;application_revisions -->
+<g id="e3" class="edge">
+<title>ai_analyses&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M716.37,-783.19C782.1,-767.42 862.73,-748.07 936,-730.48"/>
+<polygon fill="#93602b" stroke="#93602b" points="708.94,-788.32 707.42,-782 708.68,-781.7 710.2,-788.02 708.94,-788.32"/>
+<polyline fill="none" stroke="#93602b" points="707.55,-785.31 710.71,-784.55"/>
+<ellipse fill="none" stroke="#93602b" cx="713.72" cy="-783.83" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="941.99,-729.04 949,-730.37 945.48,-728.2 947.99,-727.6 947.99,-727.6 947.99,-727.6 945.48,-728.2 947.63,-724.68 941.99,-729.04"/>
+<ellipse fill="none" stroke="#93602b" cx="937.8" cy="-730.05" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="861.75" y="-759.32" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">ai_analysis_id</text>
+</g>
+<!-- activities&#45;&gt;application_revisions -->
+<g id="e4" class="edge">
+<title>activities&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M716.8,-704.09C782.31,-700.57 862.57,-696.26 935.57,-692.33"/>
+<polygon fill="#93602b" stroke="#93602b" points="708.37,-707.8 708.02,-701.31 709.32,-701.24 709.67,-707.73 708.37,-707.8"/>
+<polyline fill="none" stroke="#93602b" points="707.55,-704.59 710.79,-704.41"/>
+<ellipse fill="none" stroke="#93602b" cx="713.89" cy="-704.25" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="941.82,-692 948.46,-694.57 945.4,-691.81 947.97,-691.67 947.97,-691.67 947.97,-691.67 945.4,-691.81 948.15,-688.73 941.82,-692"/>
+<ellipse fill="none" stroke="#93602b" cx="937.5" cy="-692.23" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="861.75" y="-701.1" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">activity_id</text>
+</g>
+<!-- competition_projects&#45;&gt;application_revisions -->
+<g id="e5" class="edge">
+<title>competition_projects&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M716.8,-625.09C782.45,-633.79 862.91,-644.45 936.03,-654.14"/>
+<polygon fill="#93602b" stroke="#93602b" points="707.76,-627.17 708.62,-620.72 709.91,-620.9 709.05,-627.34 707.76,-627.17"/>
+<polyline fill="none" stroke="#93602b" points="707.55,-623.86 710.77,-624.29"/>
+<ellipse fill="none" stroke="#93602b" cx="713.84" cy="-624.7" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="941.87,-654.92 947.92,-658.67 945.42,-655.39 947.98,-655.73 947.98,-655.73 947.98,-655.73 945.42,-655.39 948.69,-652.87 941.87,-654.92"/>
+<ellipse fill="none" stroke="#93602b" cx="937.58" cy="-654.35" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="861.75" y="-651.73" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">competition_project_id</text>
+</g>
+<!-- applications&#45;&gt;application_revisions -->
+<g id="e2" class="edge">
+<title>applications&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M780.35,-509.51C831.01,-533.65 885.59,-559.65 936.57,-583.95"/>
+<polygon fill="#93602b" stroke="#93602b" points="773.93,-510.06 776.72,-504.19 777.9,-504.75 775.1,-510.61 773.93,-510.06"/>
+<polyline fill="none" stroke="#93602b" points="774.74,-506.84 777.67,-508.24"/>
+<polygon fill="#93602b" stroke="#93602b" points="776.86,-511.45 779.66,-505.59 780.83,-506.14 778.03,-512.01 776.86,-511.45"/>
+<polyline fill="none" stroke="#93602b" points="777.67,-508.24 780.61,-509.64"/>
+<polygon fill="#93602b" stroke="#93602b" points="942.25,-586.65 946.86,-592.09 945.48,-588.19 947.81,-589.3 947.81,-589.3 947.81,-589.3 945.48,-588.19 949.37,-586.8 942.25,-586.65"/>
+<ellipse fill="none" stroke="#93602b" cx="938.35" cy="-584.79" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="861.75" y="-567.23" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">application_id</text>
+</g>
+<!-- applications&#45;&gt;submission_rounds -->
+<g id="e6" class="edge">
+<title>applications&#45;&gt;submission_rounds</title>
+<path fill="none" stroke="#93602b" d="M781.16,-427.17C970.95,-438.52 1255.82,-455.56 1447.77,-467.03"/>
+<polygon fill="#93602b" stroke="#93602b" points="775.33,-430.08 775.72,-423.59 777.02,-423.67 776.63,-430.16 775.33,-430.08"/>
+<polyline fill="none" stroke="#93602b" points="774.87,-426.8 778.12,-426.99"/>
+<polygon fill="#93602b" stroke="#93602b" points="778.57,-430.27 778.96,-423.79 780.26,-423.86 779.87,-430.35 778.57,-430.27"/>
+<polyline fill="none" stroke="#93602b" points="778.12,-426.99 781.36,-427.19"/>
+<polygon fill="#93602b" stroke="#93602b" points="1454.03,-467.41 1460.34,-470.72 1457.61,-467.62 1460.18,-467.78 1460.18,-467.78 1460.18,-467.78 1457.61,-467.62 1460.69,-464.88 1454.03,-467.41"/>
+<ellipse fill="none" stroke="#93602b" cx="1449.72" cy="-467.15" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1141.91" y="-462.8" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">application_id</text>
+</g>
+<!-- applications&#45;&gt;application_events -->
+<g id="e10" class="edge">
+<title>applications&#45;&gt;application_events</title>
+<path fill="none" stroke="#93602b" d="M780.68,-332.99C831.25,-311.97 885.71,-289.34 936.59,-268.2"/>
+<polygon fill="#93602b" stroke="#93602b" points="776.58,-338.21 774.09,-332.21 775.29,-331.71 777.79,-337.71 776.58,-338.21"/>
+<polyline fill="none" stroke="#93602b" points="774.74,-335.46 777.74,-334.21"/>
+<polygon fill="#93602b" stroke="#93602b" points="779.59,-336.96 777.09,-330.96 778.29,-330.46 780.79,-336.46 779.59,-336.96"/>
+<polyline fill="none" stroke="#93602b" points="777.74,-334.21 780.74,-332.96"/>
+<polygon fill="#93602b" stroke="#93602b" points="942.1,-265.91 949.23,-266.12 945.41,-264.54 947.8,-263.55 947.8,-263.55 947.8,-263.55 945.41,-264.54 946.98,-260.72 942.1,-265.91"/>
+<ellipse fill="none" stroke="#93602b" cx="938.12" cy="-267.57" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="861.75" y="-316.19" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">application_id</text>
+</g>
+<!-- application_revisions&#45;&gt;submission_rounds -->
+<g id="e7" class="edge">
+<title>application_revisions&#45;&gt;submission_rounds</title>
+<path fill="none" stroke="#93602b" d="M1341.12,-602.79C1376.34,-588.84 1413.08,-574.29 1448.47,-560.27"/>
+<polygon fill="#93602b" stroke="#93602b" points="1337.15,-607.86 1334.76,-601.82 1335.97,-601.34 1338.36,-607.38 1337.15,-607.86"/>
+<polyline fill="none" stroke="#93602b" points="1335.35,-605.08 1338.37,-603.88"/>
+<polygon fill="#93602b" stroke="#93602b" points="1340.18,-606.66 1337.78,-600.62 1338.99,-600.14 1341.38,-606.18 1340.18,-606.66"/>
+<polyline fill="none" stroke="#93602b" points="1338.37,-603.88 1341.4,-602.68"/>
+<polygon fill="#93602b" stroke="#93602b" points="1454.06,-558.06 1461.18,-558.39 1457.39,-556.74 1459.79,-555.79 1459.79,-555.79 1459.79,-555.79 1457.39,-556.74 1459.02,-552.95 1454.06,-558.06"/>
+<ellipse fill="none" stroke="#93602b" cx="1450.04" cy="-559.65" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1397.91" y="-589.36" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">revision_id</text>
+</g>
+<!-- submission_rounds&#45;&gt;review_decisions -->
+<g id="e8" class="edge">
+<title>submission_rounds&#45;&gt;review_decisions</title>
+<path fill="none" stroke="#93602b" d="M1852.62,-601.84C1892.41,-626.5 1934.29,-652.46 1974.27,-677.23"/>
+<polygon fill="#93602b" stroke="#93602b" points="1846.18,-601.67 1849.6,-596.15 1850.71,-596.83 1847.28,-602.36 1846.18,-601.67"/>
+<polyline fill="none" stroke="#93602b" points="1847.34,-598.57 1850.1,-600.28"/>
+<polygon fill="#93602b" stroke="#93602b" points="1848.94,-603.38 1852.36,-597.86 1853.47,-598.54 1850.04,-604.07 1848.94,-603.38"/>
+<polyline fill="none" stroke="#93602b" points="1850.1,-600.28 1852.86,-601.99"/>
+<polygon fill="#93602b" stroke="#93602b" points="1979.4,-680.42 1983.39,-686.33 1982.45,-682.3 1984.64,-683.66 1984.64,-683.66 1984.64,-683.66 1982.45,-682.3 1986.47,-681.35 1979.4,-680.42"/>
+<ellipse fill="none" stroke="#93602b" cx="1975.73" cy="-678.14" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1916.29" y="-654.01" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">round_id</text>
+</g>
+<!-- submission_rounds&#45;&gt;award_supersessions -->
+<g id="e11" class="edge">
+<title>submission_rounds&#45;&gt;award_supersessions</title>
+<path fill="none" stroke="#93602b" d="M1853.68,-457.63C1892.51,-453.39 1933.29,-448.95 1972.32,-444.69"/>
+<polygon fill="#93602b" stroke="#93602b" points="1848.34,-461.48 1847.63,-455.02 1848.92,-454.88 1849.63,-461.34 1848.34,-461.48"/>
+<polyline fill="none" stroke="#93602b" points="1847.34,-458.32 1850.57,-457.97"/>
+<polygon fill="#93602b" stroke="#93602b" points="1851.57,-461.13 1850.86,-454.66 1852.15,-454.52 1852.86,-460.99 1851.57,-461.13"/>
+<polyline fill="none" stroke="#93602b" points="1850.57,-457.97 1853.8,-457.61"/>
+<polygon fill="#93602b" stroke="#93602b" points="1978.42,-444.03 1985.2,-446.23 1981.98,-443.64 1984.55,-443.36 1984.55,-443.36 1984.55,-443.36 1981.98,-443.64 1984.56,-440.41 1978.42,-444.03"/>
+<ellipse fill="none" stroke="#93602b" cx="1974.12" cy="-444.49" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1916.29" y="-455.51" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">new_round_id</text>
+</g>
+<!-- submission_rounds&#45;&gt;award_supersessions -->
+<g id="e12" class="edge">
+<title>submission_rounds&#45;&gt;award_supersessions</title>
+<path fill="none" stroke="#93602b" d="M1853.43,-434.9C1873.91,-430.32 1887.4,-427.3 1887.4,-427.3 1887.4,-427.3 1924.54,-426.66 1972.25,-425.84"/>
+<polygon fill="#93602b" stroke="#93602b" points="1848.52,-439.33 1847.1,-432.98 1848.36,-432.7 1849.78,-439.04 1848.52,-439.33"/>
+<polyline fill="none" stroke="#93602b" points="1847.17,-436.3 1850.34,-435.59"/>
+<polygon fill="#93602b" stroke="#93602b" points="1851.69,-438.62 1850.27,-432.28 1851.54,-431.99 1852.96,-438.33 1851.69,-438.62"/>
+<polyline fill="none" stroke="#93602b" points="1850.34,-435.59 1853.51,-434.88"/>
+<polygon fill="#93602b" stroke="#93602b" points="1978.44,-425.73 1984.99,-428.54 1982.02,-425.67 1984.6,-425.63 1984.6,-425.63 1984.6,-425.63 1982.02,-425.67 1984.89,-422.7 1978.44,-425.73"/>
+<ellipse fill="none" stroke="#93602b" cx="1974.12" cy="-425.81" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1916.29" y="-430.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">old_round_id</text>
+</g>
+<!-- score_categories&#45;&gt;applications -->
+<g id="e1" class="edge">
+<title>score_categories&#45;&gt;applications</title>
+<path fill="none" stroke="#93602b" d="M258.07,-378.33C294.8,-382.54 335.62,-387.22 375.53,-391.79"/>
+<polygon fill="#93602b" stroke="#93602b" points="252.12,-380.92 252.86,-374.46 254.16,-374.61 253.42,-381.06 252.12,-380.92"/>
+<polyline fill="none" stroke="#93602b" points="251.85,-377.61 255.08,-377.98"/>
+<polygon fill="#93602b" stroke="#93602b" points="255.35,-381.29 256.09,-374.83 257.38,-374.98 256.64,-381.43 255.35,-381.29"/>
+<polyline fill="none" stroke="#93602b" points="255.08,-377.98 258.31,-378.35"/>
+<polygon fill="#93602b" stroke="#93602b" points="381.67,-392.49 387.79,-396.14 385.23,-392.9 387.79,-393.2 387.79,-393.2 387.79,-393.2 385.23,-392.9 388.46,-390.33 381.67,-392.49"/>
+<ellipse fill="none" stroke="#93602b" cx="377.38" cy="-392" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="320.05" y="-390.74" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">category_id</text>
+</g>
+<!-- users -->
+<g id="node1" class="node">
+<title>users</title>
+<polygon fill="none" stroke="#7c8994" points="1527.9,-771.2 1527.9,-835.4 1779.9,-835.4 1779.9,-771.2 1527.9,-771.2"/>
+<polygon fill="#7c8994" stroke="none" points="1528.9,-797.4 1528.9,-834.4 1778.9,-834.4 1778.9,-797.4 1528.9,-797.4"/>
+<text xml:space="preserve" text-anchor="start" x="1639.46" y="-817.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">users</text>
+<text xml:space="preserve" text-anchor="start" x="1626.9" y="-805.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">用户（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="1528.9,-772.2 1528.9,-797.4 1778.9,-797.4 1778.9,-772.2 1528.9,-772.2"/>
+<text xml:space="preserve" text-anchor="start" x="1534.9" y="-782.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="1550.18" y="-782.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+<!-- enrollments -->
+<g id="node2" class="node">
+<title>enrollments</title>
+<polygon fill="none" stroke="#7c8994" points="0,-435.2 0,-499.4 252,-499.4 252,-435.2 0,-435.2"/>
+<polygon fill="#7c8994" stroke="none" points="1,-461.4 1,-498.4 251,-498.4 251,-461.4 1,-461.4"/>
+<text xml:space="preserve" text-anchor="start" x="93.14" y="-481.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">enrollments</text>
+<text xml:space="preserve" text-anchor="start" x="72" y="-469.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">学生班级学年归属（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="1,-436.2 1,-461.4 251,-461.4 251,-436.2 1,-436.2"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-446.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="22.28" y="-446.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+<!-- ai_analyses -->
+<g id="node3" class="node">
+<title>ai_analyses</title>
+<polygon fill="none" stroke="#7c8994" points="455.6,-783.2 455.6,-847.4 707.6,-847.4 707.6,-783.2 455.6,-783.2"/>
+<polygon fill="#7c8994" stroke="none" points="456.6,-809.4 456.6,-846.4 706.6,-846.4 706.6,-809.4 456.6,-809.4"/>
+<text xml:space="preserve" text-anchor="start" x="550.18" y="-829.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">ai_analyses</text>
+<text xml:space="preserve" text-anchor="start" x="539.27" y="-817.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">AI建议记录（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="456.6,-784.2 456.6,-809.4 706.6,-809.4 706.6,-784.2 456.6,-784.2"/>
+<text xml:space="preserve" text-anchor="start" x="462.6" y="-794.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="477.87" y="-794.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+<!-- activities -->
+<g id="node4" class="node">
+<title>activities</title>
+<polygon fill="none" stroke="#7c8994" points="455.6,-679.2 455.6,-743.4 707.6,-743.4 707.6,-679.2 455.6,-679.2"/>
+<polygon fill="#7c8994" stroke="none" points="456.6,-705.4 456.6,-742.4 706.6,-742.4 706.6,-705.4 456.6,-705.4"/>
+<text xml:space="preserve" text-anchor="start" x="557.05" y="-725.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">activities</text>
+<text xml:space="preserve" text-anchor="start" x="545.6" y="-713.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">规范活动（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="456.6,-680.2 456.6,-705.4 706.6,-705.4 706.6,-680.2 456.6,-680.2"/>
+<text xml:space="preserve" text-anchor="start" x="462.6" y="-690.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="477.87" y="-690.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+<!-- competition_projects -->
+<g id="node5" class="node">
+<title>competition_projects</title>
+<polygon fill="none" stroke="#7c8994" points="455.6,-575.2 455.6,-639.4 707.6,-639.4 707.6,-575.2 455.6,-575.2"/>
+<polygon fill="#7c8994" stroke="none" points="456.6,-601.4 456.6,-638.4 706.6,-638.4 706.6,-601.4 456.6,-601.4"/>
+<text xml:space="preserve" text-anchor="start" x="523.11" y="-621.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">competition_projects</text>
+<text xml:space="preserve" text-anchor="start" x="536.6" y="-609.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">竞赛项目身份（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="456.6,-576.2 456.6,-601.4 706.6,-601.4 706.6,-576.2 456.6,-576.2"/>
+<text xml:space="preserve" text-anchor="start" x="462.6" y="-586.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="477.87" y="-586.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+<!-- applications -->
+<g id="node6" class="node">
+<title>applications</title>
+<polygon fill="none" stroke="#93602b" points="388.1,-295 388.1,-535.6 775.1,-535.6 775.1,-295 388.1,-295"/>
+<polygon fill="#93602b" stroke="none" points="389.1,-497.6 389.1,-534.6 774.1,-534.6 774.1,-497.6 389.1,-497.6"/>
+<text xml:space="preserve" text-anchor="start" x="548.01" y="-517.9" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">applications</text>
+<text xml:space="preserve" text-anchor="start" x="559.1" y="-505.8" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请聚合根</text>
+<polygon fill="#eaf0f5" stroke="none" points="389.1,-472.4 389.1,-497.6 774.1,-497.6 774.1,-472.4 389.1,-472.4"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-482.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="410.37" y="-482.7" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-447.2 389.1,-472.4 774.1,-472.4 774.1,-447.2 389.1,-447.2"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-457.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="410.37" y="-457.5" font-family="Microsoft YaHei" font-size="11.00"> enrollment_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-422 389.1,-447.2 774.1,-447.2 774.1,-422 389.1,-422"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-432.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="410.37" y="-432.3" font-family="Microsoft YaHei" font-size="11.00"> category_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-396.8 389.1,-422 774.1,-422 774.1,-396.8 389.1,-396.8"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-407.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="410.37" y="-407.1" font-family="Microsoft YaHei" font-size="11.00"> working_revision_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-371.6 389.1,-396.8 774.1,-396.8 774.1,-371.6 389.1,-371.6"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-381.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="410.37" y="-381.9" font-family="Microsoft YaHei" font-size="11.00"> current_round_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-346.4 389.1,-371.6 774.1,-371.6 774.1,-346.4 389.1,-346.4"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-354.6" font-family="Microsoft YaHei" font-size="11.00">　 lock_version : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-321.2 389.1,-346.4 774.1,-346.4 774.1,-321.2 389.1,-321.2"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-329.4" font-family="Microsoft YaHei" font-size="11.00">　 created_at : TIMESTAMP</text>
+<polygon fill="#f8fafc" stroke="none" points="389.1,-296 389.1,-321.2 774.1,-321.2 774.1,-296 389.1,-296"/>
+<text xml:space="preserve" text-anchor="start" x="395.1" y="-304.2" font-family="Microsoft YaHei" font-size="11.00">　 archived_at : TIMESTAMP ?</text>
+</g>
+<!-- application_revisions -->
+<g id="node7" class="node">
+<title>application_revisions</title>
+<polygon fill="none" stroke="#93602b" points="948.41,-498 948.41,-864.6 1335.41,-864.6 1335.41,-498 948.41,-498"/>
+<polygon fill="#93602b" stroke="none" points="949.41,-826.6 949.41,-863.6 1334.41,-863.6 1334.41,-826.6 949.41,-826.6"/>
+<text xml:space="preserve" text-anchor="start" x="1083.04" y="-846.9" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">application_revisions</text>
+<text xml:space="preserve" text-anchor="start" x="1114.91" y="-834.8" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请内容版本</text>
+<polygon fill="#eaf0f5" stroke="none" points="949.41,-801.4 949.41,-826.6 1334.41,-826.6 1334.41,-801.4 949.41,-801.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-811.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-811.7" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-776.2 949.41,-801.4 1334.41,-801.4 1334.41,-776.2 949.41,-776.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-786.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-786.5" font-family="Microsoft YaHei" font-size="11.00"> application_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-751 949.41,-776.2 1334.41,-776.2 1334.41,-751 949.41,-751"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-759.2" font-family="Microsoft YaHei" font-size="11.00">　 revision_no : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-725.8 949.41,-751 1334.41,-751 1334.41,-725.8 949.41,-725.8"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-734" font-family="Microsoft YaHei" font-size="11.00">　 title : VARCHAR(255)</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-700.6 949.41,-725.8 1334.41,-725.8 1334.41,-700.6 949.41,-700.6"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-708.8" font-family="Microsoft YaHei" font-size="11.00">　 requested_score : DECIMAL(6,2)</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-675.4 949.41,-700.6 1334.41,-700.6 1334.41,-675.4 949.41,-675.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-683.6" font-family="Microsoft YaHei" font-size="11.00">　 student_modified_score : BOOLEAN</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-650.2 949.41,-675.4 1334.41,-675.4 1334.41,-650.2 949.41,-650.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-660.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-660.5" font-family="Microsoft YaHei" font-size="11.00"> activity_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-625 949.41,-650.2 1334.41,-650.2 1334.41,-625 949.41,-625"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-635.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-635.3" font-family="Microsoft YaHei" font-size="11.00"> competition_project_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-599.8 949.41,-625 1334.41,-625 1334.41,-599.8 949.41,-599.8"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-610.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-610.1" font-family="Microsoft YaHei" font-size="11.00"> ai_analysis_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-574.6 949.41,-599.8 1334.41,-599.8 1334.41,-574.6 949.41,-574.6"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-582.8" font-family="Microsoft YaHei" font-size="11.00">　 payload_json : JSON</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-549.4 949.41,-574.6 1334.41,-574.6 1334.41,-549.4 949.41,-549.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-557.6" font-family="Microsoft YaHei" font-size="11.00">　 content_frozen_at : TIMESTAMP ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-524.2 949.41,-549.4 1334.41,-549.4 1334.41,-524.2 949.41,-524.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-534.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-534.5" font-family="Microsoft YaHei" font-size="11.00"> created_by : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-499 949.41,-524.2 1334.41,-524.2 1334.41,-499 949.41,-499"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-507.2" font-family="Microsoft YaHei" font-size="11.00">　 created_at : TIMESTAMP</text>
+</g>
+<!-- submission_rounds -->
+<g id="node8" class="node">
+<title>submission_rounds</title>
+<polygon fill="none" stroke="#93602b" points="1460.4,-321.2 1460.4,-637.4 1847.4,-637.4 1847.4,-321.2 1460.4,-321.2"/>
+<polygon fill="#93602b" stroke="none" points="1461.4,-599.4 1461.4,-636.4 1846.4,-636.4 1846.4,-599.4 1461.4,-599.4"/>
+<text xml:space="preserve" text-anchor="start" x="1600.43" y="-619.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">submission_rounds</text>
+<text xml:space="preserve" text-anchor="start" x="1626.9" y="-607.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请提审轮次</text>
+<polygon fill="#eaf0f5" stroke="none" points="1461.4,-574.2 1461.4,-599.4 1846.4,-599.4 1846.4,-574.2 1461.4,-574.2"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-584.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="1482.68" y="-584.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-549 1461.4,-574.2 1846.4,-574.2 1846.4,-549 1461.4,-549"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-559.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="1482.68" y="-559.3" font-family="Microsoft YaHei" font-size="11.00"> application_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-523.8 1461.4,-549 1846.4,-549 1846.4,-523.8 1461.4,-523.8"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-534.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="1482.68" y="-534.1" font-family="Microsoft YaHei" font-size="11.00"> revision_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-498.6 1461.4,-523.8 1846.4,-523.8 1846.4,-498.6 1461.4,-498.6"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-506.8" font-family="Microsoft YaHei" font-size="11.00">　 round_no : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-473.4 1461.4,-498.6 1846.4,-498.6 1846.4,-473.4 1461.4,-473.4"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-481.6" font-family="Microsoft YaHei" font-size="11.00">　 state : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-448.2 1461.4,-473.4 1846.4,-473.4 1846.4,-448.2 1461.4,-448.2"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-458.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="1482.68" y="-458.5" font-family="Microsoft YaHei" font-size="11.00"> eligibility_version_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-423 1461.4,-448.2 1846.4,-448.2 1846.4,-423 1461.4,-423"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-431.2" font-family="Microsoft YaHei" font-size="11.00">　 competition_group_key : CHAR(64) ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-397.8 1461.4,-423 1846.4,-423 1846.4,-397.8 1461.4,-397.8"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-406" font-family="Microsoft YaHei" font-size="11.00">　 is_current_candidate : BOOLEAN</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-372.6 1461.4,-397.8 1846.4,-397.8 1846.4,-372.6 1461.4,-372.6"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-380.8" font-family="Microsoft YaHei" font-size="11.00">　 lock_version : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-347.4 1461.4,-372.6 1846.4,-372.6 1846.4,-347.4 1461.4,-347.4"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-355.6" font-family="Microsoft YaHei" font-size="11.00">　 submitted_at : TIMESTAMP</text>
+<polygon fill="#f8fafc" stroke="none" points="1461.4,-322.2 1461.4,-347.4 1846.4,-347.4 1846.4,-322.2 1461.4,-322.2"/>
+<text xml:space="preserve" text-anchor="start" x="1467.4" y="-332.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="1482.68" y="-332.5" font-family="Microsoft YaHei" font-size="11.00"> last_event_id : UUID ?</text>
+</g>
+<!-- review_decisions -->
+<g id="node9" class="node">
+<title>review_decisions</title>
+<polygon fill="none" stroke="#93602b" points="1985.17,-632.6 1985.17,-974 2372.17,-974 2372.17,-632.6 1985.17,-632.6"/>
+<polygon fill="#93602b" stroke="none" points="1986.17,-936 1986.17,-973 2371.17,-973 2371.17,-936 1986.17,-936"/>
+<text xml:space="preserve" text-anchor="start" x="2132.1" y="-956.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">review_decisions</text>
+<text xml:space="preserve" text-anchor="start" x="2160.67" y="-944.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">审核决定</text>
+<polygon fill="#eaf0f5" stroke="none" points="1986.17,-910.8 1986.17,-936 2371.17,-936 2371.17,-910.8 1986.17,-910.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-921.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-921.1" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-885.6 1986.17,-910.8 2371.17,-910.8 2371.17,-885.6 1986.17,-885.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-895.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-895.9" font-family="Microsoft YaHei" font-size="11.00"> round_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-860.4 1986.17,-885.6 2371.17,-885.6 2371.17,-860.4 1986.17,-860.4"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-870.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-870.7" font-family="Microsoft YaHei" font-size="11.00"> revision_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-835.2 1986.17,-860.4 2371.17,-860.4 2371.17,-835.2 1986.17,-835.2"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-845.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-845.5" font-family="Microsoft YaHei" font-size="11.00"> actor_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-810 1986.17,-835.2 2371.17,-835.2 2371.17,-810 1986.17,-810"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-820.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-820.3" font-family="Microsoft YaHei" font-size="11.00"> role_assignment_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-784.8 1986.17,-810 2371.17,-810 2371.17,-784.8 1986.17,-784.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-793" font-family="Microsoft YaHei" font-size="11.00">　 stage : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-759.6 1986.17,-784.8 2371.17,-784.8 2371.17,-759.6 1986.17,-759.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-767.8" font-family="Microsoft YaHei" font-size="11.00">　 action : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-734.4 1986.17,-759.6 2371.17,-759.6 2371.17,-734.4 1986.17,-734.4"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-742.6" font-family="Microsoft YaHei" font-size="11.00">　 rejection_reason : ENUM ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-709.2 1986.17,-734.4 2371.17,-734.4 2371.17,-709.2 1986.17,-709.2"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-717.4" font-family="Microsoft YaHei" font-size="11.00">　 comment : TEXT ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-684 1986.17,-709.2 2371.17,-709.2 2371.17,-684 1986.17,-684"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-692.2" font-family="Microsoft YaHei" font-size="11.00">　 actor_name_snapshot : VARCHAR(80)</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-658.8 1986.17,-684 2371.17,-684 2371.17,-658.8 1986.17,-658.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-667" font-family="Microsoft YaHei" font-size="11.00">　 decided_at : TIMESTAMP</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-633.6 1986.17,-658.8 2371.17,-658.8 2371.17,-633.6 1986.17,-633.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-641.8" font-family="Microsoft YaHei" font-size="11.00">　 idempotency_key : VARCHAR(100)</text>
+</g>
+<!-- application_events -->
+<g id="node10" class="node">
+<title>application_events</title>
+<polygon fill="none" stroke="#93602b" points="948.41,0 948.41,-366.6 1335.41,-366.6 1335.41,0 948.41,0"/>
+<polygon fill="#93602b" stroke="none" points="949.41,-328.6 949.41,-365.6 1334.41,-365.6 1334.41,-328.6 949.41,-328.6"/>
+<text xml:space="preserve" text-anchor="start" x="1090.27" y="-348.9" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">application_events</text>
+<text xml:space="preserve" text-anchor="start" x="1101.41" y="-336.8" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请状态与操作事件</text>
+<polygon fill="#eaf0f5" stroke="none" points="949.41,-303.4 949.41,-328.6 1334.41,-328.6 1334.41,-303.4 949.41,-303.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-313.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-313.7" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-278.2 949.41,-303.4 1334.41,-303.4 1334.41,-278.2 949.41,-278.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-288.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-288.5" font-family="Microsoft YaHei" font-size="11.00"> application_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-253 949.41,-278.2 1334.41,-278.2 1334.41,-253 949.41,-253"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-263.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-263.3" font-family="Microsoft YaHei" font-size="11.00"> round_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-227.8 949.41,-253 1334.41,-253 1334.41,-227.8 949.41,-227.8"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-238.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-238.1" font-family="Microsoft YaHei" font-size="11.00"> revision_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-202.6 949.41,-227.8 1334.41,-227.8 1334.41,-202.6 949.41,-202.6"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-210.8" font-family="Microsoft YaHei" font-size="11.00">　 event_no : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-177.4 949.41,-202.6 1334.41,-202.6 1334.41,-177.4 949.41,-177.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-185.6" font-family="Microsoft YaHei" font-size="11.00">　 event_type : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-152.2 949.41,-177.4 1334.41,-177.4 1334.41,-152.2 949.41,-152.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-160.4" font-family="Microsoft YaHei" font-size="11.00">　 actor_type : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-127 949.41,-152.2 1334.41,-152.2 1334.41,-127 949.41,-127"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-137.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="970.68" y="-137.3" font-family="Microsoft YaHei" font-size="11.00"> actor_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-101.8 949.41,-127 1334.41,-127 1334.41,-101.8 949.41,-101.8"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-110" font-family="Microsoft YaHei" font-size="11.00">　 from_state : VARCHAR(40) ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-76.6 949.41,-101.8 1334.41,-101.8 1334.41,-76.6 949.41,-76.6"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-84.8" font-family="Microsoft YaHei" font-size="11.00">　 to_state : VARCHAR(40) ?</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-51.4 949.41,-76.6 1334.41,-76.6 1334.41,-51.4 949.41,-51.4"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-59.6" font-family="Microsoft YaHei" font-size="11.00">　 detail_json : JSON</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-26.2 949.41,-51.4 1334.41,-51.4 1334.41,-26.2 949.41,-26.2"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-34.4" font-family="Microsoft YaHei" font-size="11.00">　 occurred_at : TIMESTAMP</text>
+<polygon fill="#f8fafc" stroke="none" points="949.41,-1 949.41,-26.2 1334.41,-26.2 1334.41,-1 949.41,-1"/>
+<text xml:space="preserve" text-anchor="start" x="955.41" y="-9.2" font-family="Microsoft YaHei" font-size="11.00">　 operation_id : VARCHAR(100)</text>
+</g>
+<!-- award_supersessions -->
+<g id="node11" class="node">
+<title>award_supersessions</title>
+<polygon fill="none" stroke="#93602b" points="1985.17,-251.6 1985.17,-593 2372.17,-593 2372.17,-251.6 1985.17,-251.6"/>
+<polygon fill="#93602b" stroke="none" points="1986.17,-555 1986.17,-592 2371.17,-592 2371.17,-555 1986.17,-555"/>
+<text xml:space="preserve" text-anchor="start" x="2120.53" y="-575.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">award_supersessions</text>
+<text xml:space="preserve" text-anchor="start" x="2138.17" y="-563.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">奖项替代与恢复关联</text>
+<polygon fill="#eaf0f5" stroke="none" points="1986.17,-529.8 1986.17,-555 2371.17,-555 2371.17,-529.8 1986.17,-529.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-540.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-540.1" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-504.6 1986.17,-529.8 2371.17,-529.8 2371.17,-504.6 1986.17,-504.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-514.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-514.9" font-family="Microsoft YaHei" font-size="11.00"> new_round_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-479.4 1986.17,-504.6 2371.17,-504.6 2371.17,-479.4 1986.17,-479.4"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-489.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-489.7" font-family="Microsoft YaHei" font-size="11.00"> old_round_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-454.2 1986.17,-479.4 2371.17,-479.4 2371.17,-454.2 1986.17,-454.2"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-462.4" font-family="Microsoft YaHei" font-size="11.00">　 competition_group_key : CHAR(64)</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-429 1986.17,-454.2 2371.17,-454.2 2371.17,-429 1986.17,-429"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-437.2" font-family="Microsoft YaHei" font-size="11.00">　 old_state : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-403.8 1986.17,-429 2371.17,-429 2371.17,-403.8 1986.17,-403.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-412" font-family="Microsoft YaHei" font-size="11.00">　 old_lock_version : INTEGER</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-378.6 1986.17,-403.8 2371.17,-403.8 2371.17,-378.6 1986.17,-378.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-388.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-388.9" font-family="Microsoft YaHei" font-size="11.00"> superseded_event_id : UUID</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-353.4 1986.17,-378.6 2371.17,-378.6 2371.17,-353.4 1986.17,-353.4"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-363.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
+<text xml:space="preserve" text-anchor="start" x="2007.45" y="-363.7" font-family="Microsoft YaHei" font-size="11.00"> restored_event_id : UUID ?</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-328.2 1986.17,-353.4 2371.17,-353.4 2371.17,-328.2 1986.17,-328.2"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-336.4" font-family="Microsoft YaHei" font-size="11.00">　 status : ENUM</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-303 1986.17,-328.2 2371.17,-328.2 2371.17,-303 1986.17,-303"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-311.2" font-family="Microsoft YaHei" font-size="11.00">　 comparison_snapshot_json : JSON</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-277.8 1986.17,-303 2371.17,-303 2371.17,-277.8 1986.17,-277.8"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-286" font-family="Microsoft YaHei" font-size="11.00">　 created_at : TIMESTAMP</text>
+<polygon fill="#f8fafc" stroke="none" points="1986.17,-252.6 1986.17,-277.8 2371.17,-277.8 2371.17,-252.6 1986.17,-252.6"/>
+<text xml:space="preserve" text-anchor="start" x="1992.17" y="-260.8" font-family="Microsoft YaHei" font-size="11.00">　 resolved_at : TIMESTAMP ?</text>
+</g>
+<!-- score_categories -->
+<g id="node12" class="node">
+<title>score_categories</title>
+<polygon fill="none" stroke="#7c8994" points="0,-331.2 0,-395.4 252,-395.4 252,-331.2 0,-331.2"/>
+<polygon fill="#7c8994" stroke="none" points="1,-357.4 1,-394.4 251,-394.4 251,-357.4 1,-357.4"/>
+<text xml:space="preserve" text-anchor="start" x="80.53" y="-377.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">score_categories</text>
+<text xml:space="preserve" text-anchor="start" x="81" y="-365.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">七类评分目录（引用）</text>
+<polygon fill="#eaf0f5" stroke="none" points="1,-332.2 1,-357.4 251,-357.4 251,-332.2 1,-332.2"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-342.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
+<text xml:space="preserve" text-anchor="start" x="22.28" y="-342.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+</g>
+</g>
+</g></svg>

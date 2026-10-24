@@ -1,0 +1,134 @@
+{
+  "status": "passed",
+  "design_only": true,
+  "diagram_count": 14,
+  "table_count": 33,
+  "field_count": 298,
+  "all_foreign_key_fields": 76,
+  "main_er_relationships": 42,
+  "diagram_checks": [
+    {
+      "id": "01-rbac-organization",
+      "nodes": 12,
+      "edges": 16,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "02-application-evidence-review",
+      "nodes": 12,
+      "edges": 17,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "03-activity-scoring-publicity",
+      "nodes": 12,
+      "edges": 15,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "04_dfd_context",
+      "nodes": 6,
+      "edges": 10,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "05_dfd_level1",
+      "nodes": 19,
+      "edges": 73,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "06_dfd_p2_level2",
+      "nodes": 14,
+      "edges": 23,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "07_dfd_p3_level2",
+      "nodes": 14,
+      "edges": 27,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "05a_dfd_level1_external",
+      "nodes": 12,
+      "edges": 33,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "05b_dfd_level1_storage",
+      "nodes": 14,
+      "edges": 40,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "08-er-overview",
+      "nodes": 33,
+      "edges": 42,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "09-er-rbac",
+      "nodes": 12,
+      "edges": 13,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "10-er-evidence",
+      "nodes": 11,
+      "edges": 11,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "11-er-workflow",
+      "nodes": 12,
+      "edges": 13,
+      "svg_parsed": true,
+      "png_verified": true
+    },
+    {
+      "id": "12-er-catalog",
+      "nodes": 9,
+      "edges": 5,
+      "svg_parsed": true,
+      "png_verified": true
+    }
+  ],
+  "native_project": {
+    "exists": true,
+    "bytes": 1974272,
+    "sha256": "acd9af3d369272dfbaf672df45823f7ab0afb28c30514f26d1753b4697e1b07f",
+    "readonly_integrity_check": "ok",
+    "internal_tables": [
+      "PROJECT_INFO",
+      "MODEL_ELEMENT",
+      "DIAGRAM",
+      "DIAGRAM_ELEMENT",
+      "PROJECT_FILE",
+      "TW_HISTORY",
+      "sqlite_sequence",
+      "USER_ID_FORMAT"
+    ]
+  },
+  "native_table_audit_count": 33,
+  "source_sha256": {
+    "uml.json": "2993e7aca0dc639dff99b534897cd2873ef5a376557cb8bcd8a7dde97d593277",
+    "dfd.json": "5045e0b2284a5610f10132c6e3f0f476c7f48d783b434061886cad9332da94f2",
+    "dfd_views.json": "559ade8516e84c18a5ead3906d47f6b09d44c2930a2d5067faf90fa462e65c7c",
+    "schema.json": "3ed9f89f28869e4e4b600ef176b96b29f61a15ec53d9adcf6ad1ed3daea366d8"
+  },
+  "cloud_api_calls": 0,
+  "secrets_read": false
+}

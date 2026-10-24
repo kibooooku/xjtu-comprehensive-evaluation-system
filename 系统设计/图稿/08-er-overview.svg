@@ -1,0 +1,773 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2646px" height="1033px" viewBox="0 0 2646 1033"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">数据库 ER 总览：33 张逻辑表</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">逻辑 ER · PK 主键 / FK 外键 / ? 可空；完整字段约束见数据字典 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 908.8)">
+<title>Design</title>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-908.8 2617.3,-908.8 2617.3,28.8 -28.8,28.8"/>
+<!-- users&#45;&gt;student_profiles -->
+<g id="e0" class="edge">
+<title>users&#45;&gt;student_profiles</title>
+<path fill="none" stroke="#2b5d8b" d="M181.13,-350.78C237.97,-367.66 317.18,-391.19 374.8,-408.31"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="174.75,-352.27 176.6,-346.04 177.85,-346.41 176,-352.64 174.75,-352.27"/>
+<polyline fill="none" stroke="#2b5d8b" points="175.06,-348.97 178.17,-349.9"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="177.87,-353.2 179.72,-346.97 180.97,-347.34 179.11,-353.57 177.87,-353.2"/>
+<polyline fill="none" stroke="#2b5d8b" points="178.17,-349.9 181.29,-350.82"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="384.16,-407.7 382.31,-413.93 381.06,-413.56 382.91,-407.33 384.16,-407.7"/>
+<polyline fill="none" stroke="#2b5d8b" points="383.86,-411 380.74,-410.07"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="377.77" cy="-409.19" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-389.05" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">学生档案</text>
+</g>
+<!-- users&#45;&gt;role_assignments -->
+<g id="e7" class="edge">
+<title>users&#45;&gt;role_assignments</title>
+<path fill="none" stroke="#2b5d8b" d="M134.38,-305.71C176.43,-265.52 257,-188.5 257,-188.5 257,-188.5 299.92,-179.36 345.23,-169.71"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="132.42,-312.09 127.92,-307.39 128.86,-306.49 133.36,-311.19 132.42,-312.09"/>
+<polyline fill="none" stroke="#2b5d8b" points="129.7,-310.19 132.05,-307.94"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="134.76,-309.84 130.27,-305.15 131.21,-304.25 135.7,-308.95 134.76,-309.84"/>
+<polyline fill="none" stroke="#2b5d8b" points="132.05,-307.94 134.4,-305.7"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="351.36,-168.4 358.32,-169.91 354.86,-167.66 357.39,-167.12 357.39,-167.12 357.39,-167.12 354.86,-167.66 357.11,-164.19 351.36,-168.4"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="347.13" cy="-169.3" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-191.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">拥有角色</text>
+</g>
+<!-- users&#45;&gt;counselor_classes -->
+<g id="e10" class="edge">
+<title>users&#45;&gt;counselor_classes</title>
+<path fill="none" stroke="#2b5d8b" d="M135.35,-353.34C177.65,-392.34 257,-465.5 257,-465.5 257,-465.5 335.4,-498.9 392.14,-523.07"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="128.91,-351.82 133.31,-347.04 134.27,-347.92 129.86,-352.7 128.91,-351.82"/>
+<polyline fill="none" stroke="#2b5d8b" points="130.63,-348.99 133.02,-351.19"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="131.3,-354.02 135.7,-349.24 136.66,-350.12 132.25,-354.9 131.3,-354.02"/>
+<polyline fill="none" stroke="#2b5d8b" points="133.02,-351.19 135.41,-353.39"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="397.59,-525.39 402.43,-530.63 400.89,-526.79 403.26,-527.8 403.26,-527.8 403.26,-527.8 400.89,-526.79 404.72,-525.25 397.59,-525.39"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="393.62" cy="-523.7" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-486.21" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">辅导员带班</text>
+</g>
+<!-- users&#45;&gt;file_objects -->
+<g id="e12" class="edge">
+<title>users&#45;&gt;file_objects</title>
+<path fill="none" stroke="#237260" d="M223.08,-329.5C321.94,-329.5 449.5,-329.5 449.5,-329.5 449.5,-329.5 449.5,-329.5 1120.5,-329.5 1120.5,-329.5 1242.52,-326.99 1340.37,-324.97"/>
+<polygon fill="#237260" stroke="#237260" points="217.26,-332.75 217.26,-326.25 218.56,-326.25 218.56,-332.75 217.26,-332.75"/>
+<polyline fill="none" stroke="#237260" points="216.61,-329.5 219.86,-329.5"/>
+<polygon fill="#237260" stroke="#237260" points="220.51,-332.75 220.51,-326.25 221.81,-326.25 221.81,-332.75 220.51,-332.75"/>
+<polyline fill="none" stroke="#237260" points="219.86,-329.5 223.11,-329.5"/>
+<polygon fill="#237260" stroke="#237260" points="1346.56,-324.85 1353.11,-327.64 1350.14,-324.77 1352.72,-324.72 1352.72,-324.72 1352.72,-324.72 1350.14,-324.77 1352.99,-321.79 1346.56,-324.85"/>
+<ellipse fill="none" stroke="#237260" cx="1342.24" cy="-324.93" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="777.5" y="-332.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">上传原件</text>
+</g>
+<!-- users&#45;&gt;review_decisions -->
+<g id="e35" class="edge">
+<title>users&#45;&gt;review_decisions</title>
+<path fill="none" stroke="#93602b" d="M181.23,-308.19C280.99,-278.56 449.5,-228.5 449.5,-228.5 449.5,-228.5 449.5,-228.5 2139,-228.5 2139,-228.5 2261.02,-236.4 2358.87,-242.73"/>
+<polygon fill="#93602b" stroke="#93602b" points="176.6,-312.96 174.75,-306.73 176,-306.36 177.85,-312.59 176.6,-312.96"/>
+<polyline fill="none" stroke="#93602b" points="175.06,-310.03 178.17,-309.1"/>
+<polygon fill="#93602b" stroke="#93602b" points="179.72,-312.03 177.87,-305.8 179.11,-305.43 180.97,-311.66 179.72,-312.03"/>
+<polyline fill="none" stroke="#93602b" points="178.17,-309.1 181.29,-308.18"/>
+<polygon fill="#93602b" stroke="#93602b" points="2365.07,-243.13 2371.37,-246.47 2368.65,-243.36 2371.22,-243.53 2371.22,-243.53 2371.22,-243.53 2368.65,-243.36 2371.74,-240.63 2365.07,-243.13"/>
+<ellipse fill="none" stroke="#93602b" cx="2360.76" cy="-242.85" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-231.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">实际经办人</text>
+</g>
+<!-- student_profiles&#45;&gt;enrollments -->
+<g id="e3" class="edge">
+<title>student_profiles&#45;&gt;enrollments</title>
+<path fill="none" stroke="#2b5d8b" d="M483.6,-453.49C515.28,-476.18 559,-507.5 559,-507.5 559,-507.5 669,-742.5 669,-742.5 669,-742.5 688.31,-749.51 710.56,-757.58"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="477.26,-452.95 481.05,-447.67 482.1,-448.42 478.32,-453.71 477.26,-452.95"/>
+<polyline fill="none" stroke="#2b5d8b" points="478.63,-449.93 481.27,-451.82"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="479.9,-454.84 483.69,-449.56 484.75,-450.32 480.96,-455.6 479.9,-454.84"/>
+<polyline fill="none" stroke="#2b5d8b" points="481.27,-451.82 483.91,-453.72"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="716.33,-759.67 721.44,-764.64 719.69,-760.89 722.12,-761.77 722.12,-761.77 722.12,-761.77 719.69,-760.89 723.43,-759.14 716.33,-759.67"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="712.27" cy="-758.2" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="614" y="-655.96" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">学生归属</text>
+</g>
+<!-- classes&#45;&gt;class_years -->
+<g id="e1" class="edge">
+<title>classes&#45;&gt;class_years</title>
+<path fill="none" stroke="#2b5d8b" d="M145.36,-589.18C208.87,-629.34 340.74,-712.72 408.04,-755.28"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="139.08,-589.05 142.56,-583.56 143.66,-584.25 140.18,-589.75 139.08,-589.05"/>
+<polyline fill="none" stroke="#2b5d8b" points="140.27,-585.96 143.02,-587.7"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="141.83,-590.79 145.31,-585.3 146.4,-585.99 142.93,-591.49 141.83,-590.79"/>
+<polyline fill="none" stroke="#2b5d8b" points="143.02,-587.7 145.77,-589.43"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="413.27,-758.59 417.2,-764.53 416.3,-760.5 418.48,-761.88 418.48,-761.88 418.48,-761.88 416.3,-760.5 420.32,-759.59 413.27,-758.59"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="409.62" cy="-756.28" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-689.87" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">按学年组织</text>
+</g>
+<!-- classes&#45;&gt;role_assignments -->
+<g id="e9" class="edge">
+<title>classes&#45;&gt;role_assignments</title>
+<path fill="none" stroke="#2b5d8b" d="M140.08,-541.4C194.39,-496.83 302,-408.5 302,-408.5 302,-408.5 393.3,-246.95 432.24,-178.05"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="135.67,-549.23 131.54,-544.2 132.55,-543.38 136.67,-548.4 135.67,-549.23"/>
+<polyline fill="none" stroke="#2b5d8b" points="133.1,-547.13 135.62,-545.06"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="138.01" cy="-543.1" rx="2.6" ry="2.6"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="435.29,-172.64 441.04,-168.42 437.05,-169.52 438.32,-167.27 438.32,-167.27 438.32,-167.27 437.05,-169.52 435.94,-165.54 435.29,-172.64"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="433.17" cy="-176.4" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-445.63" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">班级范围</text>
+</g>
+<!-- classes&#45;&gt;counselor_classes -->
+<g id="e11" class="edge">
+<title>classes&#45;&gt;counselor_classes</title>
+<path fill="none" stroke="#2b5d8b" d="M222.75,-560.17C256.85,-558.27 294.4,-556.17 328.96,-554.24"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="217.44,-563.72 217.08,-557.23 218.38,-557.16 218.74,-563.65 217.44,-563.72"/>
+<polyline fill="none" stroke="#2b5d8b" points="216.61,-560.51 219.86,-560.33"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="220.69,-563.54 220.32,-557.05 221.62,-556.98 221.98,-563.47 220.69,-563.54"/>
+<polyline fill="none" stroke="#2b5d8b" points="219.86,-560.33 223.1,-560.15"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="335.23,-553.89 341.88,-556.44 338.81,-553.69 341.38,-553.54 341.38,-553.54 341.38,-553.54 338.81,-553.69 341.55,-550.6 335.23,-553.89"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="330.92" cy="-554.13" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-561.14" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">所带班级</text>
+</g>
+<!-- academic_years&#45;&gt;class_years -->
+<g id="e2" class="edge">
+<title>academic_years&#45;&gt;class_years</title>
+<path fill="none" stroke="#2b5d8b" d="M223.17,-755.54C264.84,-759.22 302,-762.5 302,-762.5 302,-762.5 313.29,-763.95 329.61,-766.06"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="217.09,-758.26 217.66,-751.79 218.95,-751.9 218.38,-758.38 217.09,-758.26"/>
+<polyline fill="none" stroke="#2b5d8b" points="216.73,-754.97 219.96,-755.26"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="220.32,-758.55 220.9,-752.08 222.19,-752.19 221.62,-758.66 220.32,-758.55"/>
+<polyline fill="none" stroke="#2b5d8b" points="219.96,-755.26 223.2,-755.54"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="335.53,-766.82 341.6,-770.55 339.08,-767.28 341.64,-767.61 341.64,-767.61 341.64,-767.61 339.08,-767.28 342.35,-764.75 335.53,-766.82"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="331.24" cy="-766.27" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-765.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">所属学年</text>
+</g>
+<!-- class_years&#45;&gt;enrollments -->
+<g id="e4" class="edge">
+<title>class_years&#45;&gt;enrollments</title>
+<path fill="none" stroke="#2b5d8b" d="M565.08,-781.5C594.48,-781.5 626.23,-781.5 655.96,-781.5"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="559.47,-784.75 559.47,-778.25 560.77,-778.25 560.77,-784.75 559.47,-784.75"/>
+<polyline fill="none" stroke="#2b5d8b" points="558.82,-781.5 562.07,-781.5"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="562.72,-784.75 562.72,-778.25 564.02,-778.25 564.02,-784.75 562.72,-784.75"/>
+<polyline fill="none" stroke="#2b5d8b" points="562.07,-781.5 565.32,-781.5"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="662.18,-781.5 668.68,-784.43 665.77,-781.5 668.35,-781.5 668.35,-781.5 668.35,-781.5 665.77,-781.5 668.68,-778.58 662.18,-781.5"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="657.86" cy="-781.5" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="614" y="-784.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">班级成员</text>
+</g>
+<!-- class_years&#45;&gt;class_publicity -->
+<g id="e40" class="edge">
+<title>class_years&#45;&gt;class_publicity</title>
+<path fill="none" stroke="#93602b" d="M537.67,-802.44C584.75,-813.89 642.91,-828.03 690.04,-839.48"/>
+<polygon fill="#93602b" stroke="#93602b" points="531.28,-804.24 532.82,-797.92 534.08,-798.23 532.55,-804.55 531.28,-804.24"/>
+<polyline fill="none" stroke="#93602b" points="531.42,-800.93 534.58,-801.69"/>
+<polygon fill="#93602b" stroke="#93602b" points="534.44,-805.01 535.98,-798.69 537.24,-799 535.71,-805.31 534.44,-805.01"/>
+<polyline fill="none" stroke="#93602b" points="534.58,-801.69 537.74,-802.46"/>
+<polygon fill="#93602b" stroke="#93602b" points="696.46,-837.7 694.93,-844.02 693.66,-843.71 695.2,-837.39 696.46,-837.7"/>
+<polyline fill="none" stroke="#93602b" points="696.33,-841.01 693.17,-840.24"/>
+<polygon fill="#93602b" stroke="#93602b" points="693.3,-836.93 691.77,-843.25 690.5,-842.94 692.04,-836.62 693.3,-836.93"/>
+<polyline fill="none" stroke="#93602b" points="693.17,-840.24 690.01,-839.48"/>
+<text xml:space="preserve" text-anchor="middle" x="614" y="-826.37" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">公示状态</text>
+</g>
+<!-- enrollments&#45;&gt;applications -->
+<g id="e22" class="edge">
+<title>enrollments&#45;&gt;applications</title>
+<path fill="none" stroke="#93602b" d="M891.75,-781.5C925.85,-781.5 963.4,-781.5 997.96,-781.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="886.26,-784.75 886.26,-778.25 887.56,-778.25 887.56,-784.75 886.26,-784.75"/>
+<polyline fill="none" stroke="#93602b" points="885.61,-781.5 888.86,-781.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="889.51,-784.75 889.51,-778.25 890.81,-778.25 890.81,-784.75 889.51,-784.75"/>
+<polyline fill="none" stroke="#93602b" points="888.86,-781.5 892.11,-781.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="1004.22,-781.5 1010.72,-784.43 1007.8,-781.5 1010.38,-781.5 1010.38,-781.5 1010.38,-781.5 1007.8,-781.5 1010.72,-778.58 1004.22,-781.5"/>
+<ellipse fill="none" stroke="#93602b" cx="999.9" cy="-781.5" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="948.5" y="-784.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">提交本人申请</text>
+</g>
+<!-- roles&#45;&gt;role_permissions -->
+<g id="e5" class="edge">
+<title>roles&#45;&gt;role_permissions</title>
+<path fill="none" stroke="#2b5d8b" d="M206.26,-95.72C249.98,-86.34 301.68,-75.24 346.15,-65.69"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="201.48,-100.07 200.12,-93.72 201.39,-93.45 202.76,-99.8 201.48,-100.07"/>
+<polyline fill="none" stroke="#2b5d8b" points="200.17,-97.03 203.34,-96.35"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="204.66,-99.39 203.3,-93.04 204.57,-92.76 205.93,-99.12 204.66,-99.39"/>
+<polyline fill="none" stroke="#2b5d8b" points="203.34,-96.35 206.52,-95.67"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="352.11,-64.41 359.08,-65.91 355.61,-63.66 358.14,-63.12 358.14,-63.12 358.14,-63.12 355.61,-63.66 357.85,-60.19 352.11,-64.41"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="347.89" cy="-65.32" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-87.37" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">角色矩阵</text>
+</g>
+<!-- roles&#45;&gt;role_assignments -->
+<g id="e8" class="edge">
+<title>roles&#45;&gt;role_assignments</title>
+<path fill="none" stroke="#2b5d8b" d="M223.17,-125.36C264.84,-128.6 302,-131.5 302,-131.5 302,-131.5 313.29,-132.72 329.61,-134.5"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="217.12,-128.15 217.63,-121.67 218.92,-121.77 218.42,-128.25 217.12,-128.15"/>
+<polyline fill="none" stroke="#2b5d8b" points="216.73,-124.86 219.97,-125.11"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="220.36,-128.4 220.87,-121.92 222.16,-122.02 221.66,-128.5 220.36,-128.4"/>
+<polyline fill="none" stroke="#2b5d8b" points="219.97,-125.11 223.21,-125.36"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="335.51,-135.13 341.66,-138.74 339.07,-135.52 341.64,-135.8 341.64,-135.8 341.64,-135.8 339.07,-135.52 342.29,-132.93 335.51,-135.13"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="331.22" cy="-134.67" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-134.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">角色授权</text>
+</g>
+<!-- permissions&#45;&gt;role_permissions -->
+<g id="e6" class="edge">
+<title>permissions&#45;&gt;role_permissions</title>
+<path fill="none" stroke="#2b5d8b" d="M222.98,-17.96C242.69,-17.69 257,-17.5 257,-17.5 257,-17.5 302,-17.5 302,-17.5 302,-17.5 313.29,-19.49 329.61,-22.37"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="217.39,-21.29 217.3,-14.79 218.6,-14.77 218.69,-21.27 217.39,-21.29"/>
+<polyline fill="none" stroke="#2b5d8b" points="216.69,-18.05 219.94,-18"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="220.64,-21.24 220.55,-14.74 221.85,-14.73 221.94,-21.23 220.64,-21.24"/>
+<polyline fill="none" stroke="#2b5d8b" points="219.94,-18 223.19,-17.96"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="335.57,-23.42 341.47,-27.43 339.1,-24.04 341.65,-24.49 341.65,-24.49 341.65,-24.49 339.1,-24.04 342.48,-21.67 335.57,-23.42"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="331.32" cy="-22.67" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-20.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">权限配置</text>
+</g>
+<!-- file_objects&#45;&gt;file_pages -->
+<g id="e13" class="edge">
+<title>file_objects&#45;&gt;file_pages</title>
+<path fill="none" stroke="#237260" d="M1575.75,-322.5C1609.85,-322.5 1647.4,-322.5 1681.96,-322.5"/>
+<polygon fill="#237260" stroke="#237260" points="1570.26,-325.75 1570.26,-319.25 1571.56,-319.25 1571.56,-325.75 1570.26,-325.75"/>
+<polyline fill="none" stroke="#237260" points="1569.61,-322.5 1572.86,-322.5"/>
+<polygon fill="#237260" stroke="#237260" points="1573.51,-325.75 1573.51,-319.25 1574.81,-319.25 1574.81,-325.75 1573.51,-325.75"/>
+<polyline fill="none" stroke="#237260" points="1572.86,-322.5 1576.11,-322.5"/>
+<polygon fill="#237260" stroke="#237260" points="1688.22,-322.5 1694.72,-325.43 1691.8,-322.5 1694.38,-322.5 1694.38,-322.5 1694.38,-322.5 1691.8,-322.5 1694.72,-319.58 1688.22,-322.5"/>
+<ellipse fill="none" stroke="#237260" cx="1683.9" cy="-322.5" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-325.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">文件页面</text>
+</g>
+<!-- file_objects&#45;&gt;analysis_inputs -->
+<g id="e18" class="edge">
+<title>file_objects&#45;&gt;analysis_inputs</title>
+<path fill="none" stroke="#237260" d="M1522.22,-344.17C1546.97,-353.14 1570,-361.5 1570,-361.5 1570,-361.5 1610,-422.5 1610,-422.5 1610,-422.5 1697.04,-467.72 1754.06,-497.34"/>
+<polygon fill="#237260" stroke="#237260" points="1515.75,-345.28 1517.97,-339.17 1519.19,-339.61 1516.97,-345.72 1515.75,-345.28"/>
+<polyline fill="none" stroke="#237260" points="1516.25,-342 1519.31,-343.11"/>
+<polygon fill="#237260" stroke="#237260" points="1518.81,-346.39 1521.02,-340.27 1522.25,-340.72 1520.03,-346.83 1518.81,-346.39"/>
+<polyline fill="none" stroke="#237260" points="1519.31,-343.11 1522.36,-344.22"/>
+<polygon fill="#237260" stroke="#237260" points="1759.32,-500.07 1763.74,-505.66 1762.5,-501.72 1764.79,-502.91 1764.79,-502.91 1764.79,-502.91 1762.5,-501.72 1766.44,-500.47 1759.32,-500.07"/>
+<ellipse fill="none" stroke="#237260" cx="1755.49" cy="-498.08" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-447.1" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">实际分析文件</text>
+</g>
+<!-- file_objects&#45;&gt;revision_files -->
+<g id="e31" class="edge">
+<title>file_objects&#45;&gt;revision_files</title>
+<path fill="none" stroke="#237260" d="M1542.15,-343.64C1669.94,-377.55 1919.73,-443.84 2051.27,-478.75"/>
+<polygon fill="#237260" stroke="#237260" points="1535.76,-345.3 1537.43,-339.02 1538.69,-339.36 1537.02,-345.64 1535.76,-345.3"/>
+<polyline fill="none" stroke="#237260" points="1535.97,-342 1539.11,-342.83"/>
+<polygon fill="#237260" stroke="#237260" points="1538.9,-346.14 1540.57,-339.86 1541.83,-340.19 1540.16,-346.47 1538.9,-346.14"/>
+<polyline fill="none" stroke="#237260" points="1539.11,-342.83 1542.25,-343.66"/>
+<polygon fill="#237260" stroke="#237260" points="2057.02,-480.27 2062.55,-484.77 2060.48,-481.19 2062.98,-481.86 2062.98,-481.86 2062.98,-481.86 2060.48,-481.19 2064.05,-479.11 2057.02,-480.27"/>
+<ellipse fill="none" stroke="#237260" cx="2052.84" cy="-479.17" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1803.5" y="-444.34" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">使用证明原件</text>
+</g>
+<!-- file_pages&#45;&gt;recognition_runs -->
+<g id="e14" class="edge">
+<title>file_pages&#45;&gt;recognition_runs</title>
+<path fill="none" stroke="#237260" d="M1906.23,-301.81C1931.73,-296.62 1952,-292.5 1952,-292.5 1952,-292.5 1989.5,-292.5 1989.5,-292.5 1989.5,-292.5 2000.79,-294.18 2017.11,-296.62"/>
+<polygon fill="#237260" stroke="#237260" points="1901.28,-306.13 1899.99,-299.76 1901.26,-299.5 1902.56,-305.87 1901.28,-306.13"/>
+<polyline fill="none" stroke="#237260" points="1900,-303.08 1903.18,-302.43"/>
+<polygon fill="#237260" stroke="#237260" points="1904.47,-305.48 1903.17,-299.11 1904.44,-298.86 1905.74,-305.23 1904.47,-305.48"/>
+<polyline fill="none" stroke="#237260" points="1903.18,-302.43 1906.37,-301.78"/>
+<polygon fill="#237260" stroke="#237260" points="2023.05,-297.5 2029.04,-301.36 2026.59,-298.03 2029.14,-298.41 2029.14,-298.41 2029.14,-298.41 2026.59,-298.03 2029.91,-295.57 2023.05,-297.5"/>
+<ellipse fill="none" stroke="#237260" cx="2018.77" cy="-296.87" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1970.75" y="-295.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">识别运行</text>
+</g>
+<!-- file_pages&#45;&gt;evidence_crops -->
+<g id="e33" class="edge">
+<title>file_pages&#45;&gt;evidence_crops</title>
+<path fill="none" stroke="#237260" d="M1918.03,-339.07C1956.3,-344.65 1989.5,-349.5 1989.5,-349.5 1989.5,-349.5 2028.56,-362.48 2066.48,-375.07"/>
+<polygon fill="#237260" stroke="#237260" points="1912.02,-341.48 1912.96,-335.04 1914.25,-335.23 1913.31,-341.66 1912.02,-341.48"/>
+<polyline fill="none" stroke="#237260" points="1911.85,-338.17 1915.06,-338.64"/>
+<polygon fill="#237260" stroke="#237260" points="1915.24,-341.95 1916.18,-335.51 1917.46,-335.7 1916.52,-342.13 1915.24,-341.95"/>
+<polyline fill="none" stroke="#237260" points="1915.06,-338.64 1918.28,-339.11"/>
+<polygon fill="#237260" stroke="#237260" points="2072.22,-376.98 2077.46,-381.8 2075.62,-378.11 2078.07,-378.92 2078.07,-378.92 2078.07,-378.92 2075.62,-378.11 2079.31,-376.25 2072.22,-376.98"/>
+<ellipse fill="none" stroke="#237260" cx="2068.12" cy="-375.62" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1970.75" y="-352.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">框选来源</text>
+</g>
+<!-- recognition_runs&#45;&gt;recognition_regions -->
+<g id="e15" class="edge">
+<title>recognition_runs&#45;&gt;recognition_regions</title>
+<path fill="none" stroke="#237260" d="M2252.25,-326.82C2286.5,-330.55 2324.23,-334.66 2358.92,-338.43"/>
+<polygon fill="#237260" stroke="#237260" points="2246.41,-329.46 2247.11,-323 2248.4,-323.14 2247.7,-329.6 2246.41,-329.46"/>
+<polyline fill="none" stroke="#237260" points="2246.11,-326.16 2249.34,-326.51"/>
+<polygon fill="#237260" stroke="#237260" points="2249.64,-329.81 2250.34,-323.35 2251.63,-323.49 2250.93,-329.95 2249.64,-329.81"/>
+<polyline fill="none" stroke="#237260" points="2249.34,-326.51 2252.57,-326.86"/>
+<polygon fill="#237260" stroke="#237260" points="2364.76,-339.07 2370.9,-342.68 2368.32,-339.46 2370.89,-339.73 2370.89,-339.73 2370.89,-339.73 2368.32,-339.46 2371.53,-336.86 2364.76,-339.07"/>
+<ellipse fill="none" stroke="#237260" cx="2360.46" cy="-338.6" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2309" y="-338.22" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">文字印章区域</text>
+</g>
+<!-- ai_analyses&#45;&gt;analysis_inputs -->
+<g id="e17" class="edge">
+<title>ai_analyses&#45;&gt;analysis_inputs</title>
+<path fill="none" stroke="#237260" d="M1522.22,-709.83C1546.97,-700.86 1570,-692.5 1570,-692.5 1570,-692.5 1610,-615.5 1610,-615.5 1610,-615.5 1693.41,-575.2 1750.42,-547.66"/>
+<polygon fill="#237260" stroke="#237260" points="1517.97,-714.83 1515.75,-708.72 1516.97,-708.28 1519.19,-714.39 1517.97,-714.83"/>
+<polyline fill="none" stroke="#237260" points="1516.25,-712 1519.31,-710.89"/>
+<polygon fill="#237260" stroke="#237260" points="1521.02,-713.73 1518.81,-707.61 1520.03,-707.17 1522.25,-713.28 1521.02,-713.73"/>
+<polyline fill="none" stroke="#237260" points="1519.31,-710.89 1522.36,-709.78"/>
+<polygon fill="#237260" stroke="#237260" points="1755.99,-544.97 1763.12,-544.78 1759.22,-543.41 1761.54,-542.29 1761.54,-542.29 1761.54,-542.29 1759.22,-543.41 1760.57,-539.51 1755.99,-544.97"/>
+<ellipse fill="none" stroke="#237260" cx="1752.1" cy="-546.85" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-618.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">输入溯源</text>
+</g>
+<!-- ai_analyses&#45;&gt;application_revisions -->
+<g id="e25" class="edge">
+<title>ai_analyses&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M1533.66,-709.31C1590.47,-691.6 1669.84,-666.86 1727.61,-648.85"/>
+<polygon fill="#93602b" stroke="#93602b" points="1526.45,-714.97 1524.51,-708.76 1525.76,-708.37 1527.69,-714.58 1526.45,-714.97"/>
+<polyline fill="none" stroke="#93602b" points="1524.86,-712.06 1527.96,-711.09"/>
+<ellipse fill="none" stroke="#93602b" cx="1530.92" cy="-710.17" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="1733.43,-647.03 1740.51,-647.89 1736.86,-645.97 1739.32,-645.2 1739.32,-645.2 1739.32,-645.2 1736.86,-645.97 1738.77,-642.31 1733.43,-647.03"/>
+<ellipse fill="none" stroke="#93602b" cx="1729.31" cy="-648.32" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-687.85" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">建议基线</text>
+</g>
+<!-- activities&#45;&gt;activity_aliases -->
+<g id="e19" class="edge">
+<title>activities&#45;&gt;activity_aliases</title>
+<path fill="none" stroke="#6f4c91" d="M1162.07,-515.23C1205.69,-491.87 1268,-458.5 1268,-458.5 1268,-458.5 1329.13,-440.4 1382.49,-424.6"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1158.69,-520.73 1155.62,-515 1156.77,-514.39 1159.84,-520.12 1158.69,-520.73"/>
+<polyline fill="none" stroke="#6f4c91" points="1156.58,-518.17 1159.45,-516.64"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1161.55,-519.2 1158.49,-513.47 1159.63,-512.85 1162.7,-518.58 1161.55,-519.2"/>
+<polyline fill="none" stroke="#6f4c91" points="1159.45,-516.64 1162.31,-515.11"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1388.24,-422.9 1395.3,-423.86 1391.67,-421.88 1394.15,-421.15 1394.15,-421.15 1394.15,-421.15 1391.67,-421.88 1393.64,-418.25 1388.24,-422.9"/>
+<ellipse fill="none" stroke="#6f4c91" cx="1384.1" cy="-424.12" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-461.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">规范名称别名</text>
+</g>
+<!-- activities&#45;&gt;activity_eligibility_versions -->
+<g id="e20" class="edge">
+<title>activities&#45;&gt;activity_eligibility_versions</title>
+<path fill="none" stroke="#6f4c91" d="M1233.75,-549.49C1268,-553.12 1305.73,-557.11 1340.42,-560.79"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1227.92,-552.14 1228.6,-545.68 1229.89,-545.81 1229.21,-552.28 1227.92,-552.14"/>
+<polyline fill="none" stroke="#6f4c91" points="1227.61,-548.84 1230.84,-549.18"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1231.15,-552.48 1231.83,-546.02 1233.12,-546.16 1232.44,-552.62 1231.15,-552.48"/>
+<polyline fill="none" stroke="#6f4c91" points="1230.84,-549.18 1234.08,-549.53"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1346.25,-561.4 1352.41,-565 1349.82,-561.78 1352.39,-562.05 1352.39,-562.05 1352.39,-562.05 1349.82,-561.78 1353.03,-559.18 1346.25,-561.4"/>
+<ellipse fill="none" stroke="#6f4c91" cx="1341.96" cy="-560.95" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-560.66" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">资格范围版本</text>
+</g>
+<!-- activities&#45;&gt;competition_projects -->
+<g id="e21" class="edge">
+<title>activities&#45;&gt;competition_projects</title>
+<path fill="none" stroke="#6f4c91" d="M1183.77,-558.9C1242.58,-578.79 1330.02,-608.37 1390.81,-628.93"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1177.37,-560.17 1179.45,-554.01 1180.68,-554.42 1178.6,-560.58 1177.37,-560.17"/>
+<polyline fill="none" stroke="#6f4c91" points="1177.79,-556.88 1180.87,-557.92"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1180.44,-561.21 1182.53,-555.05 1183.76,-555.47 1181.68,-561.62 1180.44,-561.21"/>
+<polyline fill="none" stroke="#6f4c91" points="1180.87,-557.92 1183.95,-558.96"/>
+<polygon fill="#6f4c91" stroke="#6f4c91" points="1396.5,-630.85 1401.72,-635.71 1399.89,-632 1402.34,-632.83 1402.34,-632.83 1402.34,-632.83 1399.89,-632 1403.59,-630.16 1396.5,-630.85"/>
+<ellipse fill="none" stroke="#6f4c91" cx="1392.41" cy="-629.47" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-604.89" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">具体赛事项目</text>
+</g>
+<!-- activities&#45;&gt;application_revisions -->
+<g id="e26" class="edge">
+<title>activities&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M1237.2,-529.47C1295.17,-525.48 1353,-521.5 1353,-521.5 1353,-521.5 1570,-521.5 1570,-521.5 1570,-521.5 1678.35,-569.96 1747.11,-600.73"/>
+<polygon fill="#93602b" stroke="#93602b" points="1228.77,-533.31 1228.33,-526.82 1229.62,-526.73 1230.07,-533.22 1228.77,-533.31"/>
+<polyline fill="none" stroke="#93602b" points="1227.9,-530.11 1231.14,-529.89"/>
+<ellipse fill="none" stroke="#93602b" cx="1234.24" cy="-529.67" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="1752.8,-603.27 1757.54,-608.59 1756.07,-604.73 1758.43,-605.79 1758.43,-605.79 1758.43,-605.79 1756.07,-604.73 1759.93,-603.25 1752.8,-603.27"/>
+<ellipse fill="none" stroke="#93602b" cx="1748.86" cy="-601.51" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1461.5" y="-524.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">确认规范活动</text>
+</g>
+<!-- competition_projects&#45;&gt;application_revisions -->
+<g id="e27" class="edge">
+<title>competition_projects&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M1578.6,-643.28C1612.05,-640.62 1648.6,-637.72 1682.29,-635.05"/>
+<polygon fill="#93602b" stroke="#93602b" points="1570.52,-647.18 1570,-640.7 1571.3,-640.6 1571.81,-647.08 1570.52,-647.18"/>
+<polyline fill="none" stroke="#93602b" points="1569.61,-643.99 1572.85,-643.74"/>
+<ellipse fill="none" stroke="#93602b" cx="1575.94" cy="-643.49" rx="2.6" ry="2.6"/>
+<polygon fill="#93602b" stroke="#93602b" points="1688.24,-634.57 1694.95,-636.98 1691.81,-634.29 1694.38,-634.09 1694.38,-634.09 1694.38,-634.09 1691.81,-634.29 1694.49,-631.14 1688.24,-634.57"/>
+<ellipse fill="none" stroke="#93602b" cx="1683.93" cy="-634.92" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-643.62" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">确认项目身份</text>
+</g>
+<!-- applications&#45;&gt;ai_analyses -->
+<g id="e16" class="edge">
+<title>applications&#45;&gt;ai_analyses</title>
+<path fill="none" stroke="#237260" d="M1233.75,-764.85C1268,-759.81 1305.73,-754.26 1340.42,-749.16"/>
+<polygon fill="#237260" stroke="#237260" points="1228.73,-768.87 1227.78,-762.44 1229.07,-762.25 1230.01,-768.68 1228.73,-768.87"/>
+<polyline fill="none" stroke="#237260" points="1227.61,-765.75 1230.83,-765.28"/>
+<polygon fill="#237260" stroke="#237260" points="1231.94,-768.4 1231,-761.97 1232.28,-761.78 1233.23,-768.21 1231.94,-768.4"/>
+<polyline fill="none" stroke="#237260" points="1230.83,-765.28 1234.04,-764.8"/>
+<polygon fill="#237260" stroke="#237260" points="1346.29,-748.3 1353.15,-750.24 1349.84,-747.77 1352.39,-747.4 1352.39,-747.4 1352.39,-747.4 1349.84,-747.77 1352.29,-744.46 1346.29,-748.3"/>
+<ellipse fill="none" stroke="#237260" cx="1342.02" cy="-748.92" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-762.49" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">生成建议</text>
+</g>
+<!-- applications&#45;&gt;application_revisions -->
+<g id="e24" class="edge">
+<title>applications&#45;&gt;application_revisions</title>
+<path fill="none" stroke="#93602b" d="M1192.31,-802.81C1260.61,-823.08 1353,-850.5 1353,-850.5 1353,-850.5 1570,-850.5 1570,-850.5 1570,-850.5 1710.97,-714.08 1773.37,-653.69"/>
+<polygon fill="#93602b" stroke="#93602b" points="1185.89,-804.3 1187.74,-798.07 1188.99,-798.44 1187.14,-804.67 1185.89,-804.3"/>
+<polyline fill="none" stroke="#93602b" points="1186.19,-801 1189.31,-801.92"/>
+<polygon fill="#93602b" stroke="#93602b" points="1189.01,-805.22 1190.86,-798.99 1192.1,-799.36 1190.25,-805.59 1189.01,-805.22"/>
+<polyline fill="none" stroke="#93602b" points="1189.31,-801.92 1192.42,-802.85"/>
+<polygon fill="#93602b" stroke="#93602b" points="1777.77,-649.44 1784.47,-647.02 1780.34,-646.94 1782.2,-645.15 1782.2,-645.15 1782.2,-645.15 1780.34,-646.94 1780.4,-642.81 1777.77,-649.44"/>
+<ellipse fill="none" stroke="#93602b" cx="1774.66" cy="-652.44" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1461.5" y="-853.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">内容版本</text>
+</g>
+<!-- applications&#45;&gt;submission_rounds -->
+<g id="e28" class="edge">
+<title>applications&#45;&gt;submission_rounds</title>
+<path fill="none" stroke="#93602b" d="M1178.45,-803.06C1203.86,-812.52 1228,-821.5 1228,-821.5 1228,-821.5 1268,-863.5 1268,-863.5 1268,-863.5 1353,-872.5 1353,-872.5 1353,-872.5 1570,-872.5 1570,-872.5 1570,-872.5 1937.13,-712.57 2080.55,-650.09"/>
+<polygon fill="#93602b" stroke="#93602b" points="1172.15,-804.19 1174.42,-798.09 1175.64,-798.55 1173.37,-804.64 1172.15,-804.19"/>
+<polyline fill="none" stroke="#93602b" points="1172.68,-800.91 1175.72,-802.05"/>
+<polygon fill="#93602b" stroke="#93602b" points="1175.2,-805.32 1177.46,-799.23 1178.68,-799.68 1176.42,-805.77 1175.2,-805.32"/>
+<polyline fill="none" stroke="#93602b" points="1175.72,-802.05 1178.77,-803.18"/>
+<polygon fill="#93602b" stroke="#93602b" points="2086.24,-647.61 2093.37,-647.7 2089.53,-646.18 2091.9,-645.15 2091.9,-645.15 2091.9,-645.15 2089.53,-646.18 2091.03,-642.33 2086.24,-647.61"/>
+<ellipse fill="none" stroke="#93602b" cx="2082.28" cy="-649.34" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1632.5" y="-856.67" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">提审轮次</text>
+</g>
+<!-- applications&#45;&gt;application_events -->
+<g id="e36" class="edge">
+<title>applications&#45;&gt;application_events</title>
+<path fill="none" stroke="#93602b" d="M1233.75,-791.16C1267.85,-794.07 1305.4,-797.27 1339.96,-800.22"/>
+<polygon fill="#93602b" stroke="#93602b" points="1227.98,-793.93 1228.54,-787.45 1229.83,-787.56 1229.28,-794.04 1227.98,-793.93"/>
+<polyline fill="none" stroke="#93602b" points="1227.61,-790.64 1230.85,-790.91"/>
+<polygon fill="#93602b" stroke="#93602b" points="1231.22,-794.21 1231.77,-787.73 1233.07,-787.84 1232.52,-794.32 1231.22,-794.21"/>
+<polyline fill="none" stroke="#93602b" points="1230.85,-790.91 1234.09,-791.19"/>
+<polygon fill="#93602b" stroke="#93602b" points="1346.24,-800.75 1352.47,-804.22 1349.81,-801.06 1352.38,-801.28 1352.38,-801.28 1352.38,-801.28 1349.81,-801.06 1352.97,-798.39 1346.24,-800.75"/>
+<ellipse fill="none" stroke="#93602b" cx="1341.94" cy="-800.39" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.5" y="-800.74" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">状态历史</text>
+</g>
+<!-- application_revisions&#45;&gt;submission_rounds -->
+<g id="e29" class="edge">
+<title>application_revisions&#45;&gt;submission_rounds</title>
+<path fill="none" stroke="#93602b" d="M1918.21,-625.5C1949.9,-625.5 1984.43,-625.5 2016.49,-625.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="1912.64,-628.75 1912.64,-622.25 1913.94,-622.25 1913.94,-628.75 1912.64,-628.75"/>
+<polyline fill="none" stroke="#93602b" points="1911.99,-625.5 1915.24,-625.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="1915.89,-628.75 1915.89,-622.25 1917.19,-622.25 1917.19,-628.75 1915.89,-628.75"/>
+<polyline fill="none" stroke="#93602b" points="1915.24,-625.5 1918.49,-625.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="2022.76,-625.5 2029.26,-628.43 2026.34,-625.5 2028.92,-625.5 2028.92,-625.5 2028.92,-625.5 2026.34,-625.5 2029.26,-622.58 2022.76,-625.5"/>
+<ellipse fill="none" stroke="#93602b" cx="2018.44" cy="-625.5" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1970.75" y="-628.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">冻结内容</text>
+</g>
+<!-- application_revisions&#45;&gt;revision_files -->
+<g id="e30" class="edge">
+<title>application_revisions&#45;&gt;revision_files</title>
+<path fill="none" stroke="#237260" d="M1862.41,-603.9C1921.14,-582 2011.8,-548.19 2072.72,-525.47"/>
+<polygon fill="#237260" stroke="#237260" points="1858.2,-608.94 1855.93,-602.85 1857.14,-602.4 1859.42,-608.49 1858.2,-608.94"/>
+<polyline fill="none" stroke="#237260" points="1856.45,-606.12 1859.5,-604.99"/>
+<polygon fill="#237260" stroke="#237260" points="1861.24,-607.81 1858.97,-601.72 1860.19,-601.26 1862.46,-607.35 1861.24,-607.81"/>
+<polyline fill="none" stroke="#237260" points="1859.5,-604.99 1862.54,-603.85"/>
+<polygon fill="#237260" stroke="#237260" points="2078.46,-523.33 2085.57,-523.8 2081.82,-522.08 2084.24,-521.18 2084.24,-521.18 2084.24,-521.18 2081.82,-522.08 2083.53,-518.32 2078.46,-523.33"/>
+<ellipse fill="none" stroke="#237260" cx="2074.41" cy="-524.84" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1970.75" y="-570.22" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">版本附件</text>
+</g>
+<!-- application_revisions&#45;&gt;evidence_crops -->
+<g id="e32" class="edge">
+<title>application_revisions&#45;&gt;evidence_crops</title>
+<path fill="none" stroke="#237260" d="M1842.33,-602.98C1873.29,-584.54 1912,-561.5 1912,-561.5 1912,-561.5 2029.5,-461.5 2029.5,-461.5 2029.5,-461.5 2063.14,-441.79 2092.78,-424.41"/>
+<polygon fill="#237260" stroke="#237260" points="1839.27,-608.58 1835.94,-603 1837.06,-602.33 1840.38,-607.92 1839.27,-608.58"/>
+<polyline fill="none" stroke="#237260" points="1837.05,-606.12 1839.84,-604.46"/>
+<polygon fill="#237260" stroke="#237260" points="1842.06,-606.92 1838.73,-601.34 1839.85,-600.67 1843.18,-606.26 1842.06,-606.92"/>
+<polyline fill="none" stroke="#237260" points="1839.84,-604.46 1842.63,-602.8"/>
+<polygon fill="#237260" stroke="#237260" points="2097.97,-421.37 2105.06,-420.61 2101.07,-419.56 2103.29,-418.25 2103.29,-418.25 2103.29,-418.25 2101.07,-419.56 2102.1,-415.56 2097.97,-421.37"/>
+<ellipse fill="none" stroke="#237260" cx="2094.25" cy="-423.56" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1970.75" y="-529.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">两类多截图</text>
+</g>
+<!-- submission_rounds&#45;&gt;review_decisions -->
+<g id="e34" class="edge">
+<title>submission_rounds&#45;&gt;review_decisions</title>
+<path fill="none" stroke="#93602b" d="M2168.37,-602.28C2200.2,-577.11 2246.5,-540.5 2246.5,-540.5 2246.5,-540.5 2286.5,-308.5 2286.5,-308.5 2286.5,-308.5 2348.42,-289.84 2402.02,-273.69"/>
+<polygon fill="#93602b" stroke="#93602b" points="2165.92,-608.36 2161.89,-603.26 2162.91,-602.45 2166.94,-607.55 2165.92,-608.36"/>
+<polyline fill="none" stroke="#93602b" points="2163.39,-606.21 2165.94,-604.2"/>
+<polygon fill="#93602b" stroke="#93602b" points="2168.47,-606.34 2164.44,-601.24 2165.46,-600.44 2169.49,-605.54 2168.47,-606.34"/>
+<polyline fill="none" stroke="#93602b" points="2165.94,-604.2 2168.49,-602.18"/>
+<polygon fill="#93602b" stroke="#93602b" points="2407.82,-271.95 2414.89,-272.87 2411.25,-270.91 2413.72,-270.17 2413.72,-270.17 2413.72,-270.17 2411.25,-270.91 2413.2,-267.27 2407.82,-271.95"/>
+<ellipse fill="none" stroke="#93602b" cx="2403.69" cy="-273.19" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2309" y="-311.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">审核决定</text>
+</g>
+<!-- submission_rounds&#45;&gt;award_supersessions -->
+<g id="e37" class="edge">
+<title>submission_rounds&#45;&gt;award_supersessions</title>
+<path fill="none" stroke="#93602b" d="M2252.25,-625.17C2286.35,-625.07 2323.9,-624.96 2358.46,-624.85"/>
+<polygon fill="#93602b" stroke="#93602b" points="2246.77,-628.43 2246.75,-621.93 2248.05,-621.93 2248.07,-628.43 2246.77,-628.43"/>
+<polyline fill="none" stroke="#93602b" points="2246.11,-625.18 2249.36,-625.18"/>
+<polygon fill="#93602b" stroke="#93602b" points="2250.02,-628.42 2250,-621.92 2251.3,-621.92 2251.32,-628.42 2250.02,-628.42"/>
+<polyline fill="none" stroke="#93602b" points="2249.36,-625.18 2252.61,-625.17"/>
+<polygon fill="#93602b" stroke="#93602b" points="2364.72,-624.84 2371.23,-627.74 2368.3,-624.83 2370.88,-624.82 2370.88,-624.82 2370.88,-624.82 2368.3,-624.83 2371.21,-621.89 2364.72,-624.84"/>
+<ellipse fill="none" stroke="#93602b" cx="2360.4" cy="-624.85" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2309" y="-628.06" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">新项替代</text>
+</g>
+<!-- submission_rounds&#45;&gt;award_supersessions -->
+<g id="e38" class="edge">
+<title>submission_rounds&#45;&gt;award_supersessions</title>
+<path fill="none" stroke="#93602b" d="M2252.48,-607.81C2272.19,-604.73 2286.5,-602.5 2286.5,-602.5 2286.5,-602.5 2331.5,-602.5 2331.5,-602.5 2331.5,-602.5 2342.79,-604.18 2359.11,-606.62"/>
+<polygon fill="#93602b" stroke="#93602b" points="2247.34,-611.9 2246.34,-605.47 2247.62,-605.27 2248.62,-611.7 2247.34,-611.9"/>
+<polyline fill="none" stroke="#93602b" points="2246.19,-608.78 2249.41,-608.28"/>
+<polygon fill="#93602b" stroke="#93602b" points="2250.55,-611.4 2249.55,-604.97 2250.83,-604.77 2251.83,-611.19 2250.55,-611.4"/>
+<polyline fill="none" stroke="#93602b" points="2249.41,-608.28 2252.62,-607.78"/>
+<polygon fill="#93602b" stroke="#93602b" points="2365.05,-607.5 2371.04,-611.36 2368.59,-608.03 2371.14,-608.41 2371.14,-608.41 2371.14,-608.41 2368.59,-608.03 2371.91,-605.57 2365.05,-607.5"/>
+<ellipse fill="none" stroke="#93602b" cx="2360.77" cy="-606.87" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="2309" y="-605.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">旧项可恢复</text>
+</g>
+<!-- score_categories&#45;&gt;applications -->
+<g id="e23" class="edge">
+<title>score_categories&#45;&gt;applications</title>
+<path fill="none" stroke="#93602b" d="M868.33,-723.37C915.63,-734.36 973.67,-747.85 1021.93,-759.06"/>
+<polygon fill="#93602b" stroke="#93602b" points="862.01,-725.24 863.48,-718.91 864.74,-719.2 863.27,-725.53 862.01,-725.24"/>
+<polyline fill="none" stroke="#93602b" points="862.11,-721.93 865.27,-722.66"/>
+<polygon fill="#93602b" stroke="#93602b" points="865.17,-725.98 866.64,-719.64 867.91,-719.94 866.44,-726.27 865.17,-725.98"/>
+<polyline fill="none" stroke="#93602b" points="865.27,-722.66 868.44,-723.4"/>
+<polygon fill="#93602b" stroke="#93602b" points="1027.97,-760.46 1033.64,-764.78 1031.46,-761.28 1033.97,-761.86 1033.97,-761.86 1033.97,-761.86 1031.46,-761.28 1034.96,-759.09 1027.97,-760.46"/>
+<ellipse fill="none" stroke="#93602b" cx="1023.76" cy="-759.49" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="948.5" y="-749.73" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">选择填报入口</text>
+</g>
+<!-- score_rule_versions&#45;&gt;class_years -->
+<g id="e39" class="edge">
+<title>score_rule_versions&#45;&gt;class_years</title>
+<path fill="none" stroke="#2b5d8b" d="M222.75,-810.18C257,-805.85 294.73,-801.07 329.42,-796.69"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="217.66,-814.1 216.85,-807.65 218.14,-807.48 218.95,-813.93 217.66,-814.1"/>
+<polyline fill="none" stroke="#2b5d8b" points="216.61,-810.95 219.84,-810.55"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="220.89,-813.69 220.07,-807.24 221.36,-807.08 222.18,-813.53 220.89,-813.69"/>
+<polyline fill="none" stroke="#2b5d8b" points="219.84,-810.55 223.06,-810.14"/>
+<polygon fill="#2b5d8b" stroke="#2b5d8b" points="335.27,-795.95 342.09,-798.03 338.83,-795.5 341.39,-795.17 341.39,-795.17 341.39,-795.17 338.83,-795.5 341.35,-792.23 335.27,-795.95"/>
+<ellipse fill="none" stroke="#2b5d8b" cx="330.99" cy="-796.49" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="279.5" y="-808.57" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">统一计分规则</text>
+</g>
+<!-- class_publicity&#45;&gt;publicity_events -->
+<g id="e41" class="edge">
+<title>class_publicity&#45;&gt;publicity_events</title>
+<path fill="none" stroke="#93602b" d="M891.75,-860.5C925.85,-860.5 963.4,-860.5 997.96,-860.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="886.26,-863.75 886.26,-857.25 887.56,-857.25 887.56,-863.75 886.26,-863.75"/>
+<polyline fill="none" stroke="#93602b" points="885.61,-860.5 888.86,-860.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="889.51,-863.75 889.51,-857.25 890.81,-857.25 890.81,-863.75 889.51,-863.75"/>
+<polyline fill="none" stroke="#93602b" points="888.86,-860.5 892.11,-860.5"/>
+<polygon fill="#93602b" stroke="#93602b" points="1004.22,-860.5 1010.72,-863.43 1007.8,-860.5 1010.38,-860.5 1010.38,-860.5 1010.38,-860.5 1007.8,-860.5 1010.72,-857.58 1004.22,-860.5"/>
+<ellipse fill="none" stroke="#93602b" cx="999.9" cy="-860.5" rx="2.6" ry="2.6"/>
+<text xml:space="preserve" text-anchor="middle" x="948.5" y="-863.5" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">公示操作历史</text>
+</g>
+<!-- users -->
+<g id="node1" class="node">
+<title>users</title>
+<polygon fill="none" stroke="#2b5d8b" points="0,-310 0,-349 217,-349 217,-310 0,-310"/>
+<polygon fill="#2b5d8b" stroke="none" points="1,-311 1,-348 216,-348 216,-311 1,-311"/>
+<text xml:space="preserve" text-anchor="start" x="94.06" y="-331.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">users</text>
+<text xml:space="preserve" text-anchor="start" x="99.5" y="-319.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">用户</text>
+</g>
+<!-- student_profiles -->
+<g id="node2" class="node">
+<title>student_profiles</title>
+<polygon fill="none" stroke="#2b5d8b" points="342,-411 342,-450 559,-450 559,-411 342,-411"/>
+<polygon fill="#2b5d8b" stroke="none" points="343,-412 343,-449 558,-449 558,-412 343,-412"/>
+<text xml:space="preserve" text-anchor="start" x="405.72" y="-432.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">student_profiles</text>
+<text xml:space="preserve" text-anchor="start" x="432.5" y="-420.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">学生档案</text>
+</g>
+<!-- classes -->
+<g id="node3" class="node">
+<title>classes</title>
+<polygon fill="none" stroke="#2b5d8b" points="0,-547 0,-586 217,-586 217,-547 0,-547"/>
+<polygon fill="#2b5d8b" stroke="none" points="1,-548 1,-585 216,-585 216,-548 1,-548"/>
+<text xml:space="preserve" text-anchor="start" x="90.09" y="-568.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">classes</text>
+<text xml:space="preserve" text-anchor="start" x="99.5" y="-556.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">班级</text>
+</g>
+<!-- academic_years -->
+<g id="node4" class="node">
+<title>academic_years</title>
+<polygon fill="none" stroke="#2b5d8b" points="0,-726 0,-765 217,-765 217,-726 0,-726"/>
+<polygon fill="#2b5d8b" stroke="none" points="1,-727 1,-764 216,-764 216,-727 1,-727"/>
+<text xml:space="preserve" text-anchor="start" x="64.46" y="-747.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">academic_years</text>
+<text xml:space="preserve" text-anchor="start" x="99.5" y="-735.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">学年</text>
+</g>
+<!-- class_years -->
+<g id="node5" class="node">
+<title>class_years</title>
+<polygon fill="none" stroke="#2b5d8b" points="342,-762 342,-801 559,-801 559,-762 342,-762"/>
+<polygon fill="#2b5d8b" stroke="none" points="343,-763 343,-800 558,-800 558,-763 343,-763"/>
+<text xml:space="preserve" text-anchor="start" x="419.45" y="-783.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">class_years</text>
+<text xml:space="preserve" text-anchor="start" x="432.5" y="-771.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">班级学年</text>
+</g>
+<!-- enrollments -->
+<g id="node6" class="node">
+<title>enrollments</title>
+<polygon fill="none" stroke="#2b5d8b" points="669,-762 669,-801 886,-801 886,-762 669,-762"/>
+<polygon fill="#2b5d8b" stroke="none" points="670,-763 670,-800 885,-800 885,-763 670,-763"/>
+<text xml:space="preserve" text-anchor="start" x="744.64" y="-783.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">enrollments</text>
+<text xml:space="preserve" text-anchor="start" x="741.5" y="-771.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">学生班级学年归属</text>
+</g>
+<!-- roles -->
+<g id="node7" class="node">
+<title>roles</title>
+<polygon fill="none" stroke="#2b5d8b" points="0,-97 0,-136 217,-136 217,-97 0,-97"/>
+<polygon fill="#2b5d8b" stroke="none" points="1,-98 1,-135 216,-135 216,-98 1,-98"/>
+<text xml:space="preserve" text-anchor="start" x="95.14" y="-118.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">roles</text>
+<text xml:space="preserve" text-anchor="start" x="99.5" y="-106.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">角色</text>
+</g>
+<!-- permissions -->
+<g id="node8" class="node">
+<title>permissions</title>
+<polygon fill="none" stroke="#2b5d8b" points="0,0 0,-39 217,-39 217,0 0,0"/>
+<polygon fill="#2b5d8b" stroke="none" points="1,-1 1,-38 216,-38 216,-1 1,-1"/>
+<text xml:space="preserve" text-anchor="start" x="75.64" y="-21.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">permissions</text>
+<text xml:space="preserve" text-anchor="start" x="95" y="-9.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">权限项</text>
+</g>
+<!-- role_permissions -->
+<g id="node9" class="node">
+<title>role_permissions</title>
+<polygon fill="none" stroke="#2b5d8b" points="342,-24 342,-63 559,-63 559,-24 342,-24"/>
+<polygon fill="#2b5d8b" stroke="none" points="343,-25 343,-62 558,-62 558,-25 343,-25"/>
+<text xml:space="preserve" text-anchor="start" x="403.56" y="-45.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">role_permissions</text>
+<text xml:space="preserve" text-anchor="start" x="423.5" y="-33.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">角色权限矩阵</text>
+</g>
+<!-- role_assignments -->
+<g id="node10" class="node">
+<title>role_assignments</title>
+<polygon fill="none" stroke="#2b5d8b" points="342,-128 342,-167 559,-167 559,-128 342,-128"/>
+<polygon fill="#2b5d8b" stroke="none" points="343,-129 343,-166 558,-166 558,-129 343,-129"/>
+<text xml:space="preserve" text-anchor="start" x="402.84" y="-149.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">role_assignments</text>
+<text xml:space="preserve" text-anchor="start" x="423.5" y="-137.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">用户角色授权</text>
+</g>
+<!-- counselor_classes -->
+<g id="node11" class="node">
+<title>counselor_classes</title>
+<polygon fill="none" stroke="#2b5d8b" points="342,-528 342,-567 559,-567 559,-528 342,-528"/>
+<polygon fill="#2b5d8b" stroke="none" points="343,-529 343,-566 558,-566 558,-529 343,-529"/>
+<text xml:space="preserve" text-anchor="start" x="402.11" y="-549.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">counselor_classes</text>
+<text xml:space="preserve" text-anchor="start" x="419" y="-537.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">辅导员带班范围</text>
+</g>
+<!-- file_objects -->
+<g id="node12" class="node">
+<title>file_objects</title>
+<polygon fill="none" stroke="#237260" points="1353,-303 1353,-342 1570,-342 1570,-303 1353,-303"/>
+<polygon fill="#237260" stroke="none" points="1354,-304 1354,-341 1569,-341 1569,-304 1354,-304"/>
+<text xml:space="preserve" text-anchor="start" x="1430.09" y="-324.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">file_objects</text>
+<text xml:space="preserve" text-anchor="start" x="1434.5" y="-312.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">原始证明文件</text>
+</g>
+<!-- file_pages -->
+<g id="node13" class="node">
+<title>file_pages</title>
+<polygon fill="none" stroke="#237260" points="1695,-303 1695,-342 1912,-342 1912,-303 1695,-303"/>
+<polygon fill="#237260" stroke="none" points="1696,-304 1696,-341 1911,-341 1911,-304 1696,-304"/>
+<text xml:space="preserve" text-anchor="start" x="1776.06" y="-324.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">file_pages</text>
+<text xml:space="preserve" text-anchor="start" x="1785.5" y="-312.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">文件页面</text>
+</g>
+<!-- recognition_runs -->
+<g id="node14" class="node">
+<title>recognition_runs</title>
+<polygon fill="none" stroke="#237260" points="2029.5,-295 2029.5,-334 2246.5,-334 2246.5,-295 2029.5,-295"/>
+<polygon fill="#237260" stroke="none" points="2030.5,-296 2030.5,-333 2245.5,-333 2245.5,-296 2030.5,-296"/>
+<text xml:space="preserve" text-anchor="start" x="2090.69" y="-316.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">recognition_runs</text>
+<text xml:space="preserve" text-anchor="start" x="2107.66" y="-304.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">OCR识别运行</text>
+</g>
+<!-- recognition_regions -->
+<g id="node15" class="node">
+<title>recognition_regions</title>
+<polygon fill="none" stroke="#237260" points="2371.5,-332 2371.5,-371 2588.5,-371 2588.5,-332 2371.5,-332"/>
+<polygon fill="#237260" stroke="none" points="2372.5,-333 2372.5,-370 2587.5,-370 2587.5,-333 2372.5,-333"/>
+<text xml:space="preserve" text-anchor="start" x="2425.12" y="-353.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">recognition_regions</text>
+<text xml:space="preserve" text-anchor="start" x="2439.5" y="-341.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">识别文字及印章区域</text>
+</g>
+<!-- ai_analyses -->
+<g id="node16" class="node">
+<title>ai_analyses</title>
+<polygon fill="none" stroke="#237260" points="1353,-712 1353,-751 1570,-751 1570,-712 1353,-712"/>
+<polygon fill="#237260" stroke="none" points="1354,-713 1354,-750 1569,-750 1569,-713 1354,-713"/>
+<text xml:space="preserve" text-anchor="start" x="1430.08" y="-733.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">ai_analyses</text>
+<text xml:space="preserve" text-anchor="start" x="1437.17" y="-721.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">AI建议记录</text>
+</g>
+<!-- analysis_inputs -->
+<g id="node17" class="node">
+<title>analysis_inputs</title>
+<polygon fill="none" stroke="#237260" points="1695,-503 1695,-542 1912,-542 1912,-503 1695,-503"/>
+<polygon fill="#237260" stroke="none" points="1696,-504 1696,-541 1911,-541 1911,-504 1696,-504"/>
+<text xml:space="preserve" text-anchor="start" x="1760.87" y="-524.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">analysis_inputs</text>
+<text xml:space="preserve" text-anchor="start" x="1770.17" y="-512.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">AI识别输入关系</text>
+</g>
+<!-- activities -->
+<g id="node18" class="node">
+<title>activities</title>
+<polygon fill="none" stroke="#6f4c91" points="1011,-518 1011,-557 1228,-557 1228,-518 1011,-518"/>
+<polygon fill="#6f4c91" stroke="none" points="1012,-519 1012,-556 1227,-556 1227,-519 1012,-519"/>
+<text xml:space="preserve" text-anchor="start" x="1094.95" y="-539.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">activities</text>
+<text xml:space="preserve" text-anchor="start" x="1101.5" y="-527.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">规范活动</text>
+</g>
+<!-- activity_aliases -->
+<g id="node19" class="node">
+<title>activity_aliases</title>
+<polygon fill="none" stroke="#6f4c91" points="1353,-382 1353,-421 1570,-421 1570,-382 1353,-382"/>
+<polygon fill="#6f4c91" stroke="none" points="1354,-383 1354,-420 1569,-420 1569,-383 1354,-383"/>
+<text xml:space="preserve" text-anchor="start" x="1419.62" y="-403.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">activity_aliases</text>
+<text xml:space="preserve" text-anchor="start" x="1443.5" y="-391.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">活动别名</text>
+</g>
+<!-- activity_eligibility_versions -->
+<g id="node20" class="node">
+<title>activity_eligibility_versions</title>
+<polygon fill="none" stroke="#6f4c91" points="1353,-554 1353,-593 1570,-593 1570,-554 1353,-554"/>
+<polygon fill="#6f4c91" stroke="none" points="1354,-555 1354,-592 1569,-592 1569,-555 1354,-555"/>
+<text xml:space="preserve" text-anchor="start" x="1385.67" y="-575.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">activity_eligibility_versions</text>
+<text xml:space="preserve" text-anchor="start" x="1425.5" y="-563.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">活动资格认定版本</text>
+</g>
+<!-- competition_projects -->
+<g id="node21" class="node">
+<title>competition_projects</title>
+<polygon fill="none" stroke="#6f4c91" points="1353,-633 1353,-672 1570,-672 1570,-633 1353,-633"/>
+<polygon fill="#6f4c91" stroke="none" points="1354,-634 1354,-671 1569,-671 1569,-634 1354,-634"/>
+<text xml:space="preserve" text-anchor="start" x="1403.02" y="-654.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">competition_projects</text>
+<text xml:space="preserve" text-anchor="start" x="1434.5" y="-642.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">竞赛项目身份</text>
+</g>
+<!-- applications -->
+<g id="node22" class="node">
+<title>applications</title>
+<polygon fill="none" stroke="#93602b" points="1011,-762 1011,-801 1228,-801 1228,-762 1011,-762"/>
+<polygon fill="#93602b" stroke="none" points="1012,-763 1012,-800 1227,-800 1227,-763 1012,-763"/>
+<text xml:space="preserve" text-anchor="start" x="1085.91" y="-783.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">applications</text>
+<text xml:space="preserve" text-anchor="start" x="1097" y="-771.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请聚合根</text>
+</g>
+<!-- application_revisions -->
+<g id="node23" class="node">
+<title>application_revisions</title>
+<polygon fill="none" stroke="#93602b" points="1695,-606 1695,-645 1912,-645 1912,-606 1695,-606"/>
+<polygon fill="#93602b" stroke="none" points="1696,-607 1696,-644 1911,-644 1911,-607 1696,-607"/>
+<text xml:space="preserve" text-anchor="start" x="1744.63" y="-627.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">application_revisions</text>
+<text xml:space="preserve" text-anchor="start" x="1776.5" y="-615.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请内容版本</text>
+</g>
+<!-- submission_rounds -->
+<g id="node24" class="node">
+<title>submission_rounds</title>
+<polygon fill="none" stroke="#93602b" points="2029.5,-606 2029.5,-645 2246.5,-645 2246.5,-606 2029.5,-606"/>
+<polygon fill="#93602b" stroke="none" points="2030.5,-607 2030.5,-644 2245.5,-644 2245.5,-607 2030.5,-607"/>
+<text xml:space="preserve" text-anchor="start" x="2084.53" y="-627.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">submission_rounds</text>
+<text xml:space="preserve" text-anchor="start" x="2111" y="-615.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请提审轮次</text>
+</g>
+<!-- revision_files -->
+<g id="node25" class="node">
+<title>revision_files</title>
+<polygon fill="none" stroke="#237260" points="2029.5,-482 2029.5,-521 2246.5,-521 2246.5,-482 2029.5,-482"/>
+<polygon fill="#237260" stroke="none" points="2030.5,-483 2030.5,-520 2245.5,-520 2245.5,-483 2030.5,-483"/>
+<text xml:space="preserve" text-anchor="start" x="2101.53" y="-503.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">revision_files</text>
+<text xml:space="preserve" text-anchor="start" x="2111" y="-491.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">版本附件关系</text>
+</g>
+<!-- evidence_crops -->
+<g id="node26" class="node">
+<title>evidence_crops</title>
+<polygon fill="none" stroke="#237260" points="2029.5,-379 2029.5,-418 2246.5,-418 2246.5,-379 2029.5,-379"/>
+<polygon fill="#237260" stroke="none" points="2030.5,-380 2030.5,-417 2245.5,-417 2245.5,-380 2030.5,-380"/>
+<text xml:space="preserve" text-anchor="start" x="2095.76" y="-400.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">evidence_crops</text>
+<text xml:space="preserve" text-anchor="start" x="2093" y="-388.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">关键证据与公示脱敏版</text>
+</g>
+<!-- review_decisions -->
+<g id="node27" class="node">
+<title>review_decisions</title>
+<polygon fill="none" stroke="#93602b" points="2371.5,-231 2371.5,-270 2588.5,-270 2588.5,-231 2371.5,-231"/>
+<polygon fill="#93602b" stroke="none" points="2372.5,-232 2372.5,-269 2587.5,-269 2587.5,-232 2372.5,-232"/>
+<text xml:space="preserve" text-anchor="start" x="2433.42" y="-252.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">review_decisions</text>
+<text xml:space="preserve" text-anchor="start" x="2462" y="-240.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">审核决定</text>
+</g>
+<!-- application_events -->
+<g id="node28" class="node">
+<title>application_events</title>
+<polygon fill="none" stroke="#93602b" points="1353,-791 1353,-830 1570,-830 1570,-791 1353,-791"/>
+<polygon fill="#93602b" stroke="none" points="1354,-792 1354,-829 1569,-829 1569,-792 1354,-792"/>
+<text xml:space="preserve" text-anchor="start" x="1409.86" y="-812.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">application_events</text>
+<text xml:space="preserve" text-anchor="start" x="1421" y="-800.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请状态与操作事件</text>
+</g>
+<!-- award_supersessions -->
+<g id="node29" class="node">
+<title>award_supersessions</title>
+<polygon fill="none" stroke="#93602b" points="2371.5,-605 2371.5,-644 2588.5,-644 2588.5,-605 2371.5,-605"/>
+<polygon fill="#93602b" stroke="none" points="2372.5,-606 2372.5,-643 2587.5,-643 2587.5,-606 2372.5,-606"/>
+<text xml:space="preserve" text-anchor="start" x="2421.85" y="-626.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">award_supersessions</text>
+<text xml:space="preserve" text-anchor="start" x="2439.5" y="-614.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">奖项替代与恢复关联</text>
+</g>
+<!-- score_categories -->
+<g id="node30" class="node">
+<title>score_categories</title>
+<polygon fill="none" stroke="#6f4c91" points="669,-683 669,-722 886,-722 886,-683 669,-683"/>
+<polygon fill="#6f4c91" stroke="none" points="670,-684 670,-721 885,-721 885,-684 670,-684"/>
+<text xml:space="preserve" text-anchor="start" x="732.03" y="-704.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">score_categories</text>
+<text xml:space="preserve" text-anchor="start" x="750.5" y="-692.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">七类评分目录</text>
+</g>
+<!-- score_rule_versions -->
+<g id="node31" class="node">
+<title>score_rule_versions</title>
+<polygon fill="none" stroke="#6f4c91" points="0,-805 0,-844 217,-844 217,-805 0,-805"/>
+<polygon fill="#6f4c91" stroke="none" points="1,-806 1,-843 216,-843 216,-806 1,-806"/>
+<text xml:space="preserve" text-anchor="start" x="53.62" y="-826.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">score_rule_versions</text>
+<text xml:space="preserve" text-anchor="start" x="81.5" y="-814.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">评分规则版本</text>
+</g>
+<!-- class_publicity -->
+<g id="node32" class="node">
+<title>class_publicity</title>
+<polygon fill="none" stroke="#93602b" points="669,-841 669,-880 886,-880 886,-841 669,-841"/>
+<polygon fill="#93602b" stroke="none" points="670,-842 670,-879 885,-879 885,-842 670,-842"/>
+<text xml:space="preserve" text-anchor="start" x="736.69" y="-862.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">class_publicity</text>
+<text xml:space="preserve" text-anchor="start" x="741.5" y="-850.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">班级学年公示开关</text>
+</g>
+<!-- publicity_events -->
+<g id="node33" class="node">
+<title>publicity_events</title>
+<polygon fill="none" stroke="#93602b" points="1011,-841 1011,-880 1228,-880 1228,-841 1011,-841"/>
+<polygon fill="#93602b" stroke="none" points="1012,-842 1012,-879 1227,-879 1227,-842 1012,-842"/>
+<text xml:space="preserve" text-anchor="start" x="1074.36" y="-862.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">publicity_events</text>
+<text xml:space="preserve" text-anchor="start" x="1092.5" y="-850.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">公示操作历史</text>
+</g>
+</g>
+</g></svg>

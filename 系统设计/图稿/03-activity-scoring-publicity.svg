@@ -1,0 +1,406 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2967px" height="1088px" viewBox="0 0 2967 1088"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">活动资格、计分与公示领域类图</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">UML 类图 · 权限、领域对象及多重性 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 964.6)">
+<title>Design</title>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-964.6 2937.8,-964.6 2937.8,28.8 -28.8,28.8"/>
+<!-- ActivityCatalogEntry&#45;&gt;ActivityAlias -->
+<g id="e0" class="edge">
+<title>ActivityCatalogEntry&#45;&gt;ActivityAlias</title>
+<path fill="none" stroke="#6e8599" d="M644.9,-716.47C627.66,-676.11 608.45,-631.13 592.07,-592.78"/>
+<polygon fill="#6e8599" stroke="#6e8599" points="644.9,-716.48 648.82,-719.04 647.96,-723.65 644.04,-721.09 644.9,-716.48"/>
+<text xml:space="preserve" text-anchor="middle" x="653.45" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">统一名称与别名</text>
+<text xml:space="preserve" text-anchor="middle" x="605.47" y="-601.79" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="634.91" y="-709.47" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ActivityCatalogEntry&#45;&gt;ActivityQualification -->
+<g id="e1" class="edge">
+<title>ActivityCatalogEntry&#45;&gt;ActivityQualification</title>
+<path fill="none" stroke="#6e8599" d="M514.59,-723.08C436.36,-676.59 362,-632.4 362,-632.4 362,-632.4 354.27,-627.09 341.92,-618.62"/>
+<polygon fill="#6e8599" stroke="#6e8599" points="514.69,-723.14 519.37,-722.89 521.39,-727.12 516.71,-727.36 514.69,-723.14"/>
+<text xml:space="preserve" text-anchor="middle" x="475.74" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">适用范围及认定历史</text>
+<text xml:space="preserve" text-anchor="middle" x="359.68" y="-618.58" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="504.26" y="-722.79" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ActivityCatalogEntry&#45;&gt;CompetitionProject -->
+<g id="e2" class="edge">
+<title>ActivityCatalogEntry&#45;&gt;CompetitionProject</title>
+<path fill="none" stroke="#6e8599" d="M863.95,-739.67C963.27,-687.71 1069,-632.4 1069,-632.4 1069,-632.4 1080.98,-624.59 1099.09,-612.77"/>
+<text xml:space="preserve" text-anchor="middle" x="1021.53" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">规范赛事的具体项目</text>
+<text xml:space="preserve" text-anchor="middle" x="1089.58" y="-625.06" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="874.88" y="-722.37" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ActivityCatalogEntry&#45;&gt;ApplicationRevision -->
+<g id="e4" class="edge">
+<title>ActivityCatalogEntry&#45;&gt;ApplicationRevision</title>
+<path fill="none" stroke="#6e8599" d="M745.29,-724.53C806.76,-601.57 908.85,-397.39 975.54,-264.03"/>
+<text xml:space="preserve" text-anchor="middle" x="941" y="-497.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">规范名称匹配</text>
+<text xml:space="preserve" text-anchor="middle" x="975.04" y="-279.02" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="745.78" y="-703.53" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..1</text>
+</g>
+<!-- CompetitionProject&#45;&gt;ApplicationRevision -->
+<g id="e3" class="edge">
+<title>CompetitionProject&#45;&gt;ApplicationRevision</title>
+<path fill="none" stroke="#6e8599" d="M1196.28,-381.42C1172.88,-343.99 1146.86,-302.38 1122.91,-264.09"/>
+<text xml:space="preserve" text-anchor="middle" x="1192.37" y="-313.2" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">同学生同项目比较</text>
+<text xml:space="preserve" text-anchor="middle" x="1138.01" y="-270.89" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1181.18" y="-368.62" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..1</text>
+</g>
+<!-- ScoreCategory&#45;&gt;ScoreRule -->
+<g id="e5" class="edge">
+<title>ScoreCategory&#45;&gt;ScoreRule</title>
+<path fill="none" stroke="#6e8599" d="M1253.46,-716.97C1267.03,-691.81 1277.5,-672.4 1277.5,-672.4 1277.5,-672.4 1461,-632.4 1461,-632.4 1461,-632.4 1468.73,-627.09 1481.08,-618.62"/>
+<polygon fill="#6e8599" stroke="#6e8599" points="1253.49,-716.92 1253.93,-721.59 1249.79,-723.79 1249.35,-719.12 1253.49,-716.92"/>
+<text xml:space="preserve" text-anchor="middle" x="1303.75" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">汇总策略及版本</text>
+<text xml:space="preserve" text-anchor="middle" x="1471.93" y="-631.12" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1250.41" y="-703.61" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ScoreCategory&#45;&gt;ApplicationRevision -->
+<g id="e6" class="edge">
+<title>ScoreCategory&#45;&gt;ApplicationRevision</title>
+<path fill="none" stroke="#6e8599" d="M1081.77,-724.41C1031.86,-677.44 984.01,-632.4 984.01,-632.4 984.01,-632.4 984.01,-368.2 984.01,-368.2 984.01,-368.2 996.17,-318.04 1009.26,-264.06"/>
+<text xml:space="preserve" text-anchor="middle" x="1031.5" y="-503.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">/由稳定Application派生类</text>
+<text xml:space="preserve" text-anchor="middle" x="1031.5" y="-491.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">别</text>
+<text xml:space="preserve" text-anchor="middle" x="1012.81" y="-278.7" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1064.68" y="-715.77" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ClassYear&#45;&gt;ClassPublicity -->
+<g id="e7" class="edge">
+<title>ClassYear&#45;&gt;ClassPublicity</title>
+<path fill="none" stroke="#6e8599" d="M2633.61,-373.52C2650.88,-333.74 2669.9,-289.95 2686.91,-250.76"/>
+<polygon fill="#6e8599" stroke="#6e8599" points="2633.65,-373.43 2634.48,-378.05 2630.54,-380.59 2629.71,-375.98 2633.65,-373.43"/>
+<text xml:space="preserve" text-anchor="middle" x="2708.27" y="-319.2" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">唯一当前开关；历史另存事</text>
+<text xml:space="preserve" text-anchor="middle" x="2708.27" y="-307.2" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">件</text>
+<text xml:space="preserve" text-anchor="middle" x="2687.39" y="-265.76" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<text xml:space="preserve" text-anchor="middle" x="2629.7" y="-360.42" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+</g>
+<!-- ScoringService&#45;&gt;CompetitionProject -->
+<g id="e11" class="edge">
+<title>ScoringService&#45;&gt;CompetitionProject</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1669.07,-740.39C1568.55,-688.22 1461,-632.4 1461,-632.4 1461,-632.4 1455.8,-628.83 1447.11,-622.87"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="1441.93,-619.31 1448.94,-620.57 1443.6,-620.46 1447.28,-622.99 1447.28,-622.99 1447.28,-622.99 1443.6,-620.46 1445.63,-625.4 1441.93,-619.31"/>
+<text xml:space="preserve" text-anchor="middle" x="1593.84" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">高分优先，同分比较层级</text>
+</g>
+<!-- ScoringService&#45;&gt;ScoreRule -->
+<g id="e9" class="edge">
+<title>ScoringService&#45;&gt;ScoreRule</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1780,-724.48C1761.97,-693.04 1742,-658.23 1723.31,-625.64"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="1720.2,-620.21 1725.97,-624.4 1721.21,-621.98 1723.43,-625.85 1723.43,-625.85 1723.43,-625.85 1721.21,-621.98 1720.9,-627.31 1720.2,-620.21"/>
+<text xml:space="preserve" text-anchor="middle" x="1792.89" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">封顶／取最高／两位小数</text>
+</g>
+<!-- ScoringService&#45;&gt;ApplicationRevision -->
+<g id="e8" class="edge">
+<title>ScoringService&#45;&gt;ApplicationRevision</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1842.89,-724.71C1843.52,-701.89 1844,-684.4 1844,-684.4 1844,-684.4 1844,-672.4 1844,-672.4 1844,-672.4 1843,-368.2 1843,-368.2 1843,-368.2 1455.13,-254.5 1218.87,-185.24"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="1212.74,-183.45 1219.8,-182.47 1214.69,-184.02 1218.98,-185.27 1218.98,-185.27 1218.98,-185.27 1214.69,-184.02 1218.16,-188.08 1212.74,-183.45"/>
+<text xml:space="preserve" text-anchor="middle" x="1885.11" y="-497.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">只取当前已通过轮次内容</text>
+</g>
+<!-- ScoringService&#45;&gt;ScoreSummary -->
+<g id="e10" class="edge">
+<title>ScoringService&#45;&gt;ScoreSummary</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1953.94,-724.48C1988.75,-692.51 2027.35,-657.07 2063.35,-624.02"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="2067.75,-619.98 2064.94,-626.53 2066.25,-621.35 2062.96,-624.38 2062.96,-624.38 2062.96,-624.38 2066.25,-621.35 2060.98,-622.22 2067.75,-619.98"/>
+<text xml:space="preserve" text-anchor="middle" x="2030.3" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">生成派生汇总</text>
+</g>
+<!-- PublicityService&#45;&gt;ScoreSummary -->
+<g id="e14" class="edge">
+<title>PublicityService&#45;&gt;ScoreSummary</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M2457.08,-724.48C2419.83,-692.51 2378.53,-657.07 2340.01,-624.02"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="2335.27,-619.95 2342.11,-621.96 2336.81,-621.27 2340.2,-624.18 2340.2,-624.18 2340.2,-624.18 2336.81,-621.27 2338.3,-626.4 2335.27,-619.95"/>
+<text xml:space="preserve" text-anchor="middle" x="2429.45" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">发布实时脱敏视图</text>
+</g>
+<!-- PublicityService&#45;&gt;ClassYear -->
+<g id="e12" class="edge">
+<title>PublicityService&#45;&gt;ClassYear</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M2579,-724.48C2579,-693.43 2579,-659.1 2579,-626.87"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="2579,-620.38 2581.93,-626.88 2579,-622.41 2579,-626.88 2579,-626.88 2579,-626.88 2579,-622.41 2576.08,-626.88 2579,-620.38"/>
+<text xml:space="preserve" text-anchor="middle" x="2620.25" y="-675.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">串行检查待审与设置公示</text>
+</g>
+<!-- PublicityService&#45;&gt;ClassPublicity -->
+<g id="e13" class="edge">
+<title>PublicityService&#45;&gt;ClassPublicity</title>
+<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M2680.65,-724.41C2726.27,-677.44 2770,-632.4 2770,-632.4 2770,-632.4 2770,-368.2 2770,-368.2 2770,-368.2 2763,-304.2 2763,-304.2 2763,-304.2 2760.09,-284.31 2756.26,-258.08"/>
+<polygon fill="#8c79a2" stroke="#8c79a2" points="2755.33,-251.74 2759.17,-257.75 2755.63,-253.75 2756.27,-258.17 2756.27,-258.17 2756.27,-258.17 2755.63,-253.75 2753.38,-258.59 2755.33,-251.74"/>
+<text xml:space="preserve" text-anchor="middle" x="2815" y="-503.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">修改唯一当前状态并追加开</text>
+<text xml:space="preserve" text-anchor="middle" x="2815" y="-491.3" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">关事件</text>
+</g>
+<!-- ActivityCatalogEntry -->
+<g id="node1" class="node">
+<title>ActivityCatalogEntry</title>
+<polygon fill="#285d87" stroke="#285d87" points="522,-751.8 522,-751.8 864,-751.8 864,-751.8 522,-751.8"/>
+<polygon fill="none" stroke="#285d87" points="522,-724.4 522,-935.8 864,-935.8 864,-724.4 522,-724.4"/>
+<polygon fill="#285d87" stroke="none" points="523,-883.8 523,-934.8 863,-934.8 863,-883.8 523,-883.8"/>
+<text xml:space="preserve" text-anchor="start" x="674.97" y="-919.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="623.84" y="-905.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ActivityCatalogEntry</text>
+<text xml:space="preserve" text-anchor="start" x="673.5" y="-892.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">规范活动</text>
+<polygon fill="#f6f9fc" stroke="none" points="523,-857.4 523,-883.8 863,-883.8 863,-857.4 523,-857.4"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-865.8" font-family="Microsoft YaHei" font-size="12.00">− activityId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="523,-831 523,-857.4 863,-857.4 863,-831 523,-831"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-839.4" font-family="Microsoft YaHei" font-size="12.00">− canonicalName: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="523,-804.6 523,-831 863,-831 863,-804.6 523,-804.6"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-813" font-family="Microsoft YaHei" font-size="12.00">− normalizedName: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="523,-778.2 523,-804.6 863,-804.6 863,-778.2 523,-778.2"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-786.6" font-family="Microsoft YaHei" font-size="12.00">− status: CatalogStatus</text>
+<polygon fill="#f6f9fc" stroke="none" points="523,-751.8 523,-778.2 863,-778.2 863,-751.8 523,-751.8"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-760.2" font-family="Microsoft YaHei" font-size="12.00">− maintainedBy: UUID</text>
+<polygon fill="#f3f0f8" stroke="none" points="523,-725.4 523,-751.8 863,-751.8 863,-725.4 523,-725.4"/>
+<text xml:space="preserve" text-anchor="start" x="529" y="-733.8" font-family="Microsoft YaHei" font-size="12.00">+ canonicalLabel(): String</text>
+</g>
+<!-- ActivityAlias -->
+<g id="node2" class="node">
+<title>ActivityAlias</title>
+<polygon fill="#285d87" stroke="#285d87" points="382,-435.2 382,-435.2 724,-435.2 724,-435.2 382,-435.2"/>
+<polygon fill="none" stroke="#285d87" points="382,-407.8 382,-592.8 724,-592.8 724,-407.8 382,-407.8"/>
+<polygon fill="#285d87" stroke="none" points="383,-540.8 383,-591.8 723,-591.8 723,-540.8 383,-540.8"/>
+<text xml:space="preserve" text-anchor="start" x="534.97" y="-576.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="511.34" y="-562.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ActivityAlias</text>
+<text xml:space="preserve" text-anchor="start" x="533.5" y="-549.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">活动别名</text>
+<polygon fill="#f6f9fc" stroke="none" points="383,-514.4 383,-540.8 723,-540.8 723,-514.4 383,-514.4"/>
+<text xml:space="preserve" text-anchor="start" x="389" y="-522.8" font-family="Microsoft YaHei" font-size="12.00">− aliasId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="383,-488 383,-514.4 723,-514.4 723,-488 383,-488"/>
+<text xml:space="preserve" text-anchor="start" x="389" y="-496.4" font-family="Microsoft YaHei" font-size="12.00">− activityId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="383,-461.6 383,-488 723,-488 723,-461.6 383,-461.6"/>
+<text xml:space="preserve" text-anchor="start" x="389" y="-470" font-family="Microsoft YaHei" font-size="12.00">− aliasText: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="383,-435.2 383,-461.6 723,-461.6 723,-435.2 383,-435.2"/>
+<text xml:space="preserve" text-anchor="start" x="389" y="-443.6" font-family="Microsoft YaHei" font-size="12.00">− normalizedAlias: String</text>
+<polygon fill="#f3f0f8" stroke="none" points="383,-408.8 383,-435.2 723,-435.2 723,-408.8 383,-408.8"/>
+<text xml:space="preserve" text-anchor="start" x="389" y="-417.2" font-family="Microsoft YaHei" font-size="12.00">+ matches(text): Boolean</text>
+</g>
+<!-- ActivityQualification -->
+<g id="node3" class="node">
+<title>ActivityQualification</title>
+<polygon fill="#285d87" stroke="#285d87" points="0,-395.6 0,-395.6 342,-395.6 342,-395.6 0,-395.6"/>
+<polygon fill="none" stroke="#285d87" points="0,-368.2 0,-632.4 342,-632.4 342,-368.2 0,-368.2"/>
+<polygon fill="#285d87" stroke="none" points="1,-580.4 1,-631.4 341,-631.4 341,-580.4 1,-580.4"/>
+<text xml:space="preserve" text-anchor="start" x="152.97" y="-616.5" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="103.51" y="-601.9" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ActivityQualification</text>
+<text xml:space="preserve" text-anchor="start" x="151.5" y="-588.7" font-family="Microsoft YaHei" font-size="13.00" fill="white">资格认定</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-554 1,-580.4 341,-580.4 341,-554 1,-554"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-562.4" font-family="Microsoft YaHei" font-size="12.00">− eligibilityVersionId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-527.6 1,-554 341,-554 341,-527.6 1,-527.6"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-536" font-family="Microsoft YaHei" font-size="12.00">− activityId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-501.2 1,-527.6 341,-527.6 341,-501.2 1,-501.2"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-509.6" font-family="Microsoft YaHei" font-size="12.00">− categoryId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-474.8 1,-501.2 341,-501.2 341,-474.8 1,-474.8"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-483.2" font-family="Microsoft YaHei" font-size="12.00">− scopeKey / scopeDimensions</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-448.4 1,-474.8 341,-474.8 341,-448.4 1,-448.4"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-456.8" font-family="Microsoft YaHei" font-size="12.00">− versionNo / effectiveAt</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-422 1,-448.4 341,-448.4 341,-422 1,-422"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-430.4" font-family="Microsoft YaHei" font-size="12.00">− decision: EligibilityDecision</text>
+<polygon fill="#f6f9fc" stroke="none" points="1,-395.6 1,-422 341,-422 341,-395.6 1,-395.6"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-404" font-family="Microsoft YaHei" font-size="12.00">− decidedBy / sourceReviewDecisionId</text>
+<polygon fill="#f3f0f8" stroke="none" points="1,-369.2 1,-395.6 341,-395.6 341,-369.2 1,-369.2"/>
+<text xml:space="preserve" text-anchor="start" x="7" y="-377.6" font-family="Microsoft YaHei" font-size="12.00">+ appliesTo(context): Boolean</text>
+</g>
+<!-- CompetitionProject -->
+<g id="node4" class="node">
+<title>CompetitionProject</title>
+<polygon fill="#285d87" stroke="#285d87" points="1099,-408.8 1099,-408.8 1441,-408.8 1441,-408.8 1099,-408.8"/>
+<polygon fill="none" stroke="#285d87" points="1099,-381.4 1099,-619.2 1441,-619.2 1441,-381.4 1099,-381.4"/>
+<polygon fill="#285d87" stroke="none" points="1100,-567.2 1100,-618.2 1440,-618.2 1440,-567.2 1100,-567.2"/>
+<text xml:space="preserve" text-anchor="start" x="1251.97" y="-603.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1206.69" y="-588.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">CompetitionProject</text>
+<text xml:space="preserve" text-anchor="start" x="1240.75" y="-575.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">具体参赛项目</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-540.8 1100,-567.2 1440,-567.2 1440,-540.8 1100,-540.8"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-549.2" font-family="Microsoft YaHei" font-size="12.00">− projectId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-514.4 1100,-540.8 1440,-540.8 1440,-514.4 1100,-514.4"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-522.8" font-family="Microsoft YaHei" font-size="12.00">− activityId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-488 1100,-514.4 1440,-514.4 1440,-488 1100,-488"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-496.4" font-family="Microsoft YaHei" font-size="12.00">− editionKey: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-461.6 1100,-488 1440,-488 1440,-461.6 1100,-461.6"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-470" font-family="Microsoft YaHei" font-size="12.00">− trackKey / groupKey</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-435.2 1100,-461.6 1440,-461.6 1440,-435.2 1100,-435.2"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-443.6" font-family="Microsoft YaHei" font-size="12.00">− workKey: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="1100,-408.8 1100,-435.2 1440,-435.2 1440,-408.8 1100,-408.8"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-417.2" font-family="Microsoft YaHei" font-size="12.00">− identityFingerprint / status</text>
+<polygon fill="#f3f0f8" stroke="none" points="1100,-382.4 1100,-408.8 1440,-408.8 1440,-382.4 1100,-382.4"/>
+<text xml:space="preserve" text-anchor="start" x="1106" y="-390.8" font-family="Microsoft YaHei" font-size="12.00">+ sameProject(other): Boolean</text>
+</g>
+<!-- ScoreCategory -->
+<g id="node5" class="node">
+<title>ScoreCategory</title>
+<polygon fill="#285d87" stroke="#285d87" points="1022,-751.8 1022,-751.8 1364,-751.8 1364,-751.8 1022,-751.8"/>
+<polygon fill="none" stroke="#285d87" points="1022,-724.4 1022,-935.8 1364,-935.8 1364,-724.4 1022,-724.4"/>
+<polygon fill="#285d87" stroke="none" points="1023,-883.8 1023,-934.8 1363,-934.8 1363,-883.8 1023,-883.8"/>
+<text xml:space="preserve" text-anchor="start" x="1174.97" y="-919.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1145.52" y="-905.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ScoreCategory</text>
+<text xml:space="preserve" text-anchor="start" x="1173.5" y="-892.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">七类入口</text>
+<polygon fill="#f6f9fc" stroke="none" points="1023,-857.4 1023,-883.8 1363,-883.8 1363,-857.4 1023,-857.4"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-865.8" font-family="Microsoft YaHei" font-size="12.00">− categoryCode: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="1023,-831 1023,-857.4 1363,-857.4 1363,-831 1023,-831"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-839.4" font-family="Microsoft YaHei" font-size="12.00">− categoryName: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="1023,-804.6 1023,-831 1363,-831 1363,-804.6 1023,-804.6"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-813" font-family="Microsoft YaHei" font-size="12.00">− capScore: Decimal</text>
+<polygon fill="#f6f9fc" stroke="none" points="1023,-778.2 1023,-804.6 1363,-804.6 1363,-778.2 1023,-778.2"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-786.6" font-family="Microsoft YaHei" font-size="12.00">− counselorGateRequired: Boolean</text>
+<polygon fill="#f6f9fc" stroke="none" points="1023,-751.8 1023,-778.2 1363,-778.2 1363,-751.8 1023,-751.8"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-760.2" font-family="Microsoft YaHei" font-size="12.00">− displayOrder: Integer</text>
+<polygon fill="#f3f0f8" stroke="none" points="1023,-725.4 1023,-751.8 1363,-751.8 1363,-725.4 1023,-725.4"/>
+<text xml:space="preserve" text-anchor="start" x="1029" y="-733.8" font-family="Microsoft YaHei" font-size="12.00">+ isCompetitionCategory(): Boolean</text>
+</g>
+<!-- ScoreRule -->
+<g id="node6" class="node">
+<title>ScoreRule</title>
+<polygon fill="#285d87" stroke="#285d87" points="1481,-408.8 1481,-408.8 1823,-408.8 1823,-408.8 1481,-408.8"/>
+<polygon fill="none" stroke="#285d87" points="1481,-381.4 1481,-619.2 1823,-619.2 1823,-381.4 1481,-381.4"/>
+<polygon fill="#285d87" stroke="none" points="1482,-567.2 1482,-618.2 1822,-618.2 1822,-567.2 1482,-567.2"/>
+<text xml:space="preserve" text-anchor="start" x="1632.75" y="-603.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«policy»</text>
+<text xml:space="preserve" text-anchor="start" x="1619.09" y="-588.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ScoreRule</text>
+<text xml:space="preserve" text-anchor="start" x="1622.75" y="-575.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">计分汇总规则</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-540.8 1482,-567.2 1822,-567.2 1822,-540.8 1482,-540.8"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-549.2" font-family="Microsoft YaHei" font-size="12.00">− ruleId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-514.4 1482,-540.8 1822,-540.8 1822,-514.4 1482,-514.4"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-522.8" font-family="Microsoft YaHei" font-size="12.00">− categoryCode: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-488 1482,-514.4 1822,-514.4 1822,-488 1482,-488"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-496.4" font-family="Microsoft YaHei" font-size="12.00">− ruleCode / ruleVersion</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-461.6 1482,-488 1822,-488 1822,-461.6 1482,-461.6"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-470" font-family="Microsoft YaHei" font-size="12.00">− aggregationMode: RuleMode</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-435.2 1482,-461.6 1822,-461.6 1822,-435.2 1482,-435.2"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-443.6" font-family="Microsoft YaHei" font-size="12.00">− capScore: Decimal?</text>
+<polygon fill="#f6f9fc" stroke="none" points="1482,-408.8 1482,-435.2 1822,-435.2 1822,-408.8 1482,-408.8"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-417.2" font-family="Microsoft YaHei" font-size="12.00">− sourceReference: String</text>
+<polygon fill="#f3f0f8" stroke="none" points="1482,-382.4 1482,-408.8 1822,-408.8 1822,-382.4 1482,-382.4"/>
+<text xml:space="preserve" text-anchor="start" x="1488" y="-390.8" font-family="Microsoft YaHei" font-size="12.00">+ aggregate(approvedRevisions)</text>
+</g>
+<!-- ApplicationRevision -->
+<g id="node7" class="node">
+<title>ApplicationRevision</title>
+<polygon fill="#285d87" stroke="#285d87" points="870,-53.8 870,-53.8 1212,-53.8 1212,-53.8 870,-53.8"/>
+<polygon fill="none" stroke="#285d87" points="870,0 870,-264.2 1212,-264.2 1212,0 870,0"/>
+<polygon fill="#285d87" stroke="none" points="871,-212.2 871,-263.2 1211,-263.2 1211,-212.2 871,-212.2"/>
+<text xml:space="preserve" text-anchor="start" x="1022.97" y="-248.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="975.99" y="-233.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ApplicationRevision</text>
+<text xml:space="preserve" text-anchor="start" x="1021.5" y="-220.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">内容修订</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-185.8 871,-212.2 1211,-212.2 1211,-185.8 871,-185.8"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-194.2" font-family="Microsoft YaHei" font-size="12.00">− revisionId / revisionNo</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-159.4 871,-185.8 1211,-185.8 1211,-159.4 871,-159.4"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-167.8" font-family="Microsoft YaHei" font-size="12.00">− applicationId / aiAnalysisId</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-133 871,-159.4 1211,-159.4 1211,-133 871,-133"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-141.4" font-family="Microsoft YaHei" font-size="12.00">− title: String</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-106.6 871,-133 1211,-133 1211,-106.6 871,-106.6"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-115" font-family="Microsoft YaHei" font-size="12.00">− requestedScore / studentModifiedScore</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-80.2 871,-106.6 1211,-106.6 1211,-80.2 871,-80.2"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-88.6" font-family="Microsoft YaHei" font-size="12.00">− activityId / competitionProjectId</text>
+<polygon fill="#f6f9fc" stroke="none" points="871,-53.8 871,-80.2 1211,-80.2 1211,-53.8 871,-53.8"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-62.2" font-family="Microsoft YaHei" font-size="12.00">− contentFrozenAt: DateTime?</text>
+<polygon fill="#f3f0f8" stroke="none" points="871,-27.4 871,-53.8 1211,-53.8 1211,-27.4 871,-27.4"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-35.8" font-family="Microsoft YaHei" font-size="12.00">+ freezeForSubmission()</text>
+<polygon fill="#f3f0f8" stroke="none" points="871,-1 871,-27.4 1211,-27.4 1211,-1 871,-1"/>
+<text xml:space="preserve" text-anchor="start" x="877" y="-9.4" font-family="Microsoft YaHei" font-size="12.00">+ isEditable(): Boolean</text>
+</g>
+<!-- ScoreSummary -->
+<g id="node8" class="node">
+<title>ScoreSummary</title>
+<polygon fill="#285d87" stroke="#285d87" points="2026,-408.8 2026,-408.8 2368,-408.8 2368,-408.8 2026,-408.8"/>
+<polygon fill="none" stroke="#285d87" points="2026,-381.4 2026,-619.2 2368,-619.2 2368,-381.4 2026,-381.4"/>
+<polygon fill="#285d87" stroke="none" points="2027,-567.2 2027,-618.2 2367,-618.2 2367,-567.2 2027,-567.2"/>
+<text xml:space="preserve" text-anchor="start" x="2164.78" y="-603.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«value object»</text>
+<text xml:space="preserve" text-anchor="start" x="2147.43" y="-588.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ScoreSummary</text>
+<text xml:space="preserve" text-anchor="start" x="2167.75" y="-575.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">派生分数汇总</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-540.8 2027,-567.2 2367,-567.2 2367,-540.8 2027,-540.8"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-549.2" font-family="Microsoft YaHei" font-size="12.00">− studentUserId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-514.4 2027,-540.8 2367,-540.8 2367,-514.4 2027,-514.4"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-522.8" font-family="Microsoft YaHei" font-size="12.00">− classYearId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-488 2027,-514.4 2367,-514.4 2367,-488 2027,-488"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-496.4" font-family="Microsoft YaHei" font-size="12.00">− baseScore: Decimal = 70</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-461.6 2027,-488 2367,-488 2367,-461.6 2027,-461.6"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-470" font-family="Microsoft YaHei" font-size="12.00">− categoryTotals: CategoryScores</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-435.2 2027,-461.6 2367,-461.6 2367,-435.2 2027,-435.2"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-443.6" font-family="Microsoft YaHei" font-size="12.00">− totalScore: Decimal</text>
+<polygon fill="#f6f9fc" stroke="none" points="2027,-408.8 2027,-435.2 2367,-435.2 2367,-408.8 2027,-408.8"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-417.2" font-family="Microsoft YaHei" font-size="12.00">− sourceVersion: String</text>
+<polygon fill="#f3f0f8" stroke="none" points="2027,-382.4 2027,-408.8 2367,-408.8 2367,-382.4 2027,-382.4"/>
+<text xml:space="preserve" text-anchor="start" x="2033" y="-390.8" font-family="Microsoft YaHei" font-size="12.00">+ calculateTotal(): Decimal</text>
+</g>
+<!-- ClassYear -->
+<g id="node9" class="node">
+<title>ClassYear</title>
+<polygon fill="#285d87" stroke="#285d87" points="2408,-408.8 2408,-408.8 2750,-408.8 2750,-408.8 2408,-408.8"/>
+<polygon fill="none" stroke="#285d87" points="2408,-381.4 2408,-619.2 2750,-619.2 2750,-381.4 2408,-381.4"/>
+<polygon fill="#285d87" stroke="none" points="2409,-567.2 2409,-618.2 2749,-618.2 2749,-567.2 2409,-567.2"/>
+<text xml:space="preserve" text-anchor="start" x="2560.97" y="-603.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="2546.09" y="-588.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ClassYear</text>
+<text xml:space="preserve" text-anchor="start" x="2559.5" y="-575.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">班级学年</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-540.8 2409,-567.2 2749,-567.2 2749,-540.8 2409,-540.8"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-549.2" font-family="Microsoft YaHei" font-size="12.00">− classYearId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-514.4 2409,-540.8 2749,-540.8 2749,-514.4 2409,-514.4"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-522.8" font-family="Microsoft YaHei" font-size="12.00">− classId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-488 2409,-514.4 2749,-514.4 2749,-488 2409,-488"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-496.4" font-family="Microsoft YaHei" font-size="12.00">− academicYearId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-461.6 2409,-488 2749,-488 2749,-461.6 2409,-461.6"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-470" font-family="Microsoft YaHei" font-size="12.00">− scoreRuleVersionId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-435.2 2409,-461.6 2749,-461.6 2749,-435.2 2409,-435.2"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-443.6" font-family="Microsoft YaHei" font-size="12.00">− lockVersion: Integer</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-408.8 2409,-435.2 2749,-435.2 2749,-408.8 2409,-408.8"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-417.2" font-family="Microsoft YaHei" font-size="12.00">− /publicityState: from ClassPublicity</text>
+<polygon fill="#f3f0f8" stroke="none" points="2409,-382.4 2409,-408.8 2749,-408.8 2749,-382.4 2409,-382.4"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-390.8" font-family="Microsoft YaHei" font-size="12.00">+ isPublic(): Boolean</text>
+</g>
+<!-- ClassPublicity -->
+<g id="node10" class="node">
+<title>ClassPublicity</title>
+<polygon fill="#285d87" stroke="#285d87" points="2567,-40.6 2567,-40.6 2909,-40.6 2909,-40.6 2567,-40.6"/>
+<polygon fill="none" stroke="#285d87" points="2567,-13.2 2567,-251 2909,-251 2909,-13.2 2567,-13.2"/>
+<polygon fill="#285d87" stroke="none" points="2568,-199 2568,-250 2908,-250 2908,-199 2568,-199"/>
+<text xml:space="preserve" text-anchor="start" x="2719.97" y="-235.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="2692.16" y="-220.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ClassPublicity</text>
+<text xml:space="preserve" text-anchor="start" x="2708.75" y="-207.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">当前公示开关</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-172.6 2568,-199 2908,-199 2908,-172.6 2568,-172.6"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-181" font-family="Microsoft YaHei" font-size="12.00">− publicityId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-146.2 2568,-172.6 2908,-172.6 2908,-146.2 2568,-146.2"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-154.6" font-family="Microsoft YaHei" font-size="12.00">− classYearId: UUID</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-119.8 2568,-146.2 2908,-146.2 2908,-119.8 2568,-119.8"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-128.2" font-family="Microsoft YaHei" font-size="12.00">− isOpen: Boolean</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-93.4 2568,-119.8 2908,-119.8 2908,-93.4 2568,-93.4"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-101.8" font-family="Microsoft YaHei" font-size="12.00">− lockVersion: Integer</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-67 2568,-93.4 2908,-93.4 2908,-67 2568,-67"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-75.4" font-family="Microsoft YaHei" font-size="12.00">− openedBy / openedAt</text>
+<polygon fill="#f6f9fc" stroke="none" points="2568,-40.6 2568,-67 2908,-67 2908,-40.6 2568,-40.6"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-49" font-family="Microsoft YaHei" font-size="12.00">− closedBy / closedAt</text>
+<polygon fill="#f3f0f8" stroke="none" points="2568,-14.2 2568,-40.6 2908,-40.6 2908,-14.2 2568,-14.2"/>
+<text xml:space="preserve" text-anchor="start" x="2574" y="-22.6" font-family="Microsoft YaHei" font-size="12.00">+ isOpen(): Boolean</text>
+</g>
+<!-- ScoringService -->
+<g id="node11" class="node">
+<title>ScoringService</title>
+<polygon fill="#69508d" stroke="#69508d" points="1669,-778.2 1669,-778.2 2011,-778.2 2011,-778.2 1669,-778.2"/>
+<polygon fill="none" stroke="#69508d" points="1669,-724.4 1669,-935.8 2011,-935.8 2011,-724.4 1669,-724.4"/>
+<polygon fill="#69508d" stroke="none" points="1670,-883.8 1670,-934.8 2010,-934.8 2010,-883.8 1670,-883.8"/>
+<text xml:space="preserve" text-anchor="start" x="1818.93" y="-919.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="1792.1" y="-905.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ScoringService</text>
+<text xml:space="preserve" text-anchor="start" x="1820.5" y="-892.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">计分服务</text>
+<polygon fill="#f6f9fc" stroke="none" points="1670,-857.4 1670,-883.8 2010,-883.8 2010,-857.4 1670,-857.4"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-865.8" font-family="Microsoft YaHei" font-size="12.00">− baseline: Decimal = 70</text>
+<polygon fill="#f6f9fc" stroke="none" points="1670,-831 1670,-857.4 2010,-857.4 2010,-831 1670,-831"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-839.4" font-family="Microsoft YaHei" font-size="12.00">− roundingMode: HALF_UP</text>
+<polygon fill="#f6f9fc" stroke="none" points="1670,-804.6 1670,-831 2010,-831 2010,-804.6 1670,-804.6"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-813" font-family="Microsoft YaHei" font-size="12.00">− scoreScale: Integer = 2</text>
+<polygon fill="#f6f9fc" stroke="none" points="1670,-778.2 1670,-804.6 2010,-804.6 2010,-778.2 1670,-778.2"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-786.6" font-family="Microsoft YaHei" font-size="12.00">− approvedRoundQuery: Query</text>
+<polygon fill="#f3f0f8" stroke="none" points="1670,-751.8 1670,-778.2 2010,-778.2 2010,-751.8 1670,-751.8"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-760.2" font-family="Microsoft YaHei" font-size="12.00">+ summarize(student, classYear)</text>
+<polygon fill="#f3f0f8" stroke="none" points="1670,-725.4 1670,-751.8 2010,-751.8 2010,-725.4 1670,-725.4"/>
+<text xml:space="preserve" text-anchor="start" x="1676" y="-733.8" font-family="Microsoft YaHei" font-size="12.00">+ compareAwardPriority(a, b)</text>
+</g>
+<!-- PublicityService -->
+<g id="node12" class="node">
+<title>PublicityService</title>
+<polygon fill="#69508d" stroke="#69508d" points="2408,-778.2 2408,-778.2 2750,-778.2 2750,-778.2 2408,-778.2"/>
+<polygon fill="none" stroke="#69508d" points="2408,-724.4 2408,-935.8 2750,-935.8 2750,-724.4 2408,-724.4"/>
+<polygon fill="#69508d" stroke="none" points="2409,-883.8 2409,-934.8 2749,-934.8 2749,-883.8 2409,-883.8"/>
+<text xml:space="preserve" text-anchor="start" x="2557.93" y="-919.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="2526.93" y="-905.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">PublicityService</text>
+<text xml:space="preserve" text-anchor="start" x="2559.5" y="-892.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">公示服务</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-857.4 2409,-883.8 2749,-883.8 2749,-857.4 2409,-857.4"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-865.8" font-family="Microsoft YaHei" font-size="12.00">− authorization: AuthorizationService</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-831 2409,-857.4 2749,-857.4 2749,-831 2409,-831"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-839.4" font-family="Microsoft YaHei" font-size="12.00">− pendingRoundQuery: Query</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-804.6 2409,-831 2749,-831 2749,-804.6 2409,-804.6"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-813" font-family="Microsoft YaHei" font-size="12.00">− classYearGuard: ConcurrencyGuard</text>
+<polygon fill="#f6f9fc" stroke="none" points="2409,-778.2 2409,-804.6 2749,-804.6 2749,-778.2 2409,-778.2"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-786.6" font-family="Microsoft YaHei" font-size="12.00">− redactionPolicy: RedactionPolicy</text>
+<polygon fill="#f3f0f8" stroke="none" points="2409,-751.8 2409,-778.2 2749,-778.2 2749,-751.8 2409,-751.8"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-760.2" font-family="Microsoft YaHei" font-size="12.00">+ openIfNoPending(classYear)</text>
+<polygon fill="#f3f0f8" stroke="none" points="2409,-725.4 2409,-751.8 2749,-751.8 2749,-725.4 2409,-725.4"/>
+<text xml:space="preserve" text-anchor="start" x="2415" y="-733.8" font-family="Microsoft YaHei" font-size="12.00">+ close(classYear)</text>
+</g>
+</g>
+</g></svg>

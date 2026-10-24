@@ -1,0 +1,8 @@
+{
+  "authoring": "Shared semantic JSON to independent Graphviz SVG, no VP image transformation",
+  "tool": "@viz-js/viz",
+  "packageVersion": "3.31.0",
+  "graphvizVersion": "16.1.0",
+  "generatedAt": "2026-10-24",
+  "diagrams": 14
+}

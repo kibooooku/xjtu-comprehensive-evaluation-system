@@ -1,0 +1,14 @@
+01-rbac-organization | 01-rbac-organization RBAC与班级组织领域类图 | elements=28
+02-application-evidence-review | 02-application-evidence-review 申请版本、证据与审核领域类图 | elements=29
+03-activity-scoring-publicity | 03-activity-scoring-publicity 活动资格、计分与公示领域类图 | elements=27
+04_dfd_context | 04_dfd_context 数据流图：上下文图 | elements=16
+05_dfd_level1 | 05_dfd_level1 数据流图：一级分解 | elements=92
+06_dfd_p2_level2 | 06_dfd_p2_level2 数据流图：P2 材料识别与人工确认 | elements=37
+07_dfd_p3_level2 | 07_dfd_p3_level2 数据流图：P3 正式申报与奖项替代恢复 | elements=41
+05a_dfd_level1_external | 05a_dfd_level1_external 一级图审阅切片：外部实体及进程间数据流 | elements=45
+05b_dfd_level1_storage | 05b_dfd_level1_storage 一级图审阅切片：逻辑存储读写数据流 | elements=54
+08-er-overview | 08-er-overview 数据库ER总览—33张逻辑表 | elements=75
+09-er-rbac | 09-er-rbac 数据库ER—账号、组织与RBAC | elements=25
+10-er-evidence | 10-er-evidence 数据库ER—文件、识别与证据 | elements=22
+11-er-workflow | 11-er-workflow 数据库ER—版本、审核与奖项替代 | elements=25
+12-er-catalog | 12-er-catalog 数据库ER—活动资格、计分规则与公示 | elements=14

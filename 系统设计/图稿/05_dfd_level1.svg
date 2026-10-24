@@ -1,0 +1,1084 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="6218px" height="789px" viewBox="0 0 6218 789"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">数据流图：一级分解</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">逻辑 DFD · 流编号对应完整数据流字典；箭头表示数据内容 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 665.04)">
+<title>Design</title>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-665.04 6189.13,-665.04 6189.13,28.8 -28.8,28.8"/>
+<!-- E1&#45;&gt;P1 -->
+<g id="e0" class="edge">
+<title>E1&#45;&gt;P1</title>
+<g id="a_e0"><a xlink:title="登录、班级查询；[班长]审查员任免资料">
+<path fill="none" stroke="#326a80" d="M1943.82,-599.27C2227.64,-583.96 3174.33,-532.88 3174.33,-532.88 3174.33,-532.88 3395.33,-476.88 3395.33,-476.88 3395.33,-476.88 4657.33,-436.88 4657.33,-436.88 4657.33,-436.88 4663.05,-435.16 4671.84,-432.52"/>
+<polygon fill="#326a80" stroke="#326a80" points="4672.48,-434.71 4678.05,-430.66 4671.17,-430.35 4672.48,-434.71"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3395.33,-485.88 3395.33,-523.88 3549.33,-523.88 3549.33,-485.88 3395.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="3457.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F01</text>
+<text xml:space="preserve" text-anchor="start" x="3446.08" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">登录、班级查询</text>
+</g>
+<!-- E1&#45;&gt;P2 -->
+<g id="e8" class="edge">
+<title>E1&#45;&gt;P2</title>
+<g id="a_e8"><a xlink:title="申请原件、草稿字段；学生确认、匹配修正及截图修订">
+<path fill="none" stroke="#326a80" d="M1943.75,-599.11C2220.6,-583.61 3126.33,-532.88 3126.33,-532.88 3126.33,-532.88 3171.33,-370.64 3171.33,-370.64 3171.33,-370.64 3305.33,-330.64 3305.33,-330.64 3305.33,-330.64 3360.57,-271.16 3395.78,-233.26"/>
+<polygon fill="#326a80" stroke="#326a80" points="3397.04,-235.25 3399.79,-228.94 3393.7,-232.16 3397.04,-235.25"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3171.33,-384.76 3171.33,-422.76 3325.33,-422.76 3325.33,-384.76 3171.33,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="3233.33" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F09</text>
+<text xml:space="preserve" text-anchor="start" x="3214.58" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">申请原件、草稿字段</text>
+</g>
+<!-- E1&#45;&gt;P3 -->
+<g id="e22" class="edge">
+<title>E1&#45;&gt;P3</title>
+<g id="a_e22"><a xlink:title="正式提交／撤回请求；同项目关联确认">
+<path fill="none" stroke="#326a80" d="M1893.03,-572.35C1910.44,-553.42 1929.33,-532.88 1929.33,-532.88 1929.33,-532.88 1929.33,-476.88 1929.33,-476.88 1929.33,-476.88 1842.2,-317.51 1800.75,-241.7"/>
+<polygon fill="#326a80" stroke="#326a80" points="1802.97,-241.01 1797.86,-236.4 1798.98,-243.19 1802.97,-241.01"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1906.83,-384.76 1906.83,-422.76 2060.83,-422.76 2060.83,-384.76 1906.83,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="1968.83" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F23</text>
+<text xml:space="preserve" text-anchor="start" x="1950.08" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">正式提交／撤回请求</text>
+</g>
+<!-- E1&#45;&gt;P4 -->
+<g id="e33" class="edge">
+<title>E1&#45;&gt;P4</title>
+<g id="a_e33"><a xlink:title="[审查员]待审查询与审核意见、原因及备注">
+<path fill="none" stroke="#326a80" d="M1821.77,-572.57C1770.26,-535.07 1690.33,-476.88 1690.33,-476.88 1690.33,-476.88 1524.95,-444.56 1415.62,-423.19"/>
+<polygon fill="#326a80" stroke="#326a80" points="1416.15,-420.97 1409.33,-421.96 1415.28,-425.44 1416.15,-420.97"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1766.92,-476.88 1766.92,-532.88 1920.92,-532.88 1920.92,-476.88 1766.92,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="1828.92" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F34</text>
+<text xml:space="preserve" text-anchor="start" x="1799.34" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">[审查员]待审查询与审核意</text>
+<text xml:space="preserve" text-anchor="start" x="1825.17" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">见、原因…</text>
+</g>
+<!-- E1&#45;&gt;P6 -->
+<g id="e54" class="edge">
+<title>E1&#45;&gt;P6</title>
+<g id="a_e54"><a xlink:title="本人申请／成绩；[班长／审查员]本班查询条件">
+<path fill="none" stroke="#326a80" d="M1784.85,-599.25C1502.16,-583.9 562.33,-532.88 562.33,-532.88 562.33,-532.88 482.86,-479.57 426.44,-441.72"/>
+<polygon fill="#326a80" stroke="#326a80" points="427.95,-440 421.28,-438.26 425.41,-443.78 427.95,-440"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="562.33,-485.88 562.33,-523.88 716.33,-523.88 716.33,-485.88 562.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="624.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F55</text>
+<text xml:space="preserve" text-anchor="start" x="613.08" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">本人申请／成绩</text>
+</g>
+<!-- E1&#45;&gt;P7 -->
+<g id="e63" class="edge">
+<title>E1&#45;&gt;P7</title>
+<g id="a_e63"><a xlink:title="本班公示查询；[班长]班级学年导出条件">
+<path fill="none" stroke="#326a80" d="M1784.63,-595.69C1598,-577.27 1148.33,-532.88 1148.33,-532.88 1148.33,-532.88 807.33,-370.64 807.33,-370.64 807.33,-370.64 583.33,-274.64 583.33,-274.64 583.33,-274.64 452.71,-245.11 358.64,-223.84"/>
+<polygon fill="#326a80" stroke="#326a80" points="359.4,-221.68 352.56,-222.47 358.39,-226.12 359.4,-221.68"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="943.94,-384.76 943.94,-422.76 1097.94,-422.76 1097.94,-384.76 943.94,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="1005.94" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F64</text>
+<text xml:space="preserve" text-anchor="start" x="998.44" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">本班公示查询</text>
+</g>
+<!-- E2&#45;&gt;P1 -->
+<g id="e2" class="edge">
+<title>E2&#45;&gt;P1</title>
+<g id="a_e2"><a xlink:title="登录与班级查询资料">
+<path fill="none" stroke="#326a80" d="M723.1,-599.29C1135.88,-577.2 3010.33,-476.88 3010.33,-476.88 3010.33,-476.88 4657.33,-436.88 4657.33,-436.88 4657.33,-436.88 4663.05,-435.16 4671.84,-432.52"/>
+<polygon fill="#326a80" stroke="#326a80" points="4672.48,-434.71 4678.05,-430.66 4671.17,-430.35 4672.48,-434.71"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3010.33,-485.88 3010.33,-523.88 3164.33,-523.88 3164.33,-485.88 3010.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="3072.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F03</text>
+<text xml:space="preserve" text-anchor="start" x="3053.58" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">登录与班级查询资料</text>
+</g>
+<!-- E2&#45;&gt;P4 -->
+<g id="e35" class="edge">
+<title>E2&#45;&gt;P4</title>
+<g id="a_e35"><a xlink:title="待审查询、审核意见及活动资格认定资料">
+<path fill="none" stroke="#326a80" d="M671.36,-579.73C714.52,-543.04 792.33,-476.88 792.33,-476.88 792.33,-476.88 1074.88,-438.36 1226.98,-417.62"/>
+<polygon fill="#326a80" stroke="#326a80" points="1226.94,-419.93 1233.07,-416.79 1226.32,-415.42 1226.94,-419.93"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="792.33,-476.88 792.33,-532.88 946.33,-532.88 946.33,-476.88 792.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="854.33" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F36</text>
+<text xml:space="preserve" text-anchor="start" x="824.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">待审查询、审核意见及活动</text>
+<text xml:space="preserve" text-anchor="start" x="846.83" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">资格认定资料</text>
+</g>
+<!-- E2&#45;&gt;P5 -->
+<g id="e47" class="edge">
+<title>E2&#45;&gt;P5</title>
+<g id="a_e47"><a xlink:title="活动增删改资料及适用范围">
+<path fill="none" stroke="#326a80" d="M643.33,-579.67C643.33,-511.2 643.33,-314.12 643.33,-235.49"/>
+<polygon fill="#326a80" stroke="#326a80" points="645.61,-235.83 643.33,-229.33 641.06,-235.83 645.61,-235.83"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="643.33,-384.76 643.33,-422.76 797.33,-422.76 797.33,-384.76 643.33,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="705.33" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F48</text>
+<text xml:space="preserve" text-anchor="start" x="675.33" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">活动增删改资料及适用范围</text>
+</g>
+<!-- E2&#45;&gt;P6 -->
+<g id="e56" class="edge">
+<title>E2&#45;&gt;P6</title>
+<g id="a_e56"><a xlink:title="所带班级申请、原件及成绩查询条件">
+<path fill="none" stroke="#326a80" d="M563.77,-588.92C451.29,-568.21 259.33,-532.88 259.33,-532.88 259.33,-532.88 259.33,-476.88 259.33,-476.88 259.33,-476.88 286.42,-459.44 313.96,-441.7"/>
+<polygon fill="#326a80" stroke="#326a80" points="315.07,-443.7 319.3,-438.26 312.61,-439.87 315.07,-443.7"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="259.33,-476.88 259.33,-532.88 413.33,-532.88 413.33,-476.88 259.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="321.33" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F57</text>
+<text xml:space="preserve" text-anchor="start" x="291.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">所带班级申请、原件及成绩</text>
+<text xml:space="preserve" text-anchor="start" x="321.33" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">查询条件</text>
+</g>
+<!-- E2&#45;&gt;P7 -->
+<g id="e65" class="edge">
+<title>E2&#45;&gt;P7</title>
+<g id="a_e65"><a xlink:title="班级学年公示设置与导出条件">
+<path fill="none" stroke="#326a80" d="M563.6,-589.26C448.47,-568.6 249.33,-532.88 249.33,-532.88 249.33,-532.88 111.33,-436.88 111.33,-436.88 111.33,-436.88 85.33,-330.64 85.33,-330.64 85.33,-330.64 85.33,-274.64 85.33,-274.64 85.33,-274.64 143.8,-251.08 193.9,-230.9"/>
+<polygon fill="#326a80" stroke="#326a80" points="194.64,-233.05 199.82,-228.51 192.94,-228.83 194.64,-233.05"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="111.33,-375.76 111.33,-431.76 265.33,-431.76 265.33,-375.76 111.33,-375.76"/>
+<text xml:space="preserve" text-anchor="start" x="173.33" y="-417.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F66</text>
+<text xml:space="preserve" text-anchor="start" x="143.33" y="-399.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">班级学年公示设置与导出条</text>
+<text xml:space="preserve" text-anchor="start" x="184.58" y="-381.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">件</text>
+</g>
+<!-- E3&#45;&gt;P1 -->
+<g id="e4" class="edge">
+<title>E3&#45;&gt;P1</title>
+<g id="a_e4"><a xlink:title="登录资料；账号、组织关系与权限维护资料">
+<path fill="none" stroke="#326a80" d="M4762.64,-579.63C4761.19,-559.13 4759.33,-532.88 4759.33,-532.88 4759.33,-532.88 4759.33,-476.88 4759.33,-476.88 4759.33,-476.88 4760.72,-456.9 4762.03,-437.97"/>
+<polygon fill="#326a80" stroke="#326a80" points="4764.3,-438.14 4762.48,-431.49 4759.76,-437.82 4764.3,-438.14"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4759.33,-485.88 4759.33,-523.88 4913.33,-523.88 4913.33,-485.88 4759.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="4821.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F05</text>
+<text xml:space="preserve" text-anchor="start" x="4821.33" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">登录资料</text>
+</g>
+<!-- E4&#45;&gt;P2 -->
+<g id="e11" class="edge">
+<title>E4&#45;&gt;P2</title>
+<g id="a_e11"><a xlink:title="文字、置信度及位置；印章内容及位置；失败／额度耗尽结果">
+<path fill="none" stroke="#326a80" d="M3424.33,-379C3424.33,-343.43 3424.33,-276.21 3424.33,-235.77"/>
+<polygon fill="#326a80" stroke="#326a80" points="3426.61,-235.83 3424.33,-229.33 3422.06,-235.83 3426.61,-235.83"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3424.33,-283.64 3424.33,-321.64 3578.33,-321.64 3578.33,-283.64 3424.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="3486.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F12</text>
+<text xml:space="preserve" text-anchor="start" x="3467.58" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">文字、置信度及位置</text>
+</g>
+<!-- E5&#45;&gt;P2 -->
+<g id="e13" class="edge">
+<title>E5&#45;&gt;P2</title>
+<g id="a_e13"><a xlink:title="条目细项、建议分值、活动匹配建议；失败结果">
+<path fill="none" stroke="#326a80" d="M4490.74,-378.75C4431.68,-357.77 4355.33,-330.64 4355.33,-330.64 4355.33,-330.64 4286.33,-274.64 4286.33,-274.64 4286.33,-274.64 3547.33,-234.64 3547.33,-234.64 3547.33,-234.64 3535.17,-231.46 3518.49,-227.11"/>
+<polygon fill="#326a80" stroke="#326a80" points="3519.42,-225 3512.56,-225.56 3518.27,-229.4 3519.42,-225"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4355.33,-274.64 4355.33,-330.64 4509.33,-330.64 4509.33,-274.64 4355.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="4417.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F14</text>
+<text xml:space="preserve" text-anchor="start" x="4387.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">条目细项、建议分值、活动</text>
+<text xml:space="preserve" text-anchor="start" x="4417.33" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">匹配建议</text>
+</g>
+<!-- P1&#45;&gt;E1 -->
+<g id="e1" class="edge">
+<title>P1&#45;&gt;E1</title>
+<g id="a_e1"><a xlink:title="身份、脱敏班级信息；[班长]任免结果">
+<path fill="none" stroke="#326a80" d="M4679.5,-430.22C4666.52,-434.12 4657.33,-436.88 4657.33,-436.88 4657.33,-436.88 1158.33,-476.88 1158.33,-476.88 1158.33,-476.88 1158.33,-532.88 1158.33,-532.88 1158.33,-532.88 1588.08,-575.9 1777,-594.82"/>
+<polygon fill="#326a80" stroke="#326a80" points="1776.52,-597.05 1783.21,-595.44 1776.97,-592.53 1776.52,-597.05"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1158.33,-485.88 1158.33,-523.88 1312.33,-523.88 1312.33,-485.88 1158.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="1220.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F02</text>
+<text xml:space="preserve" text-anchor="start" x="1201.58" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">身份、脱敏班级信息</text>
+</g>
+<!-- P1&#45;&gt;E2 -->
+<g id="e3" class="edge">
+<title>P1&#45;&gt;E2</title>
+<g id="a_e3"><a xlink:title="身份与所带班级信息">
+<path fill="none" stroke="#326a80" d="M4679.5,-430.22C4666.52,-434.12 4657.33,-436.88 4657.33,-436.88 4657.33,-436.88 3599.33,-476.88 3599.33,-476.88 3599.33,-476.88 3555.33,-532.88 3555.33,-532.88 3555.33,-532.88 1765.33,-572.88 1765.33,-572.88 1765.33,-572.88 993.83,-593.98 730.32,-601.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="730.63,-598.9 724.19,-601.35 730.75,-603.45 730.63,-598.9"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3599.33,-485.88 3599.33,-523.88 3753.33,-523.88 3753.33,-485.88 3599.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="3661.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F04</text>
+<text xml:space="preserve" text-anchor="start" x="3642.58" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">身份与所带班级信息</text>
+</g>
+<!-- P1&#45;&gt;E3 -->
+<g id="e5" class="edge">
+<title>P1&#45;&gt;E3</title>
+<g id="a_e5"><a xlink:title="身份结果；账号、组织关系与权限办理结果">
+<path fill="none" stroke="#326a80" d="M4818.98,-430.19C4863.61,-450.95 4919.33,-476.88 4919.33,-476.88 4919.33,-476.88 4919.33,-532.88 4919.33,-532.88 4919.33,-532.88 4867.69,-556.43 4824.02,-576.34"/>
+<polygon fill="#326a80" stroke="#326a80" points="4823.16,-574.24 4818.19,-579 4825.04,-578.38 4823.16,-574.24"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4919.33,-485.88 4919.33,-523.88 5073.33,-523.88 5073.33,-485.88 4919.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="4981.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F06</text>
+<text xml:space="preserve" text-anchor="start" x="4981.33" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">身份结果</text>
+</g>
+<!-- P1&#45;&gt;D1 -->
+<g id="e7" class="edge">
+<title>P1&#45;&gt;D1</title>
+<g id="a_e7"><a xlink:title="账号、班级关系及角色权限变更">
+<path fill="none" stroke="#a08e68" d="M4762.58,-377.54C4761.14,-356.74 4759.33,-330.64 4759.33,-330.64 4759.33,-330.64 4759.33,-274.64 4759.33,-274.64 4759.33,-274.64 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 5246.74,-226.12 5308.24,-217.85"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="5308.47,-220.12 5314.61,-217 5307.87,-215.61 5308.47,-220.12"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4759.33,-274.64 4759.33,-330.64 4913.33,-330.64 4913.33,-274.64 4759.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="4821.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F08</text>
+<text xml:space="preserve" text-anchor="start" x="4791.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">账号、班级关系及角色权限</text>
+<text xml:space="preserve" text-anchor="start" x="4828.83" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">变更</text>
+</g>
+<!-- P2&#45;&gt;E1 -->
+<g id="e9" class="edge">
+<title>P2&#45;&gt;E1</title>
+<g id="a_e9"><a xlink:title="AI建议、候选截图、待人工补填信息；草稿保存结果">
+<path fill="none" stroke="#326a80" d="M3372.65,-227.99C3296.83,-265.35 3164.33,-330.64 3164.33,-330.64 3164.33,-330.64 2221.33,-370.64 2221.33,-370.64 2221.33,-370.64 2070.33,-436.88 2070.33,-436.88 2070.33,-436.88 1302.33,-476.88 1302.33,-476.88 1302.33,-476.88 1302.33,-532.88 1302.33,-532.88 1302.33,-532.88 1618.89,-572.69 1776.84,-592.56"/>
+<polygon fill="#326a80" stroke="#326a80" points="1776.47,-594.8 1783.21,-593.36 1777.04,-590.29 1776.47,-594.8"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2221.33,-375.76 2221.33,-431.76 2375.33,-431.76 2375.33,-375.76 2221.33,-375.76"/>
+<text xml:space="preserve" text-anchor="start" x="2283.33" y="-417.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F10</text>
+<text xml:space="preserve" text-anchor="start" x="2251.81" y="-399.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">AI建议、候选截图、待人工</text>
+<text xml:space="preserve" text-anchor="start" x="2283.33" y="-381.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">补填信息</text>
+</g>
+<!-- P2&#45;&gt;E4 -->
+<g id="e10" class="edge">
+<title>P2&#45;&gt;E4</title>
+<g id="a_e10"><a xlink:title="待识别文件页；文字／印章识别类型">
+<path fill="none" stroke="#326a80" d="M3511.09,-225.18C3531.45,-230.49 3547.33,-234.64 3547.33,-234.64 3547.33,-234.64 4519.33,-274.64 4519.33,-274.64 4519.33,-274.64 4519.33,-330.64 4519.33,-330.64 4519.33,-330.64 3533.33,-370.64 3533.33,-370.64 3533.33,-370.64 3524.27,-373.31 3511.37,-377.11"/>
+<polygon fill="#326a80" stroke="#326a80" points="3510.88,-374.88 3505.29,-378.9 3512.17,-379.25 3510.88,-374.88"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4519.33,-283.64 4519.33,-321.64 4673.33,-321.64 4673.33,-283.64 4519.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="4581.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F11</text>
+<text xml:space="preserve" text-anchor="start" x="4573.83" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">待识别文件页</text>
+</g>
+<!-- P2&#45;&gt;E5 -->
+<g id="e12" class="edge">
+<title>P2&#45;&gt;E5</title>
+<g id="a_e12"><a xlink:title="识别文本、学生所选大类、适用评分标准、规范活动候选">
+<path fill="none" stroke="#326a80" d="M3511.09,-225.18C3531.45,-230.49 3547.33,-234.64 3547.33,-234.64 3547.33,-234.64 4919.33,-274.64 4919.33,-274.64 4919.33,-274.64 4919.33,-330.64 4919.33,-330.64 4919.33,-330.64 4658.33,-370.64 4658.33,-370.64 4658.33,-370.64 4651.09,-372.97 4640.5,-376.37"/>
+<polygon fill="#326a80" stroke="#326a80" points="4640.03,-374.13 4634.54,-378.28 4641.42,-378.46 4640.03,-374.13"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4919.33,-274.64 4919.33,-330.64 5073.33,-330.64 5073.33,-274.64 4919.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="4981.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F13</text>
+<text xml:space="preserve" text-anchor="start" x="4951.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">识别文本、学生所选大类、</text>
+<text xml:space="preserve" text-anchor="start" x="4973.83" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">适用评分标…</text>
+</g>
+<!-- P2&#45;&gt;D3 -->
+<g id="e19" class="edge">
+<title>P2&#45;&gt;D3</title>
+<g id="a_e19"><a xlink:title="工作草稿、修订版本、AI建议及手动改分标记">
+<path fill="none" stroke="#a08e68" d="M3415.64,-175.21C3402.82,-137.87 3380.33,-72.4 3380.33,-72.4 3380.33,-72.4 3373.34,-54.84 3367.23,-39.53"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3369.42,-38.89 3364.9,-33.69 3365.2,-40.57 3369.42,-38.89"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3398.39,-72.4 3398.39,-128.4 3552.39,-128.4 3552.39,-72.4 3398.39,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="3460.39" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F20</text>
+<text xml:space="preserve" text-anchor="start" x="3428.87" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">工作草稿、修订版本、AI建</text>
+<text xml:space="preserve" text-anchor="start" x="3456.64" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">议及手动…</text>
+</g>
+<!-- P2&#45;&gt;D4 -->
+<g id="e20" class="edge">
+<title>P2&#45;&gt;D4</title>
+<g id="a_e20"><a xlink:title="原件及页信息；两类截图及来源定位">
+<path fill="none" stroke="#a08e68" d="M3478.14,-175.03C3557.26,-137.55 3703.08,-68.48 3772.55,-35.57"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3773.17,-37.8 3778.07,-32.96 3771.22,-33.68 3773.17,-37.8"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3686.16,-81.4 3686.16,-119.4 3840.16,-119.4 3840.16,-81.4 3686.16,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="3748.16" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F21</text>
+<text xml:space="preserve" text-anchor="start" x="3740.66" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">原件及页信息</text>
+</g>
+<!-- P2&#45;&gt;D6 -->
+<g id="e21" class="edge">
+<title>P2&#45;&gt;D6</title>
+<g id="a_e21"><a xlink:title="草稿修订审计及版本引用">
+<path fill="none" stroke="#a08e68" d="M3337.46,-176.67C3320.23,-171.94 3307.33,-168.4 3307.33,-168.4 3307.33,-168.4 2775.33,-128.4 2775.33,-128.4 2775.33,-128.4 2736.33,-72.4 2736.33,-72.4 2736.33,-72.4 1798.91,-34.96 1468.18,-21.75"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1468.58,-19.49 1461.99,-21.5 1468.4,-24.03 1468.58,-19.49"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2775.33,-81.4 2775.33,-119.4 2929.33,-119.4 2929.33,-81.4 2775.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="2837.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F22</text>
+<text xml:space="preserve" text-anchor="start" x="2811.08" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">草稿修订审计及版本引用</text>
+</g>
+<!-- P3&#45;&gt;E1 -->
+<g id="e23" class="edge">
+<title>P3&#45;&gt;E1</title>
+<g id="a_e23"><a xlink:title="受理／拦截原因、关联候选、替代／恢复结果">
+<path fill="none" stroke="#326a80" d="M1866.17,-207.88C2136.86,-224.6 2947.33,-274.64 2947.33,-274.64 2947.33,-274.64 2947.33,-330.64 2947.33,-330.64 2947.33,-330.64 2680.33,-370.64 2680.33,-370.64 2680.33,-370.64 2385.33,-436.88 2385.33,-436.88 2385.33,-436.88 1312.33,-476.88 1312.33,-476.88 1312.33,-476.88 1312.33,-532.88 1312.33,-532.88 1312.33,-532.88 1621.27,-572.44 1776.91,-592.37"/>
+<polygon fill="#326a80" stroke="#326a80" points="1776.42,-594.6 1783.16,-593.17 1777,-590.08 1776.42,-594.6"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2680.33,-375.76 2680.33,-431.76 2834.33,-431.76 2834.33,-375.76 2680.33,-375.76"/>
+<text xml:space="preserve" text-anchor="start" x="2742.33" y="-417.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F24</text>
+<text xml:space="preserve" text-anchor="start" x="2712.33" y="-399.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">受理／拦截原因、关联候选</text>
+<text xml:space="preserve" text-anchor="start" x="2734.83" y="-381.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">、替代／恢…</text>
+</g>
+<!-- P3&#45;&gt;D3 -->
+<g id="e31" class="edge">
+<title>P3&#45;&gt;D3</title>
+<g id="a_e31"><a xlink:title="正式版本与提交轮次；替代／撤回／恢复后的轮次状态">
+<path fill="none" stroke="#a08e68" d="M1866.29,-192.25C2065.39,-173.3 2537.33,-128.4 2537.33,-128.4 2537.33,-128.4 2576.33,-72.4 2576.33,-72.4 2576.33,-72.4 3027.03,-40.59 3244.12,-25.26"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3244.22,-27.54 3250.55,-24.81 3243.9,-23 3244.22,-27.54"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2576.33,-81.4 2576.33,-119.4 2730.33,-119.4 2730.33,-81.4 2576.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="2638.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F32</text>
+<text xml:space="preserve" text-anchor="start" x="2619.58" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">正式版本与提交轮次</text>
+</g>
+<!-- P3&#45;&gt;D6 -->
+<g id="e32" class="edge">
+<title>P3&#45;&gt;D6</title>
+<g id="a_e32"><a xlink:title="替代前状态、因果关联、撤回及恢复记录">
+<path fill="none" stroke="#a08e68" d="M1692.7,-184.78C1575.89,-163.56 1382.33,-128.4 1382.33,-128.4 1382.33,-128.4 1368.24,-72.44 1360.05,-39.91"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1362.27,-39.41 1358.48,-33.66 1357.86,-40.52 1362.27,-39.41"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1382.33,-72.4 1382.33,-128.4 1536.33,-128.4 1536.33,-72.4 1382.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="1444.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F33</text>
+<text xml:space="preserve" text-anchor="start" x="1414.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">替代前状态、因果关联、撤</text>
+<text xml:space="preserve" text-anchor="start" x="1436.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">回及恢复记录</text>
+</g>
+<!-- P4&#45;&gt;E1 -->
+<g id="e34" class="edge">
+<title>P4&#45;&gt;E1</title>
+<g id="a_e34"><a xlink:title="[审查员]审核材料与办理结果；本人申请审核结果">
+<path fill="none" stroke="#326a80" d="M1321.53,-430.07C1321.82,-467.41 1322.33,-532.88 1322.33,-532.88 1322.33,-532.88 1623.73,-572.18 1777.02,-592.17"/>
+<polygon fill="#326a80" stroke="#326a80" points="1776.41,-594.39 1783.15,-592.97 1777,-589.88 1776.41,-594.39"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1322.33,-476.88 1322.33,-532.88 1476.33,-532.88 1476.33,-476.88 1322.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="1384.33" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F35</text>
+<text xml:space="preserve" text-anchor="start" x="1354.75" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">[审查员]审核材料与办理结</text>
+<text xml:space="preserve" text-anchor="start" x="1395.58" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">果</text>
+</g>
+<!-- P4&#45;&gt;E2 -->
+<g id="e36" class="edge">
+<title>P4&#45;&gt;E2</title>
+<g id="a_e36"><a xlink:title="审核材料、原件与办理结果">
+<path fill="none" stroke="#326a80" d="M1408.3,-409.55C1570.82,-418.51 1904.33,-436.88 1904.33,-436.88 1904.33,-436.88 3763.33,-476.88 3763.33,-476.88 3763.33,-476.88 3763.33,-532.88 3763.33,-532.88 3763.33,-532.88 1765.33,-572.88 1765.33,-572.88 1765.33,-572.88 993.83,-593.98 730.32,-601.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="730.63,-598.9 724.19,-601.35 730.75,-603.45 730.63,-598.9"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3763.33,-485.88 3763.33,-523.88 3917.33,-523.88 3917.33,-485.88 3763.33,-485.88"/>
+<text xml:space="preserve" text-anchor="start" x="3825.33" y="-509.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F37</text>
+<text xml:space="preserve" text-anchor="start" x="3795.33" y="-491.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">审核材料、原件与办理结果</text>
+</g>
+<!-- P4&#45;&gt;P3 -->
+<g id="e44" class="edge">
+<title>P4&#45;&gt;P3</title>
+<g id="a_e44"><a xlink:title="申请驳回事实：轮次、版本、理由及经办人">
+<path fill="none" stroke="#326a80" d="M1402.42,-377.33C1468.64,-356.57 1551.33,-330.64 1551.33,-330.64 1551.33,-330.64 1646.98,-276.9 1714.37,-239.02"/>
+<polygon fill="#326a80" stroke="#326a80" points="1715.34,-241.09 1719.89,-235.92 1713.11,-237.12 1715.34,-241.09"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1644.91,-274.64 1644.91,-330.64 1798.91,-330.64 1798.91,-274.64 1644.91,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="1706.91" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F45</text>
+<text xml:space="preserve" text-anchor="start" x="1676.91" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">申请驳回事实：轮次、版本</text>
+<text xml:space="preserve" text-anchor="start" x="1699.41" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">、理由及经…</text>
+</g>
+<!-- P4&#45;&gt;P5 -->
+<g id="e45" class="edge">
+<title>P4&#45;&gt;P5</title>
+<g id="a_e45"><a xlink:title="活动资格认定资料及适用范围">
+<path fill="none" stroke="#326a80" d="M1234.68,-386.48C1121.42,-365.21 937.33,-330.64 937.33,-330.64 937.33,-330.64 898.33,-274.64 898.33,-274.64 898.33,-274.64 810.11,-249.69 737.45,-229.14"/>
+<polygon fill="#326a80" stroke="#326a80" points="738.35,-227.03 731.48,-227.45 737.11,-231.41 738.35,-227.03"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="937.33,-274.64 937.33,-330.64 1091.33,-330.64 1091.33,-274.64 937.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="999.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F46</text>
+<text xml:space="preserve" text-anchor="start" x="969.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">活动资格认定资料及适用范</text>
+<text xml:space="preserve" text-anchor="start" x="1010.58" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">围</text>
+</g>
+<!-- P4&#45;&gt;D3 -->
+<g id="e42" class="edge">
+<title>P4&#45;&gt;D3</title>
+<g id="a_e42"><a xlink:title="审核后的轮次状态及决定引用">
+<path fill="none" stroke="#a08e68" d="M1408.09,-397.6C1560.74,-388.52 1861.33,-370.64 1861.33,-370.64 1861.33,-370.64 2947.33,-330.64 2947.33,-330.64 2947.33,-330.64 3164.33,-168.4 3164.33,-168.4 3164.33,-168.4 3298.33,-128.4 3298.33,-128.4 3298.33,-128.4 3329.04,-71.48 3346.52,-39.09"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3348.44,-40.33 3349.52,-33.53 3344.43,-38.17 3348.44,-40.33"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3164.33,-173.52 3164.33,-229.52 3318.33,-229.52 3318.33,-173.52 3164.33,-173.52"/>
+<text xml:space="preserve" text-anchor="start" x="3226.33" y="-215.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F43</text>
+<text xml:space="preserve" text-anchor="start" x="3196.33" y="-197.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">审核后的轮次状态及决定引</text>
+<text xml:space="preserve" text-anchor="start" x="3237.58" y="-179.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">用</text>
+</g>
+<!-- P4&#45;&gt;D6 -->
+<g id="e43" class="edge">
+<title>P4&#45;&gt;D6</title>
+<g id="a_e43"><a xlink:title="审核意见、原因、经办人及版本／轮次引用">
+<path fill="none" stroke="#a08e68" d="M1323.5,-377.46C1329.55,-306.77 1346.57,-107.91 1352.37,-40.15"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1354.63,-40.37 1352.92,-33.7 1350.1,-39.99 1354.63,-40.37"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1341.11,-173.52 1341.11,-229.52 1495.11,-229.52 1495.11,-173.52 1341.11,-173.52"/>
+<text xml:space="preserve" text-anchor="start" x="1403.11" y="-215.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F44</text>
+<text xml:space="preserve" text-anchor="start" x="1373.11" y="-197.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">审核意见、原因、经办人及</text>
+<text xml:space="preserve" text-anchor="start" x="1395.61" y="-179.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">版本／轮次…</text>
+</g>
+<!-- P5&#45;&gt;E2 -->
+<g id="e48" class="edge">
+<title>P5&#45;&gt;E2</title>
+<g id="a_e48"><a xlink:title="活动维护结果及受影响历史申请">
+<path fill="none" stroke="#326a80" d="M729.99,-206.95C902.27,-215.76 1271.33,-234.64 1271.33,-234.64 1271.33,-234.64 3588.33,-274.64 3588.33,-274.64 3588.33,-274.64 3613.33,-436.88 3613.33,-436.88 3613.33,-436.88 3927.33,-476.88 3927.33,-476.88 3927.33,-476.88 3927.33,-532.88 3927.33,-532.88 3927.33,-532.88 1765.33,-572.88 1765.33,-572.88 1765.33,-572.88 993.83,-593.98 730.32,-601.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="730.63,-598.9 724.19,-601.35 730.75,-603.45 730.63,-598.9"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3613.33,-375.76 3613.33,-431.76 3767.33,-431.76 3767.33,-375.76 3613.33,-375.76"/>
+<text xml:space="preserve" text-anchor="start" x="3675.33" y="-417.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F49</text>
+<text xml:space="preserve" text-anchor="start" x="3645.33" y="-399.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">活动维护结果及受影响历史</text>
+<text xml:space="preserve" text-anchor="start" x="3682.83" y="-381.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">申请</text>
+</g>
+<!-- P5&#45;&gt;P4 -->
+<g id="e46" class="edge">
+<title>P5&#45;&gt;P4</title>
+<g id="a_e46"><a xlink:title="规范活动与资格认定记录">
+<path fill="none" stroke="#326a80" d="M730.06,-216.3C861.84,-237.23 1097.33,-274.64 1097.33,-274.64 1097.33,-274.64 1136.33,-330.64 1136.33,-330.64 1136.33,-330.64 1197,-354.29 1248.86,-374.51"/>
+<polygon fill="#326a80" stroke="#326a80" points="1247.82,-376.54 1254.7,-376.78 1249.47,-372.3 1247.82,-376.54"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1136.33,-283.64 1136.33,-321.64 1290.33,-321.64 1290.33,-283.64 1136.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="1198.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F47</text>
+<text xml:space="preserve" text-anchor="start" x="1172.08" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">规范活动与资格认定记录</text>
+</g>
+<!-- P5&#45;&gt;D5 -->
+<g id="e52" class="edge">
+<title>P5&#45;&gt;D5</title>
+<g id="a_e52"><a xlink:title="规范活动、别名、资格及范围变更">
+<path fill="none" stroke="#a08e68" d="M556.51,-179.85C466.97,-158.54 340.33,-128.4 340.33,-128.4 340.33,-128.4 340.33,-72.4 340.33,-72.4 340.33,-72.4 346.38,-54.84 351.65,-39.53"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="353.68,-40.6 353.65,-33.71 349.38,-39.12 353.68,-40.6"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="340.33,-72.4 340.33,-128.4 494.33,-128.4 494.33,-72.4 340.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="402.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F53</text>
+<text xml:space="preserve" text-anchor="start" x="372.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">规范活动、别名、资格及范</text>
+<text xml:space="preserve" text-anchor="start" x="406.08" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">围变更</text>
+</g>
+<!-- P5&#45;&gt;D6 -->
+<g id="e53" class="edge">
+<title>P5&#45;&gt;D6</title>
+<g id="a_e53"><a xlink:title="活动资格维护记录与经办人">
+<path fill="none" stroke="#a08e68" d="M619.2,-175.3C599.3,-154.5 574.33,-128.4 574.33,-128.4 574.33,-128.4 574.33,-72.4 574.33,-72.4 574.33,-72.4 1023.88,-40.59 1240.41,-25.26"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1240.49,-27.54 1246.82,-24.81 1240.17,-23 1240.49,-27.54"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="574.33,-81.4 574.33,-119.4 728.33,-119.4 728.33,-81.4 574.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="636.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F54</text>
+<text xml:space="preserve" text-anchor="start" x="606.33" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">活动资格维护记录与经办人</text>
+</g>
+<!-- P6&#45;&gt;E1 -->
+<g id="e55" class="edge">
+<title>P6&#45;&gt;E1</title>
+<g id="a_e55"><a xlink:title="权限范围内申请、审核记录、原件及成绩">
+<path fill="none" stroke="#326a80" d="M458.12,-417.32C520.38,-426.33 593.33,-436.88 593.33,-436.88 593.33,-436.88 1482.33,-476.88 1482.33,-476.88 1482.33,-476.88 1522.33,-532.88 1522.33,-532.88 1522.33,-532.88 1675.44,-564.52 1776.77,-585.46"/>
+<polygon fill="#326a80" stroke="#326a80" points="1776.27,-587.68 1783.1,-586.77 1777.19,-583.23 1776.27,-587.68"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1522.33,-476.88 1522.33,-532.88 1676.33,-532.88 1676.33,-476.88 1522.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="1584.33" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F56</text>
+<text xml:space="preserve" text-anchor="start" x="1554.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">权限范围内申请、审核记录</text>
+<text xml:space="preserve" text-anchor="start" x="1576.83" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">、原件及成绩</text>
+</g>
+<!-- P6&#45;&gt;E2 -->
+<g id="e57" class="edge">
+<title>P6&#45;&gt;E2</title>
+<g id="a_e57"><a xlink:title="所带班级申请、原件、审核记录及成绩">
+<path fill="none" stroke="#326a80" d="M458.12,-417.32C520.38,-426.33 593.33,-436.88 593.33,-436.88 593.33,-436.88 4053.33,-476.88 4053.33,-476.88 4053.33,-476.88 4053.33,-532.88 4053.33,-532.88 4053.33,-532.88 1765.33,-572.88 1765.33,-572.88 1765.33,-572.88 993.83,-593.98 730.32,-601.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="730.63,-598.9 724.19,-601.35 730.75,-603.45 730.63,-598.9"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4053.33,-476.88 4053.33,-532.88 4207.33,-532.88 4207.33,-476.88 4053.33,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="4115.33" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F58</text>
+<text xml:space="preserve" text-anchor="start" x="4085.33" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">所带班级申请、原件、审核</text>
+<text xml:space="preserve" text-anchor="start" x="4111.58" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">记录及成绩</text>
+</g>
+<!-- P6&#45;&gt;P7 -->
+<g id="e72" class="edge">
+<title>P6&#45;&gt;P7</title>
+<g id="a_e72"><a xlink:title="规则计分结果、已通过明细、关键截图及审查员">
+<path fill="none" stroke="#326a80" d="M393.09,-370.08C405.79,-350.99 419.33,-330.64 419.33,-330.64 419.33,-330.64 419.33,-274.64 419.33,-274.64 419.33,-274.64 369.33,-251.37 326.12,-231.27"/>
+<polygon fill="#326a80" stroke="#326a80" points="327.21,-229.26 320.35,-228.59 325.29,-233.39 327.21,-229.26"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="419.33,-274.64 419.33,-330.64 573.33,-330.64 573.33,-274.64 419.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="481.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F73</text>
+<text xml:space="preserve" text-anchor="start" x="451.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">规则计分结果、已通过明细</text>
+<text xml:space="preserve" text-anchor="start" x="473.83" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">、关键截图…</text>
+</g>
+<!-- P7&#45;&gt;E1 -->
+<g id="e64" class="edge">
+<title>P7&#45;&gt;E1</title>
+<g id="a_e64"><a xlink:title="脱敏公示内容；[班长]Excel汇总">
+<path fill="none" stroke="#326a80" d="M351.09,-212.73C431.03,-222.13 537.33,-234.64 537.33,-234.64 537.33,-234.64 2947.33,-274.64 2947.33,-274.64 2947.33,-274.64 2947.33,-330.64 2947.33,-330.64 2947.33,-330.64 2840.33,-436.88 2840.33,-436.88 2840.33,-436.88 1732.33,-476.88 1732.33,-476.88 1732.33,-476.88 1732.33,-532.88 1732.33,-532.88 1732.33,-532.88 1766.05,-550.93 1799.4,-568.79"/>
+<polygon fill="#326a80" stroke="#326a80" points="1797.91,-570.58 1804.72,-571.64 1800.06,-566.56 1797.91,-570.58"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2906.22,-384.76 2906.22,-422.76 3060.22,-422.76 3060.22,-384.76 2906.22,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="2968.22" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F65</text>
+<text xml:space="preserve" text-anchor="start" x="2960.72" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">脱敏公示内容</text>
+</g>
+<!-- P7&#45;&gt;E2 -->
+<g id="e66" class="edge">
+<title>P7&#45;&gt;E2</title>
+<g id="a_e66"><a xlink:title="公示办理结果与Excel汇总">
+<path fill="none" stroke="#326a80" d="M351.09,-212.73C431.03,-222.13 537.33,-234.64 537.33,-234.64 537.33,-234.64 3588.33,-274.64 3588.33,-274.64 3588.33,-274.64 3773.33,-370.64 3773.33,-370.64 3773.33,-370.64 3847.33,-436.88 3847.33,-436.88 3847.33,-436.88 4217.33,-476.88 4217.33,-476.88 4217.33,-476.88 4217.33,-532.88 4217.33,-532.88 4217.33,-532.88 1765.33,-572.88 1765.33,-572.88 1765.33,-572.88 993.83,-593.98 730.32,-601.18"/>
+<polygon fill="#326a80" stroke="#326a80" points="730.63,-598.9 724.19,-601.35 730.75,-603.45 730.63,-598.9"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3847.33,-384.76 3847.33,-422.76 4001.33,-422.76 4001.33,-384.76 3847.33,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="3909.33" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F67</text>
+<text xml:space="preserve" text-anchor="start" x="3879.2" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">公示办理结果与Excel汇总</text>
+</g>
+<!-- P7&#45;&gt;P6 -->
+<g id="e71" class="edge">
+<title>P7&#45;&gt;P6</title>
+<g id="a_e71"><a xlink:title="班级学年成绩与已通过明细查询条件">
+<path fill="none" stroke="#326a80" d="M262.58,-227.74C261.14,-248.54 259.33,-274.64 259.33,-274.64 259.33,-274.64 259.33,-330.64 259.33,-330.64 259.33,-330.64 286.42,-348.08 313.96,-365.82"/>
+<polygon fill="#326a80" stroke="#326a80" points="312.61,-367.65 319.3,-369.26 315.07,-363.82 312.61,-367.65"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="259.33,-274.64 259.33,-330.64 413.33,-330.64 413.33,-274.64 259.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="321.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">L1&#45;F72</text>
+<text xml:space="preserve" text-anchor="start" x="291.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">班级学年成绩与已通过明细</text>
+<text xml:space="preserve" text-anchor="start" x="321.33" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#294f64">查询条件</text>
+</g>
+<!-- P7&#45;&gt;D7 -->
+<g id="e70" class="edge">
+<title>P7&#45;&gt;D7</title>
+<g id="a_e70"><a xlink:title="通过门槛核验的公示设置及经办人">
+<path fill="none" stroke="#a08e68" d="M220.97,-175.09C185.56,-154.33 141.33,-128.4 141.33,-128.4 141.33,-128.4 123.57,-71.96 113.35,-39.5"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="115.63,-39.16 111.51,-33.64 111.29,-40.52 115.63,-39.16"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="141.33,-72.4 141.33,-128.4 295.33,-128.4 295.33,-72.4 141.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="203.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F71</text>
+<text xml:space="preserve" text-anchor="start" x="173.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">通过门槛核验的公示设置及</text>
+<text xml:space="preserve" text-anchor="start" x="207.08" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">经办人</text>
+</g>
+<!-- D1&#45;&gt;P1 -->
+<g id="e6" class="edge">
+<title>D1&#45;&gt;P1</title>
+<g id="a_e6"><a xlink:title="账号、角色、班级及现有权限">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.8C5252.28,-225.37 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 95.33,-274.64 95.33,-274.64 95.33,-274.64 95.33,-330.64 95.33,-330.64 95.33,-330.64 4657.33,-370.64 4657.33,-370.64 4657.33,-370.64 4663.05,-372.36 4671.84,-375"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="4671.17,-377.17 4678.05,-376.86 4672.48,-372.81 4671.17,-377.17"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="95.33,-274.64 95.33,-330.64 249.33,-330.64 249.33,-274.64 95.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="157.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F07</text>
+<text xml:space="preserve" text-anchor="start" x="127.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">账号、角色、班级及现有权</text>
+<text xml:space="preserve" text-anchor="start" x="168.58" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">限</text>
+</g>
+<!-- D1&#45;&gt;P2 -->
+<g id="e14" class="edge">
+<title>D1&#45;&gt;P2</title>
+<g id="a_e14"><a xlink:title="本人身份与所属班级">
+<path fill="none" stroke="#a08e68" d="M5399.52,-217.66C5358.46,-246.7 5276.33,-304.79 5276.33,-304.79 5276.33,-304.79 5122.33,-304.79 5122.33,-304.79 5122.33,-304.79 3547.33,-234.64 3547.33,-234.64 3547.33,-234.64 3535.17,-231.37 3518.49,-226.87"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3519.42,-224.77 3512.56,-225.28 3518.24,-229.16 3519.42,-224.77"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="5122.33,-283.64 5122.33,-321.64 5276.33,-321.64 5276.33,-283.64 5122.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="5184.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F15</text>
+<text xml:space="preserve" text-anchor="start" x="5165.58" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">本人身份与所属班级</text>
+</g>
+<!-- D1&#45;&gt;P3 -->
+<g id="e24" class="edge">
+<title>D1&#45;&gt;P3</title>
+<g id="a_e24"><a xlink:title="本人身份与所属班级">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.24C5252.28,-225.09 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 2937.33,-304.79 2937.33,-304.79 2937.33,-304.79 2783.33,-304.79 2783.33,-304.79 2783.33,-304.79 2123.87,-236.96 1873.88,-211.24"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1874.44,-209.02 1867.74,-210.61 1873.98,-213.54 1874.44,-209.02"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2783.33,-283.64 2783.33,-321.64 2937.33,-321.64 2937.33,-283.64 2783.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="2845.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F25</text>
+<text xml:space="preserve" text-anchor="start" x="2826.58" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">本人身份与所属班级</text>
+</g>
+<!-- D1&#45;&gt;P4 -->
+<g id="e37" class="edge">
+<title>D1&#45;&gt;P4</title>
+<g id="a_e37"><a xlink:title="审核身份、班级范围及申请人身份">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.8C5252.28,-225.37 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 1387.33,-274.64 1387.33,-274.64 1387.33,-274.64 1357.44,-332.66 1337.89,-370.61"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1336.02,-369.28 1335.07,-376.1 1340.06,-371.37 1336.02,-369.28"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1387.33,-274.64 1387.33,-330.64 1541.33,-330.64 1541.33,-274.64 1387.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="1449.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F38</text>
+<text xml:space="preserve" text-anchor="start" x="1419.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">审核身份、班级范围及申请</text>
+<text xml:space="preserve" text-anchor="start" x="1453.08" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">人身份</text>
+</g>
+<!-- D1&#45;&gt;P5 -->
+<g id="e49" class="edge">
+<title>D1&#45;&gt;P5</title>
+<g id="a_e49"><a xlink:title="辅导员身份与管理范围">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.24C5252.28,-225.09 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 2497.33,-304.79 2497.33,-304.79 2497.33,-304.79 2343.33,-304.79 2343.33,-304.79 2343.33,-304.79 1095.6,-228.99 738.04,-207.27"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="738.4,-205.02 731.78,-206.89 738.13,-209.56 738.4,-205.02"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2343.33,-283.64 2343.33,-321.64 2497.33,-321.64 2497.33,-283.64 2343.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="2405.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F50</text>
+<text xml:space="preserve" text-anchor="start" x="2382.83" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">辅导员身份与管理范围</text>
+</g>
+<!-- D1&#45;&gt;P6 -->
+<g id="e58" class="edge">
+<title>D1&#45;&gt;P6</title>
+<g id="a_e58"><a xlink:title="查询身份及班级数据范围">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.8C5252.28,-225.37 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 2179.33,-274.64 2179.33,-274.64 2179.33,-274.64 1809.33,-330.64 1809.33,-330.64 1809.33,-330.64 593.33,-370.64 593.33,-370.64 593.33,-370.64 526.24,-380.35 465.83,-389.09"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="465.72,-386.8 459.62,-389.99 466.37,-391.31 465.72,-386.8"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2179.33,-283.64 2179.33,-321.64 2333.33,-321.64 2333.33,-283.64 2179.33,-283.64"/>
+<text xml:space="preserve" text-anchor="start" x="2241.33" y="-307.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F59</text>
+<text xml:space="preserve" text-anchor="start" x="2215.08" y="-289.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">查询身份及班级数据范围</text>
+</g>
+<!-- D1&#45;&gt;P7 -->
+<g id="e67" class="edge">
+<title>D1&#45;&gt;P7</title>
+<g id="a_e67"><a xlink:title="查看、设置及导出的身份和班级范围">
+<path fill="none" stroke="#a08e68" d="M5316.11,-216.24C5252.28,-225.09 5183.33,-234.64 5183.33,-234.64 5183.33,-234.64 2737.33,-313.79 2737.33,-313.79 2737.33,-313.79 2583.33,-313.79 2583.33,-313.79 2583.33,-313.79 537.33,-234.64 537.33,-234.64 537.33,-234.64 437.57,-222.54 358.65,-212.96"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="359.32,-210.75 352.59,-212.23 358.77,-215.27 359.32,-210.75"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2583.33,-274.64 2583.33,-330.64 2737.33,-330.64 2737.33,-274.64 2583.33,-274.64"/>
+<text xml:space="preserve" text-anchor="start" x="2645.33" y="-316.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F68</text>
+<text xml:space="preserve" text-anchor="start" x="2615.33" y="-298.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">查看、设置及导出的身份和</text>
+<text xml:space="preserve" text-anchor="start" x="2645.33" y="-280.64" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">班级范围</text>
+</g>
+<!-- D2&#45;&gt;P2 -->
+<g id="e15" class="edge">
+<title>D2&#45;&gt;P2</title>
+<g id="a_e15"><a xlink:title="所选学年及七类评分标准">
+<path fill="none" stroke="#a08e68" d="M4486.91,-588.41C4414.98,-554.78 4248.33,-476.88 4248.33,-476.88 4248.33,-476.88 4081.33,-436.88 4081.33,-436.88 4081.33,-436.88 4007.33,-370.64 4007.33,-370.64 4007.33,-370.64 3683.52,-277.26 3518.55,-229.69"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3519.63,-227.63 3512.75,-228.02 3518.37,-232 3519.63,-227.63"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4081.33,-384.76 4081.33,-422.76 4235.33,-422.76 4235.33,-384.76 4081.33,-384.76"/>
+<text xml:space="preserve" text-anchor="start" x="4143.33" y="-408.76" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F16</text>
+<text xml:space="preserve" text-anchor="start" x="4117.08" y="-390.76" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">所选学年及七类评分标准</text>
+</g>
+<!-- D2&#45;&gt;P3 -->
+<g id="e25" class="edge">
+<title>D2&#45;&gt;P3</title>
+<g id="a_e25"><a xlink:title="项目计分及同分奖项优先规则">
+<path fill="none" stroke="#a08e68" d="M4499.96,-588.47C4447.29,-547.44 4305.33,-436.88 4305.33,-436.88 4305.33,-436.88 4241.33,-370.64 4241.33,-370.64 4241.33,-370.64 3673.33,-274.64 3673.33,-274.64 3673.33,-274.64 2257.33,-220.72 1874.03,-206.13"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1874.35,-203.86 1867.77,-205.89 1874.18,-208.41 1874.35,-203.86"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4305.33,-375.76 4305.33,-431.76 4459.33,-431.76 4459.33,-375.76 4305.33,-375.76"/>
+<text xml:space="preserve" text-anchor="start" x="4367.33" y="-417.76" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F26</text>
+<text xml:space="preserve" text-anchor="start" x="4337.33" y="-399.76" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">项目计分及同分奖项优先规</text>
+<text xml:space="preserve" text-anchor="start" x="4378.58" y="-381.76" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">则</text>
+</g>
+<!-- D2&#45;&gt;P6 -->
+<g id="e59" class="edge">
+<title>D2&#45;&gt;P6</title>
+<g id="a_e59"><a xlink:title="70分基准、分类封顶、取最高及精度规则">
+<path fill="none" stroke="#a08e68" d="M4483.2,-588.41C4403.04,-554.78 4217.33,-476.88 4217.33,-476.88 4217.33,-476.88 593.33,-436.88 593.33,-436.88 593.33,-436.88 526.24,-427.17 465.83,-418.43"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="466.37,-416.21 459.62,-417.53 465.72,-420.72 466.37,-416.21"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4350.25,-476.88 4350.25,-532.88 4504.25,-532.88 4504.25,-476.88 4350.25,-476.88"/>
+<text xml:space="preserve" text-anchor="start" x="4412.25" y="-518.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F60</text>
+<text xml:space="preserve" text-anchor="start" x="4381" y="-500.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">70分基准、分类封顶、取最</text>
+<text xml:space="preserve" text-anchor="start" x="4408.5" y="-482.88" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">高及精度…</text>
+</g>
+<!-- D3&#45;&gt;P2 -->
+<g id="e16" class="edge">
+<title>D3&#45;&gt;P2</title>
+<g id="a_e16"><a xlink:title="现有工作草稿及当前提交轮次">
+<path fill="none" stroke="#a08e68" d="M3252.38,-19.43C2762.22,-29.76 738.33,-72.4 738.33,-72.4 738.33,-72.4 738.33,-128.4 738.33,-128.4 738.33,-128.4 3307.33,-168.4 3307.33,-168.4 3307.33,-168.4 3316.52,-170.92 3329.74,-174.55"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3329.13,-176.74 3336,-176.27 3330.34,-172.36 3329.13,-176.74"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="738.33,-72.4 738.33,-128.4 892.33,-128.4 892.33,-72.4 738.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="800.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F17</text>
+<text xml:space="preserve" text-anchor="start" x="770.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">现有工作草稿及当前提交轮</text>
+<text xml:space="preserve" text-anchor="start" x="811.58" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">次</text>
+</g>
+<!-- D3&#45;&gt;P3 -->
+<g id="e26" class="edge">
+<title>D3&#45;&gt;P3</title>
+<g id="a_e26"><a xlink:title="工作草稿、当前及关联提交轮次、同项目申请">
+<path fill="none" stroke="#a08e68" d="M3252.17,-20.5C2869.2,-32.39 1581.33,-72.4 1581.33,-72.4 1581.33,-72.4 1581.33,-128.4 1581.33,-128.4 1581.33,-128.4 1633.98,-147.58 1684.98,-166.15"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1684.18,-168.28 1691.07,-168.37 1685.74,-164.01 1684.18,-168.28"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1581.33,-72.4 1581.33,-128.4 1735.33,-128.4 1735.33,-72.4 1581.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="1643.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F27</text>
+<text xml:space="preserve" text-anchor="start" x="1613.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">工作草稿、当前及关联提交</text>
+<text xml:space="preserve" text-anchor="start" x="1635.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">轮次、同项…</text>
+</g>
+<!-- D3&#45;&gt;P4 -->
+<g id="e38" class="edge">
+<title>D3&#45;&gt;P4</title>
+<g id="a_e38"><a xlink:title="待审或已通过轮次、正式版本及手动改分标记">
+<path fill="none" stroke="#a08e68" d="M3414.35,-32.36C3474.74,-48.7 3562.33,-72.4 3562.33,-72.4 3562.33,-72.4 3562.33,-128.4 3562.33,-128.4 3562.33,-128.4 3530.33,-234.64 3530.33,-234.64 3530.33,-234.64 1592.33,-274.64 1592.33,-274.64 1592.33,-274.64 1542.33,-330.64 1542.33,-330.64 1542.33,-330.64 1468.96,-354.58 1406.77,-374.88"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1406.16,-372.68 1400.69,-376.86 1407.57,-377.01 1406.16,-372.68"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3550.04,-173.52 3550.04,-229.52 3704.04,-229.52 3704.04,-173.52 3550.04,-173.52"/>
+<text xml:space="preserve" text-anchor="start" x="3612.04" y="-215.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F39</text>
+<text xml:space="preserve" text-anchor="start" x="3582.04" y="-197.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">待审或已通过轮次、正式版</text>
+<text xml:space="preserve" text-anchor="start" x="3604.54" y="-179.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">本及手动改…</text>
+</g>
+<!-- D3&#45;&gt;P5 -->
+<g id="e50" class="edge">
+<title>D3&#45;&gt;P5</title>
+<g id="a_e50"><a xlink:title="引用目标活动的历史申请及轮次">
+<path fill="none" stroke="#a08e68" d="M3252.05,-32.32C3137.18,-48.66 2970.33,-72.4 2970.33,-72.4 2970.33,-72.4 2935.33,-128.4 2935.33,-128.4 2935.33,-128.4 1271.33,-168.4 1271.33,-168.4 1271.33,-168.4 913.36,-186.71 737.95,-195.68"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="737.88,-193.41 731.51,-196.01 738.11,-197.95 737.88,-193.41"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2970.33,-72.4 2970.33,-128.4 3124.33,-128.4 3124.33,-72.4 2970.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="3032.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F51</text>
+<text xml:space="preserve" text-anchor="start" x="3002.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">引用目标活动的历史申请及</text>
+<text xml:space="preserve" text-anchor="start" x="3039.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">轮次</text>
+</g>
+<!-- D3&#45;&gt;P6 -->
+<g id="e60" class="edge">
+<title>D3&#45;&gt;P6</title>
+<g id="a_e60"><a xlink:title="正式版本、当前通过轮次及条目">
+<path fill="none" stroke="#a08e68" d="M3464.5,-22.14C3559.98,-26.57 3685.33,-32.4 3685.33,-32.4 3685.33,-32.4 4947.33,-72.4 4947.33,-72.4 4947.33,-72.4 5548.33,-168.4 5548.33,-168.4 5548.33,-168.4 5548.33,-234.64 5548.33,-234.64 5548.33,-234.64 3009.33,-274.64 3009.33,-274.64 3009.33,-274.64 2947.33,-330.64 2947.33,-330.64 2947.33,-330.64 633.33,-370.64 633.33,-370.64 633.33,-370.64 540.93,-381.97 465.88,-391.17"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="465.89,-388.88 459.71,-391.92 466.44,-393.39 465.89,-388.88"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="5548.33,-173.52 5548.33,-229.52 5702.33,-229.52 5702.33,-173.52 5548.33,-173.52"/>
+<text xml:space="preserve" text-anchor="start" x="5610.33" y="-215.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F61</text>
+<text xml:space="preserve" text-anchor="start" x="5580.33" y="-197.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">正式版本、当前通过轮次及</text>
+<text xml:space="preserve" text-anchor="start" x="5617.83" y="-179.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">条目</text>
+</g>
+<!-- D3&#45;&gt;P7 -->
+<g id="e68" class="edge">
+<title>D3&#45;&gt;P7</title>
+<g id="a_e68"><a xlink:title="当前班级学年待审轮次清单">
+<path fill="none" stroke="#a08e68" d="M3464.48,-29.11C3609.12,-45.34 3850.33,-72.4 3850.33,-72.4 3850.33,-72.4 3850.33,-128.4 3850.33,-128.4 3850.33,-128.4 537.33,-168.4 537.33,-168.4 537.33,-168.4 437.57,-180.14 358.65,-189.42"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="358.78,-187.12 352.59,-190.14 359.31,-191.64 358.78,-187.12"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3850.33,-81.4 3850.33,-119.4 4004.33,-119.4 4004.33,-81.4 3850.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="3912.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F69</text>
+<text xml:space="preserve" text-anchor="start" x="3882.33" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">当前班级学年待审轮次清单</text>
+</g>
+<!-- D4&#45;&gt;P2 -->
+<g id="e17" class="edge">
+<title>D4&#45;&gt;P2</title>
+<g id="a_e17"><a xlink:title="已有原件页及证据来源定位">
+<path fill="none" stroke="#a08e68" d="M3705.17,-22.14C3609.68,-26.57 3484.33,-32.4 3484.33,-32.4 3484.33,-32.4 937.33,-72.4 937.33,-72.4 937.33,-72.4 937.33,-128.4 937.33,-128.4 937.33,-128.4 3307.33,-168.4 3307.33,-168.4 3307.33,-168.4 3316.52,-170.92 3329.74,-174.55"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3329.13,-176.74 3336,-176.27 3330.34,-172.36 3329.13,-176.74"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="937.33,-81.4 937.33,-119.4 1091.33,-119.4 1091.33,-81.4 937.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="999.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F18</text>
+<text xml:space="preserve" text-anchor="start" x="969.33" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">已有原件页及证据来源定位</text>
+</g>
+<!-- D4&#45;&gt;P3 -->
+<g id="e27" class="edge">
+<title>D4&#45;&gt;P3</title>
+<g id="a_e27"><a xlink:title="本版本关联原件与证据清单">
+<path fill="none" stroke="#a08e68" d="M3705.17,-22.14C3609.68,-26.57 3484.33,-32.4 3484.33,-32.4 3484.33,-32.4 1776.33,-72.4 1776.33,-72.4 1776.33,-72.4 1776.33,-128.4 1776.33,-128.4 1776.33,-128.4 1776.97,-143.71 1777.66,-160.22"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1775.37,-159.92 1777.91,-166.32 1779.91,-159.74 1775.37,-159.92"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1776.33,-81.4 1776.33,-119.4 1930.33,-119.4 1930.33,-81.4 1776.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="1838.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F28</text>
+<text xml:space="preserve" text-anchor="start" x="1808.33" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">本版本关联原件与证据清单</text>
+</g>
+<!-- D4&#45;&gt;P4 -->
+<g id="e39" class="edge">
+<title>D4&#45;&gt;P4</title>
+<g id="a_e39"><a xlink:title="关联原件与关键证据">
+<path fill="none" stroke="#a08e68" d="M3774.44,-32.28C3734.47,-48.63 3676.33,-72.4 3676.33,-72.4 3676.33,-72.4 3676.33,-128.4 3676.33,-128.4 3676.33,-128.4 3714.33,-168.4 3714.33,-168.4 3714.33,-168.4 3714.33,-234.64 3714.33,-234.64 3714.33,-234.64 1639.33,-274.64 1639.33,-274.64 1639.33,-274.64 1589.33,-330.64 1589.33,-330.64 1589.33,-330.64 1492.62,-356.67 1415.38,-377.45"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1415.12,-375.16 1409.44,-379.05 1416.3,-379.56 1415.12,-375.16"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3714.33,-182.52 3714.33,-220.52 3868.33,-220.52 3868.33,-182.52 3714.33,-182.52"/>
+<text xml:space="preserve" text-anchor="start" x="3776.33" y="-206.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F40</text>
+<text xml:space="preserve" text-anchor="start" x="3757.58" y="-188.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">关联原件与关键证据</text>
+</g>
+<!-- D4&#45;&gt;P6 -->
+<g id="e61" class="edge">
+<title>D4&#45;&gt;P6</title>
+<g id="a_e61"><a xlink:title="原件及关键截图">
+<path fill="none" stroke="#a08e68" d="M3917.48,-21.57C4234.63,-34.61 5153.33,-72.4 5153.33,-72.4 5153.33,-72.4 5712.33,-168.4 5712.33,-168.4 5712.33,-168.4 5712.33,-234.64 5712.33,-234.64 5712.33,-234.64 3065.33,-274.64 3065.33,-274.64 3065.33,-274.64 3009.33,-330.64 3009.33,-330.64 3009.33,-330.64 633.33,-370.64 633.33,-370.64 633.33,-370.64 540.93,-381.97 465.88,-391.17"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="465.89,-388.88 459.71,-391.92 466.44,-393.39 465.89,-388.88"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="5712.33,-182.52 5712.33,-220.52 5866.33,-220.52 5866.33,-182.52 5712.33,-182.52"/>
+<text xml:space="preserve" text-anchor="start" x="5774.33" y="-206.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F62</text>
+<text xml:space="preserve" text-anchor="start" x="5763.08" y="-188.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">原件及关键截图</text>
+</g>
+<!-- D5&#45;&gt;P2 -->
+<g id="e18" class="edge">
+<title>D5&#45;&gt;P2</title>
+<g id="a_e18"><a xlink:title="规范活动、别名及资格适用范围">
+<path fill="none" stroke="#a08e68" d="M465.46,-25.14C669.68,-40.41 1097.33,-72.4 1097.33,-72.4 1097.33,-72.4 1204.33,-128.4 1204.33,-128.4 1204.33,-128.4 3307.33,-168.4 3307.33,-168.4 3307.33,-168.4 3316.52,-170.92 3329.74,-174.55"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="3329.13,-176.74 3336,-176.27 3330.34,-172.36 3329.13,-176.74"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1204.33,-72.4 1204.33,-128.4 1358.33,-128.4 1358.33,-72.4 1204.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="1266.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F19</text>
+<text xml:space="preserve" text-anchor="start" x="1236.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">规范活动、别名及资格适用</text>
+<text xml:space="preserve" text-anchor="start" x="1273.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">范围</text>
+</g>
+<!-- D5&#45;&gt;P3 -->
+<g id="e28" class="edge">
+<title>D5&#45;&gt;P3</title>
+<g id="a_e28"><a xlink:title="活动资格与适用范围">
+<path fill="none" stroke="#a08e68" d="M465.52,-20.91C820,-33.28 1940.33,-72.4 1940.33,-72.4 1940.33,-72.4 1940.33,-128.4 1940.33,-128.4 1940.33,-128.4 1899.9,-146.51 1859.55,-164.59"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1858.68,-162.48 1853.68,-167.22 1860.54,-166.64 1858.68,-162.48"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="1940.33,-81.4 1940.33,-119.4 2094.33,-119.4 2094.33,-81.4 1940.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="2002.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F29</text>
+<text xml:space="preserve" text-anchor="start" x="1983.58" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">活动资格与适用范围</text>
+</g>
+<!-- D5&#45;&gt;P4 -->
+<g id="e40" class="edge">
+<title>D5&#45;&gt;P4</title>
+<g id="a_e40"><a xlink:title="资格记录及适用范围">
+<path fill="none" stroke="#a08e68" d="M465.45,-19.06C697.27,-23.11 1228.33,-32.4 1228.33,-32.4 1228.33,-32.4 3562.33,-72.4 3562.33,-72.4 3562.33,-72.4 3723.33,-128.4 3723.33,-128.4 3723.33,-128.4 4406.33,-168.4 4406.33,-168.4 4406.33,-168.4 4406.33,-234.64 4406.33,-234.64 4406.33,-234.64 1686.33,-274.64 1686.33,-274.64 1686.33,-274.64 1636.33,-330.64 1636.33,-330.64 1636.33,-330.64 1508.75,-359.85 1415.98,-381.09"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1415.55,-378.86 1409.72,-382.52 1416.56,-383.29 1415.55,-378.86"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4406.33,-182.52 4406.33,-220.52 4560.33,-220.52 4560.33,-182.52 4406.33,-182.52"/>
+<text xml:space="preserve" text-anchor="start" x="4468.33" y="-206.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F41</text>
+<text xml:space="preserve" text-anchor="start" x="4449.58" y="-188.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">资格记录及适用范围</text>
+</g>
+<!-- D5&#45;&gt;P5 -->
+<g id="e51" class="edge">
+<title>D5&#45;&gt;P5</title>
+<g id="a_e51"><a xlink:title="现有规范活动、别名与认定记录">
+<path fill="none" stroke="#a08e68" d="M465.57,-19.31C974.01,-29.43 3134.33,-72.4 3134.33,-72.4 3134.33,-72.4 3134.33,-128.4 3134.33,-128.4 3134.33,-128.4 1271.33,-168.4 1271.33,-168.4 1271.33,-168.4 913.36,-186.71 737.95,-195.68"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="737.88,-193.41 731.51,-196.01 738.11,-197.95 737.88,-193.41"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="3134.33,-72.4 3134.33,-128.4 3288.33,-128.4 3288.33,-72.4 3134.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="3196.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F52</text>
+<text xml:space="preserve" text-anchor="start" x="3166.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">现有规范活动、别名与认定</text>
+<text xml:space="preserve" text-anchor="start" x="3203.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">记录</text>
+</g>
+<!-- D6&#45;&gt;P3 -->
+<g id="e29" class="edge">
+<title>D6&#45;&gt;P3</title>
+<g id="a_e29"><a xlink:title="替代因果关联、替代前轮次状态及后续决定">
+<path fill="none" stroke="#a08e68" d="M1460.61,-24.67C1675.06,-39.75 2139.33,-72.4 2139.33,-72.4 2139.33,-72.4 2139.33,-128.4 2139.33,-128.4 2139.33,-128.4 1980.27,-160.27 1873.61,-181.63"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1873.43,-179.35 1867.5,-182.86 1874.32,-183.81 1873.43,-179.35"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2139.33,-72.4 2139.33,-128.4 2293.33,-128.4 2293.33,-72.4 2139.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="2201.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F30</text>
+<text xml:space="preserve" text-anchor="start" x="2171.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">替代因果关联、替代前轮次</text>
+<text xml:space="preserve" text-anchor="start" x="2193.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">状态及后续…</text>
+</g>
+<!-- D6&#45;&gt;P4 -->
+<g id="e41" class="edge">
+<title>D6&#45;&gt;P4</title>
+<g id="a_e41"><a xlink:title="历次审核与经办记录">
+<path fill="none" stroke="#a08e68" d="M1460.59,-19.68C1920.97,-30.42 3720.33,-72.4 3720.33,-72.4 3720.33,-72.4 3770.33,-128.4 3770.33,-128.4 3770.33,-128.4 4846.33,-168.4 4846.33,-168.4 4846.33,-168.4 4846.33,-234.64 4846.33,-234.64 4846.33,-234.64 1733.33,-274.64 1733.33,-274.64 1733.33,-274.64 1683.33,-330.64 1683.33,-330.64 1683.33,-330.64 1522.93,-362.6 1415.67,-383.97"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1415.46,-381.69 1409.53,-385.19 1416.34,-386.15 1415.46,-381.69"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4846.33,-182.52 4846.33,-220.52 5000.33,-220.52 5000.33,-182.52 4846.33,-182.52"/>
+<text xml:space="preserve" text-anchor="start" x="4908.33" y="-206.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F42</text>
+<text xml:space="preserve" text-anchor="start" x="4889.58" y="-188.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">历次审核与经办记录</text>
+</g>
+<!-- D6&#45;&gt;P6 -->
+<g id="e62" class="edge">
+<title>D6&#45;&gt;P6</title>
+<g id="a_e62"><a xlink:title="审核经办人、意见及替代恢复记录">
+<path fill="none" stroke="#a08e68" d="M1460.4,-18.83C2054.98,-27.96 4947.33,-72.4 4947.33,-72.4 4947.33,-72.4 6006.33,-168.4 6006.33,-168.4 6006.33,-168.4 6006.33,-234.64 6006.33,-234.64 6006.33,-234.64 3414.33,-274.64 3414.33,-274.64 3414.33,-274.64 3067.33,-330.64 3067.33,-330.64 3067.33,-330.64 633.33,-370.64 633.33,-370.64 633.33,-370.64 540.93,-381.97 465.88,-391.17"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="465.89,-388.88 459.71,-391.92 466.44,-393.39 465.89,-388.88"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="6006.33,-173.52 6006.33,-229.52 6160.33,-229.52 6160.33,-173.52 6006.33,-173.52"/>
+<text xml:space="preserve" text-anchor="start" x="6068.33" y="-215.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F63</text>
+<text xml:space="preserve" text-anchor="start" x="6038.33" y="-197.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">审核经办人、意见及替代恢</text>
+<text xml:space="preserve" text-anchor="start" x="6072.08" y="-179.52" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">复记录</text>
+</g>
+<!-- D7&#45;&gt;P3 -->
+<g id="e30" class="edge">
+<title>D7&#45;&gt;P3</title>
+<g id="a_e30"><a xlink:title="所属班级与学年的当前公示设置">
+<path fill="none" stroke="#a08e68" d="M212.65,-29.92C225.02,-31.4 233.33,-32.4 233.33,-32.4 233.33,-32.4 2303.33,-72.4 2303.33,-72.4 2303.33,-72.4 2303.33,-128.4 2303.33,-128.4 2303.33,-128.4 2024.56,-166.77 1873.68,-187.53"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="1873.78,-185.22 1867.65,-188.36 1874.4,-189.73 1873.78,-185.22"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="2303.33,-72.4 2303.33,-128.4 2457.33,-128.4 2457.33,-72.4 2303.33,-72.4"/>
+<text xml:space="preserve" text-anchor="start" x="2365.33" y="-114.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F31</text>
+<text xml:space="preserve" text-anchor="start" x="2335.33" y="-96.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">所属班级与学年的当前公示</text>
+<text xml:space="preserve" text-anchor="start" x="2372.83" y="-78.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">设置</text>
+</g>
+<!-- D7&#45;&gt;P7 -->
+<g id="e69" class="edge">
+<title>D7&#45;&gt;P7</title>
+<g id="a_e69"><a xlink:title="当前公示设置">
+<path fill="none" stroke="#a08e68" d="M212.65,-29.92C225.02,-31.4 233.33,-32.4 233.33,-32.4 233.33,-32.4 4783.33,-72.4 4783.33,-72.4 4783.33,-72.4 4783.33,-128.4 4783.33,-128.4 4783.33,-128.4 537.33,-168.4 537.33,-168.4 537.33,-168.4 437.57,-180.14 358.65,-189.42"/>
+<polygon fill="#a08e68" stroke="#a08e68" points="358.78,-187.12 352.59,-190.14 359.31,-191.64 358.78,-187.12"/>
+</a>
+</g>
+<polygon fill="white" stroke="none" points="4783.33,-81.4 4783.33,-119.4 4937.33,-119.4 4937.33,-81.4 4783.33,-81.4"/>
+<text xml:space="preserve" text-anchor="start" x="4845.33" y="-105.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">L1&#45;F70</text>
+<text xml:space="preserve" text-anchor="start" x="4837.83" y="-87.4" font-family="Microsoft YaHei" font-size="10.00" fill="#7c6944">当前公示设置</text>
+</g>
+<!-- E1 -->
+<g id="node1" class="node">
+<title>E1</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="1943.53,-636.24 1785.13,-636.24 1785.13,-572.88 1943.53,-572.88 1943.53,-636.24"/>
+<text xml:space="preserve" text-anchor="middle" x="1864.33" y="-615.36" font-family="Microsoft YaHei" font-size="12.00">E1</text>
+<text xml:space="preserve" text-anchor="middle" x="1864.33" y="-600.96" font-family="Microsoft YaHei" font-size="12.00">学生用户</text>
+<text xml:space="preserve" text-anchor="middle" x="1864.33" y="-586.56" font-family="Microsoft YaHei" font-size="12.00">含班长／审查员职责</text>
+</g>
+<!-- E2 -->
+<g id="node2" class="node">
+<title>E2</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="722.53,-629.04 564.13,-629.04 564.13,-580.08 722.53,-580.08 722.53,-629.04"/>
+<text xml:space="preserve" text-anchor="middle" x="643.33" y="-608.16" font-family="Microsoft YaHei" font-size="12.00">E2</text>
+<text xml:space="preserve" text-anchor="middle" x="643.33" y="-593.76" font-family="Microsoft YaHei" font-size="12.00">辅导员</text>
+</g>
+<!-- E3 -->
+<g id="node3" class="node">
+<title>E3</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="4843.53,-629.04 4685.13,-629.04 4685.13,-580.08 4843.53,-580.08 4843.53,-629.04"/>
+<text xml:space="preserve" text-anchor="middle" x="4764.33" y="-608.16" font-family="Microsoft YaHei" font-size="12.00">E3</text>
+<text xml:space="preserve" text-anchor="middle" x="4764.33" y="-593.76" font-family="Microsoft YaHei" font-size="12.00">系统管理员</text>
+</g>
+<!-- E4 -->
+<g id="node4" class="node">
+<title>E4</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="3503.53,-428.24 3345.13,-428.24 3345.13,-379.28 3503.53,-379.28 3503.53,-428.24"/>
+<text xml:space="preserve" text-anchor="middle" x="3424.33" y="-407.36" font-family="Microsoft YaHei" font-size="12.00">E4</text>
+<text xml:space="preserve" text-anchor="middle" x="3424.33" y="-392.96" font-family="Microsoft YaHei" font-size="12.00">腾讯云 OCR</text>
+</g>
+<!-- E5 -->
+<g id="node5" class="node">
+<title>E5</title>
+<polygon fill="#eaf1f8" stroke="#38536b" stroke-width="1.15" points="4637.53,-428.24 4479.13,-428.24 4479.13,-379.28 4637.53,-379.28 4637.53,-428.24"/>
+<text xml:space="preserve" text-anchor="middle" x="4558.33" y="-407.36" font-family="Microsoft YaHei" font-size="12.00">E5</text>
+<text xml:space="preserve" text-anchor="middle" x="4558.33" y="-392.96" font-family="Microsoft YaHei" font-size="12.00">DeepSeek</text>
+</g>
+<!-- P1 -->
+<g id="node6" class="node">
+<title>P1</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M4838.73,-429.68C4838.73,-429.68 4689.93,-429.68 4689.93,-429.68 4683.93,-429.68 4677.93,-423.68 4677.93,-417.68 4677.93,-417.68 4677.93,-389.84 4677.93,-389.84 4677.93,-383.84 4683.93,-377.84 4689.93,-377.84 4689.93,-377.84 4838.73,-377.84 4838.73,-377.84 4844.73,-377.84 4850.73,-383.84 4850.73,-389.84 4850.73,-389.84 4850.73,-417.68 4850.73,-417.68 4850.73,-423.68 4844.73,-429.68 4838.73,-429.68"/>
+<text xml:space="preserve" text-anchor="middle" x="4764.33" y="-407.36" font-family="Microsoft YaHei" font-size="12.00">P1</text>
+<text xml:space="preserve" text-anchor="middle" x="4764.33" y="-392.96" font-family="Microsoft YaHei" font-size="12.00">身份组织与权限管理</text>
+</g>
+<!-- P2 -->
+<g id="node7" class="node">
+<title>P2</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M3498.73,-227.44C3498.73,-227.44 3349.93,-227.44 3349.93,-227.44 3343.93,-227.44 3337.93,-221.44 3337.93,-215.44 3337.93,-215.44 3337.93,-187.6 3337.93,-187.6 3337.93,-181.6 3343.93,-175.6 3349.93,-175.6 3349.93,-175.6 3498.73,-175.6 3498.73,-175.6 3504.73,-175.6 3510.73,-181.6 3510.73,-187.6 3510.73,-187.6 3510.73,-215.44 3510.73,-215.44 3510.73,-221.44 3504.73,-227.44 3498.73,-227.44"/>
+<text xml:space="preserve" text-anchor="middle" x="3424.33" y="-205.12" font-family="Microsoft YaHei" font-size="12.00">P2</text>
+<text xml:space="preserve" text-anchor="middle" x="3424.33" y="-190.72" font-family="Microsoft YaHei" font-size="12.00">形成申请草稿与证据</text>
+</g>
+<!-- P3 -->
+<g id="node8" class="node">
+<title>P3</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M1853.73,-234.64C1853.73,-234.64 1704.93,-234.64 1704.93,-234.64 1698.93,-234.64 1692.93,-228.64 1692.93,-222.64 1692.93,-222.64 1692.93,-180.4 1692.93,-180.4 1692.93,-174.4 1698.93,-168.4 1704.93,-168.4 1704.93,-168.4 1853.73,-168.4 1853.73,-168.4 1859.73,-168.4 1865.73,-174.4 1865.73,-180.4 1865.73,-180.4 1865.73,-222.64 1865.73,-222.64 1865.73,-228.64 1859.73,-234.64 1853.73,-234.64"/>
+<text xml:space="preserve" text-anchor="middle" x="1779.33" y="-212.32" font-family="Microsoft YaHei" font-size="12.00">P3</text>
+<text xml:space="preserve" text-anchor="middle" x="1779.33" y="-197.92" font-family="Microsoft YaHei" font-size="12.00">受理正式申报</text>
+<text xml:space="preserve" text-anchor="middle" x="1779.33" y="-183.52" font-family="Microsoft YaHei" font-size="12.00">与奖项替代恢复</text>
+</g>
+<!-- P4 -->
+<g id="node9" class="node">
+<title>P4</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M1395.73,-429.68C1395.73,-429.68 1246.93,-429.68 1246.93,-429.68 1240.93,-429.68 1234.93,-423.68 1234.93,-417.68 1234.93,-417.68 1234.93,-389.84 1234.93,-389.84 1234.93,-383.84 1240.93,-377.84 1246.93,-377.84 1246.93,-377.84 1395.73,-377.84 1395.73,-377.84 1401.73,-377.84 1407.73,-383.84 1407.73,-389.84 1407.73,-389.84 1407.73,-417.68 1407.73,-417.68 1407.73,-423.68 1401.73,-429.68 1395.73,-429.68"/>
+<text xml:space="preserve" text-anchor="middle" x="1321.33" y="-407.36" font-family="Microsoft YaHei" font-size="12.00">P4</text>
+<text xml:space="preserve" text-anchor="middle" x="1321.33" y="-392.96" font-family="Microsoft YaHei" font-size="12.00">办理学生与辅导员审核</text>
+</g>
+<!-- P5 -->
+<g id="node10" class="node">
+<title>P5</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M717.73,-227.44C717.73,-227.44 568.93,-227.44 568.93,-227.44 562.93,-227.44 556.93,-221.44 556.93,-215.44 556.93,-215.44 556.93,-187.6 556.93,-187.6 556.93,-181.6 562.93,-175.6 568.93,-175.6 568.93,-175.6 717.73,-175.6 717.73,-175.6 723.73,-175.6 729.73,-181.6 729.73,-187.6 729.73,-187.6 729.73,-215.44 729.73,-215.44 729.73,-221.44 723.73,-227.44 717.73,-227.44"/>
+<text xml:space="preserve" text-anchor="middle" x="643.33" y="-205.12" font-family="Microsoft YaHei" font-size="12.00">P5</text>
+<text xml:space="preserve" text-anchor="middle" x="643.33" y="-190.72" font-family="Microsoft YaHei" font-size="12.00">维护活动资格</text>
+</g>
+<!-- P6 -->
+<g id="node11" class="node">
+<title>P6</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M445.73,-436.88C445.73,-436.88 296.93,-436.88 296.93,-436.88 290.93,-436.88 284.93,-430.88 284.93,-424.88 284.93,-424.88 284.93,-382.64 284.93,-382.64 284.93,-376.64 290.93,-370.64 296.93,-370.64 296.93,-370.64 445.73,-370.64 445.73,-370.64 451.73,-370.64 457.73,-376.64 457.73,-382.64 457.73,-382.64 457.73,-424.88 457.73,-424.88 457.73,-430.88 451.73,-436.88 445.73,-436.88"/>
+<text xml:space="preserve" text-anchor="middle" x="371.33" y="-414.56" font-family="Microsoft YaHei" font-size="12.00">P6</text>
+<text xml:space="preserve" text-anchor="middle" x="371.33" y="-400.16" font-family="Microsoft YaHei" font-size="12.00">查询申请证据</text>
+<text xml:space="preserve" text-anchor="middle" x="371.33" y="-385.76" font-family="Microsoft YaHei" font-size="12.00">并计算成绩</text>
+</g>
+<!-- P7 -->
+<g id="node12" class="node">
+<title>P7</title>
+<path fill="#e4f3ec" stroke="#286b54" stroke-width="1.15" d="M338.73,-227.44C338.73,-227.44 189.93,-227.44 189.93,-227.44 183.93,-227.44 177.93,-221.44 177.93,-215.44 177.93,-215.44 177.93,-187.6 177.93,-187.6 177.93,-181.6 183.93,-175.6 189.93,-175.6 189.93,-175.6 338.73,-175.6 338.73,-175.6 344.73,-175.6 350.73,-181.6 350.73,-187.6 350.73,-187.6 350.73,-215.44 350.73,-215.44 350.73,-221.44 344.73,-227.44 338.73,-227.44"/>
+<text xml:space="preserve" text-anchor="middle" x="264.33" y="-205.12" font-family="Microsoft YaHei" font-size="12.00">P7</text>
+<text xml:space="preserve" text-anchor="middle" x="264.33" y="-190.72" font-family="Microsoft YaHei" font-size="12.00">办理公示与Excel导出</text>
+</g>
+<!-- D1 -->
+<g id="node13" class="node">
+<title>D1</title>
+<polygon fill="#fff3d8" stroke="none" points="5316,-185.32 5316,-217.72 5348.67,-217.72 5348.67,-185.32 5316,-185.32"/>
+<polygon fill="none" stroke="#8b754b" points="5316,-185.32 5316,-217.72 5348.67,-217.72 5348.67,-185.32 5316,-185.32"/>
+<text xml:space="preserve" text-anchor="start" x="5325" y="-196.72" font-family="Microsoft YaHei" font-size="12.00">D1</text>
+<polygon fill="#fff3d8" stroke="none" points="5348.67,-185.32 5348.67,-217.72 5528.67,-217.72 5528.67,-185.32 5348.67,-185.32"/>
+<polyline fill="none" stroke="#8b754b" points="5348.67,-185.32 5528.67,-185.32"/>
+<polyline fill="none" stroke="#8b754b" points="5528.67,-217.72 5348.67,-217.72"/>
+<text xml:space="preserve" text-anchor="start" x="5393.67" y="-196.72" font-family="Microsoft YaHei" font-size="12.00">账号、角色与组织权限</text>
+</g>
+<!-- D2 -->
+<g id="node14" class="node">
+<title>D2</title>
+<polygon fill="#fff3d8" stroke="none" points="4413,-588.36 4413,-620.76 4445.67,-620.76 4445.67,-588.36 4413,-588.36"/>
+<polygon fill="none" stroke="#8b754b" points="4413,-588.36 4413,-620.76 4445.67,-620.76 4445.67,-588.36 4413,-588.36"/>
+<text xml:space="preserve" text-anchor="start" x="4422" y="-599.76" font-family="Microsoft YaHei" font-size="12.00">D2</text>
+<polygon fill="#fff3d8" stroke="none" points="4445.67,-588.36 4445.67,-620.76 4625.67,-620.76 4625.67,-588.36 4445.67,-588.36"/>
+<polyline fill="none" stroke="#8b754b" points="4445.67,-588.36 4625.67,-588.36"/>
+<polyline fill="none" stroke="#8b754b" points="4625.67,-620.76 4445.67,-620.76"/>
+<text xml:space="preserve" text-anchor="start" x="4504.17" y="-599.76" font-family="Microsoft YaHei" font-size="12.00">学年与评分标准</text>
+</g>
+<!-- D3 -->
+<g id="node15" class="node">
+<title>D3</title>
+<polygon fill="#fff3d8" stroke="none" points="3252,0 3252,-32.4 3284.67,-32.4 3284.67,0 3252,0"/>
+<polygon fill="none" stroke="#8b754b" points="3252,0 3252,-32.4 3284.67,-32.4 3284.67,0 3252,0"/>
+<text xml:space="preserve" text-anchor="start" x="3261" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D3</text>
+<polygon fill="#fff3d8" stroke="none" points="3284.67,0 3284.67,-32.4 3464.67,-32.4 3464.67,0 3284.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="3284.67,0 3464.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="3464.67,-32.4 3284.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="3329.67" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">申请、版本与提交轮次</text>
+</g>
+<!-- D4 -->
+<g id="node16" class="node">
+<title>D4</title>
+<polygon fill="#fff3d8" stroke="none" points="3705,0 3705,-32.4 3737.67,-32.4 3737.67,0 3705,0"/>
+<polygon fill="none" stroke="#8b754b" points="3705,0 3705,-32.4 3737.67,-32.4 3737.67,0 3705,0"/>
+<text xml:space="preserve" text-anchor="start" x="3714" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D4</text>
+<polygon fill="#fff3d8" stroke="none" points="3737.67,0 3737.67,-32.4 3917.67,-32.4 3917.67,0 3737.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="3737.67,0 3917.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="3917.67,-32.4 3737.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="3791.67" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">原文件与关键证据</text>
+</g>
+<!-- D5 -->
+<g id="node17" class="node">
+<title>D5</title>
+<polygon fill="#fff3d8" stroke="none" points="253,0 253,-32.4 285.67,-32.4 285.67,0 253,0"/>
+<polygon fill="none" stroke="#8b754b" points="253,0 253,-32.4 285.67,-32.4 285.67,0 253,0"/>
+<text xml:space="preserve" text-anchor="start" x="262" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D5</text>
+<polygon fill="#fff3d8" stroke="none" points="285.67,0 285.67,-32.4 465.67,-32.4 465.67,0 285.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="285.67,0 465.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="465.67,-32.4 285.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="335.17" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">活动规范与资格认定</text>
+</g>
+<!-- D6 -->
+<g id="node18" class="node">
+<title>D6</title>
+<polygon fill="#fff3d8" stroke="none" points="1248,0 1248,-32.4 1280.67,-32.4 1280.67,0 1248,0"/>
+<polygon fill="none" stroke="#8b754b" points="1248,0 1248,-32.4 1280.67,-32.4 1280.67,0 1248,0"/>
+<text xml:space="preserve" text-anchor="start" x="1257" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D6</text>
+<polygon fill="#fff3d8" stroke="none" points="1280.67,0 1280.67,-32.4 1460.67,-32.4 1460.67,0 1280.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="1280.67,0 1460.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="1460.67,-32.4 1280.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="1330.17" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">审核与奖项替代履历</text>
+</g>
+<!-- D7 -->
+<g id="node19" class="node">
+<title>D7</title>
+<polygon fill="#fff3d8" stroke="none" points="0,0 0,-32.4 32.67,-32.4 32.67,0 0,0"/>
+<polygon fill="none" stroke="#8b754b" points="0,0 0,-32.4 32.67,-32.4 32.67,0 0,0"/>
+<text xml:space="preserve" text-anchor="start" x="9" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">D7</text>
+<polygon fill="#fff3d8" stroke="none" points="32.67,0 32.67,-32.4 212.67,-32.4 212.67,0 32.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="32.67,0 212.67,0"/>
+<polyline fill="none" stroke="#8b754b" points="212.67,-32.4 32.67,-32.4"/>
+<text xml:space="preserve" text-anchor="start" x="86.67" y="-11.4" font-family="Microsoft YaHei" font-size="12.00">班级学年公示设置</text>
+</g>
+</g>
+</g></svg>
