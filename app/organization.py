@@ -85,13 +85,74 @@ def update_password(data: dict, response: Response, user=Depends(current_user)):
 
 @router.get('/bootstrap')
 def bootstrap(user=Depends(current_user)):
+    from .migrations import active_year
     with db.read() as conn:
         visible = own_class_ids(conn, user)
         classes = [c for c in db.rows(conn, 'classes') if user['base_identity'] == 'ADMIN' or c['id'] in visible]
         permissions = [p['code'] for p in db.rows(conn, 'permissions') if allowed(conn, user, p['code'])]
+        year = active_year(conn)
         return {'user': public_user(conn, user), 'years': sorted(db.rows(conn, 'academic_years'), key=lambda y: y['sort_order']),
+                'active_year': year, 'current_year': year,
                 'classes': classes, 'categories': sorted(db.rows(conn, 'score_categories'), key=lambda c: c['sort_order']),
                 'permissions': permissions, 'demo_accounts': DEMO_ACCOUNTS if demo_enabled() else []}
+
+
+@router.get('/admin/statistics-year')
+def statistics_year(user=Depends(current_user)):
+    from .migrations import active_year
+    with db.read() as conn:
+        require(conn, user, 'admin.classes')
+        return {'active_year': active_year(conn), 'years': sorted(db.rows(conn, 'academic_years'), key=lambda y: y['sort_order'])}
+
+
+@router.put('/admin/statistics-year')
+def set_statistics_year(data: dict, user=Depends(current_user)):
+    from .migrations import active_year
+    with db.write() as conn:
+        require(conn, user, 'admin.classes')
+        year = db.one(conn, 'academic_years', data.get('year_id'))
+        if not year or not year['is_selectable']:
+            raise HTTPException(400, '请选择有效统计学年')
+        previous = active_year(conn)
+        setting = db.one(conn, 'system_settings', 'active_academic_year')
+        history = ((setting or {}).get('value_json') or {}).get('changes', [])
+        value = {'year_id': year['id'], 'changes': (history + [{'from': previous['id'], 'to': year['id'], 'by': user['id'], 'at': db.now()}])[-100:]}
+        if setting:
+            db.change(conn, 'system_settings', setting['id'], value_json=value, changed_by=user['id'])
+        else:
+            db.add(conn, 'system_settings', id='active_academic_year', value_json=value, changed_by=user['id'])
+        return {'active_year': year, 'message': '当前统计学年已更新；原学年记录保留，待审项仍可审核'}
+
+
+@router.post('/admin/academic-years')
+def create_academic_year(data: dict, user=Depends(current_user)):
+    import re
+    code = str(data.get('code', '')).strip()
+    if not re.fullmatch(r'\d{4}-\d{4}', code) or int(code[5:]) != int(code[:4]) + 1:
+        raise HTTPException(400, '学年代码须为连续年度，例如2027-2028')
+    with db.write() as conn:
+        require(conn, user, 'admin.classes')
+        if db.one(conn, 'academic_years', code=code):
+            raise HTTPException(409, '该学年已存在')
+        prior_years = sorted(db.rows(conn, 'academic_years'), key=lambda y: y['sort_order'])
+        year = db.add(conn, 'academic_years', code=code, name=str(data.get('name') or code+'学年')[:40],
+                      sort_order=max((y['sort_order'] for y in prior_years), default=-1)+1, is_selectable=True)
+        rule = db.rows(conn, 'score_rule_versions', status='PUBLISHED')[-1]
+        # Copy the most recent class assignment per student, never revive past classes.
+        latest = {}
+        ordering = {y['id']: y['sort_order'] for y in prior_years}
+        for enrollment in db.rows(conn, 'enrollments', status='ACTIVE'):
+            cy = db.one(conn, 'class_years', enrollment['class_year_id'])
+            order = ordering.get(cy['academic_year_id'], -1)
+            if enrollment['student_id'] not in latest or order > latest[enrollment['student_id']][0]:
+                latest[enrollment['student_id']] = (order, cy['class_id'])
+        for classroom in db.rows(conn, 'classes'):
+            cy = db.add(conn, 'class_years', class_id=classroom['id'], academic_year_id=year['id'], score_rule_version_id=rule['id'])
+            db.add(conn, 'class_publicity', class_year_id=cy['id'], is_open=False)
+            for student_id, (_, class_id) in latest.items():
+                if class_id == classroom['id']:
+                    db.add(conn, 'enrollments', student_id=student_id, class_year_id=cy['id'], managed_by=user['id'])
+        return year
 
 
 def class_year(conn, class_id, year_id):

@@ -1,5 +1,7 @@
 # Architecture: 德育分统计系统
 
+当前V2增量模型与后台识别流程见`系统设计/V2改版设计.md`，需求对齐见`docs/改版需求对齐-V2.md`；以下保留原设计决策归档。
+
 需求依据：`需求对齐记录-grill-me.md`，Q1—Q33；日期：2026-10-24。  
 模式：Greenfield；设计归档：V1。用户已于2026-10-24授权开始实现并更新指定GitHub仓库；当前实现采用FastAPI、SQLAlchemy Core、SQLite与原生JavaScript。实际代码见app/，验收以docs/acceptance-report.md为准。下文保留实现前的架构决策与阶段规划。
 

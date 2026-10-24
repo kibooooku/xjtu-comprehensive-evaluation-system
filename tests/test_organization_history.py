@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from app import db
 from app.main import create_app
+from app.migrations import active_year
 from app.seed import DEMO_PASSWORD
 
 
@@ -75,7 +76,7 @@ def test_transferring_this_year_preserves_prior_year_approved_score(audit_api):
 def test_existing_application_year_cannot_silently_move_its_enrollment(audit_api):
     client, login = audit_api
     with db.read() as conn:
-        year = max(db.rows(conn, "academic_years"), key=lambda y: y["sort_order"])
+        year = active_year(conn)
         old_class = db.one(conn, "classes", name="软件2401")
         new_class = db.one(conn, "classes", name="软件2402")
         category = db.one(conn, "score_categories", code="COLLECTIVE")

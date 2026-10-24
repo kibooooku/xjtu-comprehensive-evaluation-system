@@ -36,7 +36,7 @@ const roleNames = {STUDENT:'学生',MONITOR:'班长',REVIEWER:'学生审查员',
 const stateColors = {DRAFT:'',PENDING_PEER:'warning',PENDING_COUNSELOR:'info',APPROVED:'success',REJECTED:'danger',WITHDRAWN:''};
 const rejectionReasons = [{value:'MISSING_VALIDITY',name:'缺少文件有效性信息'},{value:'MISSING_PARTICIPATION',name:'缺少本人参与证明'},{value:'WRONG_CATEGORY',name:'加分类型有误'},{value:'WRONG_SCORE',name:'加分分值有误'},{value:'ACTIVITY_INELIGIBLE',name:'活动不具备加分资格'},{value:'OTHER',name:'其他原因'}];
 const catIcons = ['users','book','heart','science','sports','flag','award'];
-const navInfo = {dashboard:['grid','工作台'],applications:['file','我的申报'],review:['review','待审申请'],classApplications:['chart','班级申报'],activities:['book','活动资格库'],scores:['chart','成绩汇总'],publicity:['eye','班级公示'],members:['users','班级成员'],admin:['shield','系统管理']};
+const navInfo = {dashboard:['grid','工作台'],applications:['file','我的申报'],review:['review','待审申请'],classApplications:['chart','班级申报'],activities:['book','活动资格库'],scores:['chart','成绩汇总'],publicity:['eye','班级公示'],members:['users','班级成员'],history:['clock','历史记录'],admin:['shield','系统管理']};
 const S = {user:null,csrf:'',boot:null,yearId:'',classId:'',view:'dashboard',params:{},filter:'',adminTab:'users',busy:false,renderSequence:0,detail:null,activities:[],demo:[]};
 const hasRole = code => (S.user?.roles || []).some(r => (typeof r === 'string' ? r : r.code) === code);
 const isStudent = () => S.user?.base_identity === 'STUDENT';
@@ -83,7 +83,7 @@ function showModal(title,body,footer='',wide=false){
   $('#modal-root').onclick=e=>{if(e.target.classList.contains('modal-backdrop') || e.target.closest('[data-action="close-modal"]'))closeModal();};
   setTimeout(()=>$('.modal input:not([type=checkbox]),.modal select,.modal textarea')?.focus(),30);
 }
-function closeModal(){$('#modal-root').innerHTML='';document.body.style.overflow='';}
+function closeModal(){if(S.uploading){toast('正在确认并上传材料，请等待本批完成。');return;}$('#modal-root').innerHTML='';document.body.style.overflow='';}
 function modalError(message){let el=$('.modal-error');if(!el){el=document.createElement('div');el.className='modal-error';$('.modal-body')?.append(el);}el.textContent=message;el.scrollIntoView({block:'nearest'});}
 function pageTitle(title,sub,actions=''){return `<div class="page-title"><div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div><div class="row wrap">${actions}</div></div>`;}
 
@@ -99,6 +99,7 @@ async function loadBootstrap(){
   const rememberedYear=localStorage.getItem('dy-year');const rememberedClass=localStorage.getItem('dy-class');
   S.yearId=(S.boot.years || []).some(y=>y.id===rememberedYear)?rememberedYear:S.boot.years?.[0]?.id || '';
   S.classId=(S.boot.classes || []).some(c=>c.id===rememberedClass)?rememberedClass:S.boot.classes?.[0]?.id || '';
+  if(isStudent() && (S.boot.active_year || S.boot.current_year))S.yearId=(S.boot.active_year || S.boot.current_year).id;
 }
 async function renderLogin(){
   S.boot=null;
@@ -112,7 +113,7 @@ function navItems(){
   if(isStudent())nav.push('applications');
   if(hasPermission('review.peer') || hasPermission('review.counselor') || hasRole('REVIEWER') || isCounselor())nav.push('review');
   if(hasRole('MONITOR') || hasRole('REVIEWER') || isCounselor())nav.push('classApplications','scores');
-  nav.push('activities','publicity','members');return nav;
+  nav.push('activities','publicity','members');if(isStudent())nav.push('history');return nav;
 }
 function renderShell(){
   const nav=navItems();
@@ -120,15 +121,16 @@ function renderShell(){
   $('#app').onclick=handleClick;
   $('#year-selector').onchange=async e=>{S.yearId=e.target.value;localStorage.setItem('dy-year',S.yearId);await go(S.view==='detail'?'applications':S.view);};
   if($('#class-selector'))$('#class-selector').onchange=async e=>{S.classId=e.target.value;localStorage.setItem('dy-class',S.classId);await go(S.view==='detail'?'classApplications':S.view);};
+  if(typeof setupWorkspaceShell==='function')setupWorkspaceShell();
 }
 async function go(view,params={},setHash=true){
   if(!S.user)return;
-  if(view!=='detail' && !navItems().includes(view))view='dashboard';
+  if(!['detail','submission'].includes(view) && !navItems().includes(view))view='dashboard';
   S.view=view;S.params=params;S.filter='';const seq=++S.renderSequence;
   if(setHash)history.replaceState(null,'','#'+(view==='detail'?'applications':view));
   $$('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.nav===(view==='detail'?'applications':view)));
   $('.sidebar')?.classList.remove('open');$('#breadcrumb-view').textContent=view==='detail'?'申报详情':navInfo[view]?.[1]||'工作台';$('#page').innerHTML=loading();
-  try{const pages={dashboard:renderDashboard,applications:renderApplications,review:renderApplications,classApplications:renderApplications,detail:renderDetail,activities:renderActivities,scores:renderScores,publicity:renderPublicity,members:renderMembers,admin:renderAdmin};await pages[view](seq);}catch(e){if(seq===S.renderSequence && S.user)$('#page').innerHTML=errorBlock(e.message);}
+  try{const pages={dashboard:renderDashboard,applications:renderSubmissionWorkspace,review:renderSubmissionWorkspace,classApplications:renderSubmissionWorkspace,submission:renderSubmissionWorkspace,history:renderHistoryWorkspace,detail:renderDetail,activities:renderActivities,scores:renderScores,publicity:renderPublicity,members:renderMembers,admin:renderAdmin};await pages[view](seq);}catch(e){if(seq===S.renderSequence && S.user)$('#page').innerHTML=errorBlock(e.message);}
 }
 async function refresh(){return go(S.view,S.params);}
 async function handleClick(e){
@@ -136,14 +138,15 @@ async function handleClick(e){
   const btn=e.target.closest('[data-action]');if(!btn)return;
   const a=btn.dataset.action;
   try{
+    if(typeof handleWorkspaceAction==='function' && await handleWorkspaceAction(a,btn))return;
     if(a==='logout'){await api('/logout',{method:'POST',body:{}});S.user=null;S.csrf='';closeModal();renderLogin();return;}
     if(a==='toggle-menu'){$('.sidebar').classList.toggle('open');return;}
     if(a==='refresh'){await refresh();return;}
     if(a==='account'){accountModal();return;}
     if(a==='new-application'){newApplicationModal(btn.dataset.category);return;}
-    if(a==='detail'){await go('detail',{id:btn.dataset.id,from:S.view});return;}
+    if(a==='detail'){await go('detail',{id:btn.dataset.id,from:S.view,includeDeleted:btn.dataset.deleted==='true'});return;}
     if(a==='back'){await go(S.params.from || 'applications');return;}
-    if(a==='current-version'){await go('detail',{id:S.detail.id,from:S.params.from});return;}
+    if(a==='current-version'){await go('detail',{id:S.detail.id,from:S.params.from,includeDeleted:S.params.includeDeleted});return;}
     if(a==='filter'){S.filter=btn.dataset.state;$$('.filter-pill').forEach(b=>b.classList.toggle('active',b.dataset.state===S.filter));renderApplicationTable();return;}
     if(a==='save-application'){await buttonTask(btn,async()=>{await saveApplication();toast('草稿已保存');await refresh();});return;}
     if(a==='submit-application'){await submitApplicationModal();return;}
@@ -204,7 +207,8 @@ function newApplicationModal(categoryId=''){
 }
 
 async function renderDetail(seq){
-  const d=await api(`/applications/${S.params.id}`+(S.params.revisionId?'?revision_id='+encodeURIComponent(S.params.revisionId):''));if(seq!==S.renderSequence)return;S.detail=d;
+  const detailQuery=new URLSearchParams();if(S.params.revisionId)detailQuery.set('revision_id',S.params.revisionId);if(S.params.includeDeleted)detailQuery.set('include_deleted','true');
+  const d=await api(`/applications/${S.params.id}`+(detailQuery.size?'?'+detailQuery.toString():''));if(seq!==S.renderSequence)return;S.detail=d;
   const r=d.revision || d.working_revision || {},p=r.payload_json || {};const state=d.state || d.round?.state || 'DRAFT';const canEdit=d.can_edit===true;const canReview=d.can_review===true;
   const activities=arr(await api('/activities'));if(seq!==S.renderSequence)return;S.activities=activities;
   const category=S.boot.categories.find(c=>c.id===d.category_id);const isCompetition=category?.requires_eligibility_review || ['学术科研及创新创业','文体竞赛','奖励分'].includes(d.category_name || category?.name);
@@ -273,7 +277,7 @@ async function analyzeApplication(button){
   });
 }
 
-function cropModal(pageId){
+function legacyCropModal(pageId){
   const file=(S.detail.files||[]).find(f=>(f.pages||[]).some(p=>p.id===pageId));const page=file?.pages.find(p=>p.id===pageId);if(!page)return;
   const canEdit=S.detail.can_edit===true;
   showModal(canEdit?'框选关键证据':'预览证明材料',`<p class="muted small mb16">${esc(file.original_name)} · 第 ${Number(page.page_index)||1} 页</p>${canEdit?`<div class="crop-controls"><select id="crop-kind" aria-label="证据类别"><option value="VALIDITY">文件有效性证据</option><option value="PARTICIPATION">本人参与证明</option></select><button class="btn sm primary" id="crop-select-mode">${icon('crop')}框选证据</button><button class="btn sm" id="crop-mask-mode">${icon('shield')}添加遮挡</button><button class="btn sm" id="crop-reset">清除选区</button></div>`:''}<div class="crop-canvas-wrap"><canvas id="crop-canvas" aria-label="证明原页，可拖动框选证据"></canvas></div><p class="crop-helper">${canEdit?'在图片上拖动框选证据区域，再点击保存。可切换“添加遮挡”，对截图内学号或其他隐私区域补充遮挡。原始材料和审核用截图保持完整；公示使用脱敏版本。':'证明原件仅供授权用户查看。'}</p><div class="crop-preview-label" id="crop-coordinates">正在加载证明页…</div>`,`<button class="btn" data-action="close-modal">关闭</button>${canEdit?'<button class="btn primary" id="crop-save" disabled>保存证据截图</button>':''}`,true);
@@ -400,4 +404,3 @@ function accountModal(){
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#modal-root').innerHTML&&closeModal();$('.sidebar')?.classList.remove('open');}});
 window.addEventListener('hashchange',()=>{if(S.user)go(location.hash.slice(1)||'dashboard',{},false);});
-init();

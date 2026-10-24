@@ -16,6 +16,7 @@ from app.main import create_app
 @pytest.fixture
 def material_app(tmp_path, monkeypatch):
     monkeypatch.setenv("CLOUD_ANALYSIS_ENABLED", "false")
+    monkeypatch.setattr(materials, "configuration", lambda: {"enabled": False, "secret_id": "", "secret_key": "", "deepseek_key": "", "deepseek_model": "test-no-network", "general_limit": 10, "seal_limit": 10, "max_analysis_pages": 12})
     application = create_app(storage_dir=tmp_path / "storage", database_url=f"sqlite:///{(tmp_path / 'test.db').as_posix()}")
     clients = []
 
@@ -41,7 +42,7 @@ def png(width=300, height=200, color="white"):
 
 def create_claim(client):
     bootstrap = client.get("/api/bootstrap").json()
-    year = bootstrap["years"][0]["id"]
+    year = (bootstrap.get("active_year") or bootstrap.get("current_year") or bootstrap["years"][0])["id"]
     category = next(c["id"] for c in bootstrap["categories"] if c["code"] == "COLLECTIVE")
     response = client.post("/api/applications", json={"year_id": year, "category_id": category})
     assert response.status_code == 200, response.text
@@ -110,8 +111,9 @@ def test_public_crop_is_blocked_without_ocr_and_numeric_rows_are_redacted(materi
     with db.read() as conn:
         crop = db.one(conn, "evidence_crops", ready.json()["id"])
         public_image = Image.open(materials.asset_path(crop["public_asset_uri"]))
+        assert public_image.size == (300, 50)  # Whole original width, one quarter of original height.
         assert public_image.getpixel((40, 30)) == (37, 50, 68)
-        assert public_image.getpixel((180, 90)) == (255, 255, 255)
+        assert public_image.getpixel((250, 40)) == (255, 255, 255)
     # Even a fully prepared image has no public access before a completed review and open publicity.
     assert login("student2").get(ready.json()["public_url"]).status_code == 403
     updated = student.put(f"/api/applications/{claim['id']}", json={"title": "测试集体活动", "requested_score": "0.30", "payload_json": {}})
@@ -136,7 +138,7 @@ def test_crop_cannot_point_at_another_claim_file_and_late_analysis_is_rejected(m
     first, _, _ = create_claim(student)
     second, _, _ = create_claim(student)
     record = upload(student, first["id"])
-    wrong = student.post(f"/api/applications/{second['id']}/crops", json={"page_id": record["pages"][0]["id"], "evidence_type": "VALIDITY", "box": [0, 0, 80, 80]})
+    wrong = student.post(f"/api/applications/{second['id']}/crops", json={"page_id": record["pages"][0]["id"], "evidence_type": "VALIDITY", "validity_kind": "NAME", "box": [0, 0, 80, 80]})
     assert wrong.status_code == 400
     with db.write() as conn:
         app = db.one(conn, "applications", first["id"])
@@ -187,7 +189,7 @@ def test_first_crop_delete_after_rejection_preserves_the_frozen_evidence(materia
     student = login("student")
     claim, _, _ = create_claim(student)
     record = upload(student, claim["id"])
-    crop_response = student.post(f"/api/applications/{claim['id']}/crops", json={"page_id": record["pages"][0]["id"], "evidence_type": "VALIDITY", "box": [0, 0, 100, 100]})
+    crop_response = student.post(f"/api/applications/{claim['id']}/crops", json={"page_id": record["pages"][0]["id"], "evidence_type": "VALIDITY", "validity_kind": "NAME", "box": [0, 0, 100, 100]})
     assert crop_response.status_code == 200
     crop_id = crop_response.json()["id"]
     saved = student.put(f"/api/applications/{claim['id']}", json={"title": "待修改证明", "requested_score": "0.30", "payload_json": {}})
@@ -221,10 +223,10 @@ def test_successful_analysis_requires_explicit_apply_and_keeps_manual_override(m
     def fake_ocr(action, image, config):
         if action == "SealOCR":
             return {"RequestId": "test-no-network-seal", "SealInfos": []}
-        return {"RequestId": "test-no-network-text", "TextDetections": [{"DetectedText": "王欣然参加2026年两次集体活动，学号202401004", "Confidence": 100, "Polygon": [{"X": 15, "Y": 20}, {"X": 190, "Y": 20}, {"X": 190, "Y": 45}, {"X": 15, "Y": 45}]}]}
+        return {"RequestId": "test-no-network-text", "TextDetections": [{"DetectedText": "王欣然参加仲英书院周末广场舞（2次），2026年10月24日，学号202401004", "Confidence": 100, "Polygon": [{"X": 15, "Y": 20}, {"X": 190, "Y": 20}, {"X": 190, "Y": 45}, {"X": 15, "Y": 45}]}]}
 
     monkeypatch.setattr(materials, "tencent_ocr", fake_ocr)
-    monkeypatch.setattr(materials, "deepseek_suggestion", lambda context, config: {"title": "两次集体活动", "requested_score": "0.60", "activity_id": None, "payload_json": {}, "explanation": "每次0.3分，两次合并一个条目。"})
+    monkeypatch.setattr(materials, "deepseek_suggestion", lambda context, config: {"title": "仲英书院周末广场舞（2次）", "requested_score": "0.60", "activity_id": None, "payload_json": {}, "explanation": "每次0.3分，两次合并一个条目。"})
     result = student.post(f"/api/applications/{claim['id']}/analyze", json={})
     assert result.status_code == 200, result.text
     assert result.json()["status"] == "SUCCEEDED"
@@ -259,3 +261,178 @@ def test_export_has_original_fifteen_columns_all_students_and_no_formulas(materi
     assert all(sheet.cell(row, 15).value is None for row in range(3, 8))
     assert login("student").get("/api/export", params={"class_id": class_id, "year_id": year_id}).status_code == 403
     assert materials.excel_text("=HYPERLINK(\"https://example.invalid\")").startswith("'=")
+
+
+def _text_run(conn, page, texts, api="GeneralAccurateOCR"):
+    run = db.add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=api, parameters_hash="synthetic-only", status="SUCCEEDED", result_json={}, started_at=db.now(), finished_at=db.now())
+    for index, (text, box) in enumerate(texts):
+        db.add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="SEAL" if api == "SealOCR" else "TEXT", text=text, confidence=Decimal("1") if api != "SealOCR" else None, polygon_json=materials._polygon(box), extra_json={})
+    return run
+
+
+def test_v2_one_context_crop_prefers_exact_student_number_and_preserves_source_pages(material_app):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    pdf = io.BytesIO()
+    Image.new("RGB", (400, 800), "white").save(pdf, format="PDF", save_all=True, append_images=[Image.new("RGB", (400, 800), "white")])
+    response = client.post(f"/api/applications/{claim['id']}/files", files={"file": ("two-pages.pdf", pdf.getvalue(), "application/pdf")})
+    assert response.status_code == 200, response.text
+    file_id = response.json()["id"]
+    with db.write() as conn:
+        user = db.one(conn, "users", username="student")
+        context = materials._app_context(conn, claim["id"])
+        revision = db.one(conn, "application_revisions", context["application"]["working_revision_id"])
+        pages = sorted(db.rows(conn, "file_pages", file_id=file_id), key=lambda page: page["page_index"])
+        _text_run(conn, pages[0], [("仲英书院周末广场舞活动", [30, 30, 400, 30]), ("2026年10月24日", [30, 100, 300, 30]), ("特此证明", [30, 180, 200, 30]), (user["display_name"], [30, 700, 150, 30]), (context["class"]["name"], [30, 1000, 180, 30])])
+        _text_run(conn, pages[0], [("仲英书院", [500, 1200, 180, 180])], api="SealOCR")
+        number_box = [40, 1200, 300, 30]
+        _text_run(conn, pages[1], [(context["student"]["student_number"], number_box)])
+        suggestions = materials._evidence_suggestions(conn, pages, context["student"], user, context["class"]["name"])
+        primary = [item for item in suggestions if item["evidence_type"] == "PARTICIPATION"]
+        assert len(primary) == 1
+        primary = primary[0]
+        assert primary["page_id"] == pages[1]["id"]
+        assert primary["page_number"] == 2
+        assert primary["file_name"] == "two-pages.pdf"
+        assert primary["box"][0] == 0 and primary["box"][2] == pages[1]["width_px"]
+        assert primary["box"][3] == round(pages[1]["height_px"] / 4)
+        assert primary["highlights"][0]["field"] == "STUDENT_NUMBER"
+        assert any(match["page_id"] == pages[0]["id"] and match["field"] == "NAME" for match in primary["other_matches"])
+        assert {item["validity_kind"] for item in suggestions if item["evidence_type"] == "VALIDITY"} == {"NAME", "TIME", "SEAL"}
+        # The generic '特此证明' row is not a fourth kind of validity evidence.
+        assert not any(item["box"][1] == 172 for item in suggestions if item["evidence_type"] == "VALIDITY")
+        fingerprint = materials.revision_fingerprint(conn, revision)
+        result = {"input_revision_id": revision["id"], "input_fingerprint": fingerprint, "suggested_crops": suggestions}
+    applied = materials.apply_ocr_evidence(claim["id"], user, result, expected_fingerprint=fingerprint)
+    assert applied["applied"] is True
+    detail = client.get(f"/api/applications/{claim['id']}").json()
+    crops = [crop for crop in detail["crops"] if crop["evidence_type"] == "PARTICIPATION"]
+    assert len(crops) == 1 and crops[0]["page_number"] == 2
+    assert crops[0]["other_matches"]
+    with db.read() as conn:
+        crop = db.one(conn, "evidence_crops", crops[0]["id"])
+        box = materials.polygon_box(crop["polygon_json"])
+        image = Image.open(materials.asset_path(crop["private_asset_uri"]))
+        assert image.size == (pages[1]["width_px"], round(pages[1]["height_px"] / 4))
+        assert image.getpixel((number_box[0], number_box[1] - box[1])) == (224, 36, 36)
+        source = Image.open(materials.asset_path(pages[1]["image_uri"]))
+        assert source.getpixel((number_box[0], number_box[1])) == (255, 255, 255)
+        refreshed = materials._build_public_crop(conn, crop, pages[1], [])
+        assert refreshed["masks_json"]["evidence"]["other_matches"] == crop["masks_json"]["evidence"]["other_matches"]
+    manual = client.post(f"/api/applications/{claim['id']}/crops", json={"page_id": pages[0]["id"], "evidence_type": "PARTICIPATION", "box": [50, 650, 200, 200]})
+    assert manual.status_code == 200, manual.text
+    updated = client.get(f"/api/applications/{claim['id']}").json()
+    assert len([crop for crop in updated["crops"] if crop["evidence_type"] == "PARTICIPATION"]) == 1
+    assert any(match["page_id"] == pages[1]["id"] for match in manual.json()["other_matches"])
+
+
+def test_v2_same_item_duplicate_reuses_file_other_item_conflicts_cross_category_allowed(material_app):
+    _, login = material_app
+    client = login("student")
+    first, year, _ = create_claim(client)
+    uploaded = upload(client, first["id"])
+    renamed = client.post(f"/api/applications/{first['id']}/files", files={"file": ("renamed.png", png(), "image/png")})
+    assert renamed.status_code == 200 and renamed.json()["id"] == uploaded["id"]
+    assert renamed.json()["duplicate"] is True
+    second, _, _ = create_claim(client)
+    duplicate = client.post(f"/api/applications/{second['id']}/files", files={"file": ("another-name.png", png(), "image/png")})
+    assert duplicate.status_code == 409, duplicate.text
+    assert first["id"] in duplicate.text
+    bootstrap = client.get("/api/bootstrap").json()
+    ideology = next(category["id"] for category in bootstrap["categories"] if category["code"] == "IDEOLOGY")
+    other = client.post("/api/applications", json={"category_id": ideology, "year_id": year})
+    assert other.status_code == 200
+    repeated_category = client.post(f"/api/applications/{other.json()['id']}/files", files={"file": ("proof.png", png(), "image/png")})
+    assert repeated_category.status_code == 200, repeated_category.text
+    with db.read() as conn:
+        assert len(db.rows(conn, "revision_files", revision_id=client.get(f"/api/applications/{first['id']}").json()["revision"]["id"])) == 1
+
+
+def test_v2_render_cache_reuse_does_not_consume_second_cloud_budget(material_app, monkeypatch):
+    _, login = material_app
+    client = login("student")
+    first, year, _ = create_claim(client)
+    uploaded = upload(client, first["id"])
+    bootstrap = client.get("/api/bootstrap").json()
+    category = next(category["id"] for category in bootstrap["categories"] if category["code"] == "IDEOLOGY")
+    other = client.post("/api/applications", json={"year_id": year, "category_id": category}).json()
+    second = upload(client, other["id"])
+    calls = []
+    monkeypatch.setattr(materials, "tencent_ocr", lambda action, image, config: calls.append(action) or {"RequestId": "synthetic-cache", "TextDetections": [{"DetectedText": "周末广场舞", "Confidence": 100, "Polygon": [{"X": 0, "Y": 0}, {"X": 150, "Y": 0}, {"X": 150, "Y": 20}, {"X": 0, "Y": 20}]}]})
+    with db.read() as conn:
+        first_page = db.one(conn, "file_pages", uploaded["pages"][0]["id"])
+        second_page = db.one(conn, "file_pages", second["pages"][0]["id"])
+    config = {"general_limit": 1, "seal_limit": 0}
+    materials._ocr_page(first_page, "GeneralAccurateOCR", config)
+    cached = materials._ocr_page(second_page, "GeneralAccurateOCR", config)
+    assert cached["provider"] == "CACHE" and cached["page_id"] == second_page["id"]
+    assert calls == ["GeneralAccurateOCR"]
+    with db.read() as conn:
+        assert materials._usage(conn, "GeneralAccurateOCR") == 1
+        assert db.rows(conn, "recognition_regions", run_id=cached["id"])[0]["text"] == "周末广场舞"
+
+
+def test_v2_ocr_only_reports_progress_and_staged_items_cannot_start_recognition(material_app, monkeypatch):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    upload(client, claim["id"])
+    config = {"enabled": True, "secret_id": "synthetic", "secret_key": "synthetic", "deepseek_key": "synthetic", "deepseek_model": "synthetic", "general_limit": 10, "seal_limit": 10, "max_analysis_pages": 12}
+    monkeypatch.setattr(materials, "configuration", lambda: config)
+    calls = []
+
+    def fake_ocr(action, image, config):
+        calls.append(action)
+        return {"RequestId": "synthetic", "TextDetections": [{"DetectedText": "周末广场舞，2026年10月24日，王欣然", "Confidence": 100, "Polygon": [{"X": 10, "Y": 10}, {"X": 200, "Y": 10}, {"X": 200, "Y": 35}, {"X": 10, "Y": 35}]}]} if action == "GeneralAccurateOCR" else {"RequestId": "synthetic-seal", "SealInfos": []}
+
+    monkeypatch.setattr(materials, "tencent_ocr", fake_ocr)
+    monkeypatch.setattr(materials, "deepseek_suggestion", lambda *args, **kwargs: pytest.fail("OCR-only must not call DeepSeek"))
+    with db.read() as conn:
+        user = db.one(conn, "users", username="student")
+    progress = []
+    result = materials.run_ocr(claim["id"], user, lambda stage, done, total: progress.append((stage, done, total)))
+    assert result["status"] == "SUCCEEDED" and result["input_fingerprint"]
+    assert calls == ["GeneralAccurateOCR", "SealOCR"]
+    assert progress[0][1:] == (0, 2) and progress[-1][1:] == (2, 2)
+    assert client.get(f"/api/applications/{claim['id']}").json()["revision"]["requested_score"] == "0.00"
+    with db.read() as conn:
+        assert not db.rows(conn, "ai_analyses", application_id=claim["id"])
+    category_id = client.get("/api/bootstrap").json()["categories"][0]["id"]
+    group = client.post("/api/submissions", json={"category_id": category_id}).json()
+    staged = client.post(f"/api/submissions/{group['id']}/items", json={"staged": True}).json()
+    pending = client.post(f"/api/applications/{staged['id']}/analyze", json={})
+    assert pending.status_code == 409
+    assert calls == ["GeneralAccurateOCR", "SealOCR"]
+    saved = client.put(f"/api/applications/{claim['id']}", json={"title": "学生自己修改", "requested_score": "0.90", "payload_json": {}})
+    assert saved.status_code == 200
+    with pytest.raises(HTTPException) as stale:
+        materials.apply_ocr_evidence(claim["id"], user, result, expected_fingerprint=result["input_fingerprint"])
+    assert stale.value.status_code == 409
+
+
+def test_v2_noncurrent_year_is_read_only_for_all_student_material_mutations(material_app):
+    _, login = material_app
+    student = login("student")
+    claim, year_id, _ = create_claim(student)
+    uploaded = upload(student, claim["id"])
+    admin = login("admin")
+    other_year = next(year["id"] for year in admin.get("/api/bootstrap").json()["years"] if year["id"] != year_id)
+    switched = admin.put("/api/admin/statistics-year", json={"year_id": other_year})
+    assert switched.status_code == 200, switched.text
+    assert student.get(uploaded["url"]).status_code == 200
+    assert student.post(f"/api/applications/{claim['id']}/files", files={"file": ("new.png", png(color="blue"), "image/png")}).status_code == 409
+    assert student.delete(f"/api/applications/{claim['id']}/files/{uploaded['id']}").status_code == 409
+    assert student.post(f"/api/applications/{claim['id']}/crops", json={"page_id": uploaded["pages"][0]["id"], "evidence_type": "VALIDITY", "validity_kind": "NAME", "box": [0, 0, 100, 100]}).status_code == 409
+    assert student.post(f"/api/applications/{claim['id']}/analyze", json={}).status_code == 409
+
+
+def test_v2_generic_activity_titles_are_rejected():
+    assert not materials.specific_activity_title("活动证明")
+    assert not materials.specific_activity_title("2026年两次集体活动证明")
+    assert not materials._name_region("特此证明", [])
+    assert not materials._name_region("兹有学生参加上述活动", [])
+    assert materials.specific_activity_title("仲英书院周末广场舞（2次）")
+    assert materials._name_region("活动名称：仲英书院夜跑活动", [])
+    assert materials.activity_title_supported("仲英书院周末广场舞（2次）", [{"text": "2026年周末广场舞活动"}], [])
+    assert not materials.activity_title_supported("完全虚构的飞天竞赛", [{"text": "王欣然参加周末广场舞"}], [])

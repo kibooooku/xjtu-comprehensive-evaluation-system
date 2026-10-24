@@ -1,0 +1,28 @@
+{
+  "status": "SUCCEEDED",
+  "title": "广场舞活动（2次）",
+  "score": "0.60",
+  "automatically_applied": true,
+  "participation_count": 1,
+  "crop_dimensions": [
+    1200,
+    225
+  ],
+  "original_page_dimensions": [
+    1200,
+    900
+  ],
+  "page_number": 1,
+  "highlight_fields": [
+    "STUDENT_NUMBER",
+    "NAME",
+    "CLASS"
+  ],
+  "validity_kinds": [
+    "NAME",
+    "SEAL",
+    "TIME"
+  ],
+  "general_used": 1,
+  "seal_used": 1
+}

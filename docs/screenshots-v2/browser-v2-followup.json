@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "已通过大类仍可增补新小项，外层申报唯一且原通过项不重审",
+    "一键分析安排未分析新项、跳过通过项，不在浏览器等待同步AI",
+    "人工稿首次分析仅生成建议，保留手填名称与计分"
+  ],
+  "issues": [],
+  "groupId": "0ecf0efe-30f2-4280-8f84-802da89a67dd",
+  "newId": "50a2c4a7-ccf7-4afd-bc67-74d902368b1a",
+  "cloudCallsEnabled": false,
+  "createdAt": "2026-10-24T14:32:10.723Z",
+  "manualSuggestionVerified": {
+    "job_id": "919180e5-768a-46ff-8ddf-e9fe2c5600cd",
+    "auto_apply": false,
+    "title": "V2专题理论学习增补材料",
+    "score": "0.25",
+    "active_year": "2025-2026",
+    "cloudCallsEnabled": false
+  }
+}

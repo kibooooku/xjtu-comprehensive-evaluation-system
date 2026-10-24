@@ -28,6 +28,7 @@ MAX_PAGE_PIXELS = 36_000_000
 REDACTION_VERSION = "student-number-v1"
 PDF_LOCK = threading.Lock()
 ANALYSIS_LOCK = threading.Lock()
+OCR_CALL_LOCK = threading.Lock()
 Image.MAX_IMAGE_PIXELS = MAX_PAGE_PIXELS
 
 
@@ -131,7 +132,17 @@ def crop_view(record: dict, public: bool = False) -> dict:
     ready = record.get("public_asset_status") == "READY"
     result = {"id": record["id"], "page_id": record["page_id"], "evidence_type": record["evidence_type"], "public_asset_status": record.get("public_asset_status"), "public_url": f"/api/crops/{record['id']}/public" if ready else None}
     if not public:
-        result.update({"source": record["source"], "box": polygon_box(record["polygon_json"]), "url": f"/api/crops/{record['id']}/image", "masks": (record.get("masks_json") or {}).get("manual", [])})
+        metadata = record.get("masks_json") or {}
+        evidence = metadata.get("evidence") or {}
+        if not evidence.get("file_name") or not evidence.get("page_number"):
+            # Frozen V1 evidence has no presentation metadata; derive its real
+            # source instead of incorrectly labelling every legacy crop page 1.
+            with db.read() as source_conn:
+                original_page = one(source_conn, "file_pages", record["page_id"])
+                original_file = one(source_conn, "file_objects", original_page["file_id"]) if original_page else None
+            evidence = {**evidence, "file_name": evidence.get("file_name") or (original_file or {}).get("original_name"),
+                        "page_number": evidence.get("page_number") or (original_page or {}).get("page_index")}
+        result.update({"source": record["source"], "box": polygon_box(record["polygon_json"]), "url": f"/api/crops/{record['id']}/image", "masks": metadata.get("manual", []), "file_name": evidence.get("file_name"), "page_number": evidence.get("page_number"), "highlights": evidence.get("highlights", []), "other_matches": evidence.get("other_matches", []), "validity_kind": evidence.get("validity_kind"), "layout_version": evidence.get("layout_version")})
     return result
 
 
@@ -143,6 +154,8 @@ def _app_context(conn, application_id: str) -> dict:
 def _editable(conn, application_id: str, user: dict) -> tuple[dict, dict]:
     from .workflow import editable_revision
     context = _app_context(conn, application_id)
+    from .migrations import assert_current_year
+    assert_current_year(conn, context["year"]["id"])
     context["previous_revision_id"] = context["application"].get("working_revision_id")
     require(conn, user, "application.write", class_id=context["class"]["id"], owner_id=context["user"]["id"])
     revision = editable_revision(conn, context["application"], user)
@@ -160,7 +173,8 @@ def _can_read_file(conn, file_id: str, user: dict) -> dict:
         revision = one(conn, "application_revisions", link["revision_id"])
         if not revision:
             continue
-        context = _app_context(conn, revision["application_id"])
+        from .workflow import app_context
+        context = app_context(conn, revision["application_id"], include_archived=True)
         try:
             require(conn, user, "materials.read", class_id=context["class"]["id"], owner_id=context["user"]["id"])
             return record
@@ -185,12 +199,19 @@ def upload_file(application_id: str, file: UploadFile = File(...), user: dict = 
     with db.write() as conn:
         context, revision = _editable(conn, application_id, user)
         attached = rows(conn, "revision_files", revision_id=revision["id"])
+        digest = hashlib.sha256(content).hexdigest()
+        for link in attached:
+            existing = one(conn, "file_objects", link["file_id"])
+            if existing["sha256"] == digest:
+                return {**file_view(conn, existing), "duplicate": True, "message": "此小项已包含相同内容的附件，已复用原文件。"}
+        from .submissions import assert_unique_files
+        assert_unique_files(conn, application_id, [digest])
         if len(attached) >= 12:
             raise HTTPException(400, "每条申请最多12份附件。")
         file_id = uid()
         original_uri = f"originals/{file_id}{Path(filename).suffix.lower()}"
         _write_asset(original_uri, content)
-        record = add(conn, "file_objects", id=file_id, uploaded_by=user["id"], original_name=filename, mime_type=mime, byte_size=len(content), sha256=hashlib.sha256(content).hexdigest(), storage_uri=original_uri)
+        record = add(conn, "file_objects", id=file_id, uploaded_by=user["id"], original_name=filename, mime_type=mime, byte_size=len(content), sha256=digest, storage_uri=original_uri)
         for index, page_bytes in enumerate(rendered):
             page_id = uid()
             uri = f"pages/{page_id}.png"
@@ -268,13 +289,15 @@ def _intersection(a: list, b: list) -> list | None:
 
 def _build_public_crop(conn, crop: dict, page: dict, manual_masks: list) -> dict:
     """Fail closed without a successful text run; never substitute a private crop."""
+    metadata = dict(crop.get("masks_json") or {})
+    metadata.pop("reason", None)
     runs = [r for r in rows(conn, "recognition_runs", page_id=page["id"]) if r["api_name"] == "GeneralAccurateOCR" and r["status"] == "SUCCEEDED"]
     if not runs:
-        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {"manual": manual_masks, "automatic": [], "reason": "需要成功的文字OCR定位学号后才能生成公示截图"}}
+        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "需要成功的文字OCR定位学号后才能生成公示截图"}}
     run = sorted(runs, key=lambda item: item.get("finished_at") or "")[-1]
     regions = rows(conn, "recognition_regions", run_id=run["id"])
     if not any((region.get("text") or "").strip() for region in regions):
-        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {"manual": manual_masks, "automatic": [], "reason": "文字OCR未检测到可靠文本，未生成公示截图"}}
+        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "文字OCR未检测到可靠文本，未生成公示截图"}}
     automatic = []
     for region in regions:
         text = re.sub(r"\s+", "", region.get("text") or "")
@@ -294,23 +317,55 @@ def _build_public_crop(conn, crop: dict, page: dict, manual_masks: list) -> dict
             draw.rectangle((x - box[0], y - box[1], x - box[0] + w, y - box[1] + h), fill="#253244")
     public_uri = f"public-crops/{crop['id']}-{REDACTION_VERSION}.png"
     _write_asset(public_uri, _png(image))
-    return {"public_asset_status": "READY", "public_asset_uri": public_uri, "redaction_version": REDACTION_VERSION, "masks_json": {"manual": manual_masks, "automatic": automatic, "ocr_run_id": run["id"], "page_hash": page["render_sha256"]}}
+    return {"public_asset_status": "READY", "public_asset_uri": public_uri, "redaction_version": REDACTION_VERSION, "masks_json": {**metadata, "manual": manual_masks, "automatic": automatic, "ocr_run_id": run["id"], "page_hash": page["render_sha256"]}}
 
 
-def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list, manual_masks: list | None = None, source: str = "STUDENT", region_id: str | None = None) -> dict:
+def quarter_page_box(page: dict, y: float) -> list[int]:
+    height = max(2, int(round(page["height_px"] / 4)))
+    return [0, max(0, min(int(round(y)), page["height_px"] - height)), page["width_px"], height]
+
+
+def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list, manual_masks: list | None = None, source: str = "STUDENT", region_id: str | None = None, metadata: dict | None = None) -> dict:
     box = checked_box(box, page["width_px"], page["height_px"])
+    metadata = dict(metadata or {})
+    if revision.get("content_frozen_at"):
+        raise HTTPException(409, "已提交的冻结证据不能改写。")
+    if evidence_type == "PARTICIPATION":
+        box = quarter_page_box(page, box[1])
+        metadata["layout_version"] = "context-quarter-v2"
+        # Keep one primary identity context; frozen historical revisions are never touched.
+        conn.execute(delete(tables["evidence_crops"]).where(and_(tables["evidence_crops"].c.revision_id == revision["id"], tables["evidence_crops"].c.evidence_type == "PARTICIPATION")))
+    elif metadata.get("validity_kind") not in ("NAME", "TIME", "SEAL"):
+        raise HTTPException(400, "有效性证据请选择活动名称、活动时间或印章。")
+    file = one(conn, "file_objects", page["file_id"])
+    metadata.update(file_name=file["original_name"], page_number=page["page_index"])
+    highlights = []
+    for highlight in metadata.get("highlights", []):
+        if highlight.get("field") not in ("STUDENT_NUMBER", "NAME", "CLASS"):
+            continue
+        highlight_box = checked_box(highlight.get("box"), page["width_px"], page["height_px"])
+        if _intersection(box, highlight_box):
+            highlights.append({"box": highlight_box, "field": highlight["field"]})
+    metadata["highlights"] = highlights
     manual_masks = manual_masks or []
     if len(manual_masks) > 100:
         raise HTTPException(400, "手动遮挡区域过多。")
     manual_masks = [checked_box(mask, page["width_px"], page["height_px"]) for mask in manual_masks]
     with Image.open(asset_path(page["image_uri"])) as image:
         x, y, w, h = box
-        content = _png(image.convert("RGB").crop((x, y, x + w, y + h)))
+        cropped = image.convert("RGB").crop((x, y, x + w, y + h))
+        draw = ImageDraw.Draw(cropped)
+        for highlight in highlights:
+            overlap = _intersection(box, highlight["box"])
+            if overlap:
+                hx, hy, hw, hh = overlap
+                draw.rectangle((hx - x, hy - y, hx - x + hw - 1, hy - y + hh - 1), outline="#e02424", width=max(2, min(6, round(page["width_px"] / 500))))
+        content = _png(cropped)
     crop_id = uid()
     uri = f"private-crops/{crop_id}.png"
     _write_asset(uri, content)
     existing = rows(conn, "evidence_crops", revision_id=revision["id"])
-    crop = add(conn, "evidence_crops", id=crop_id, revision_id=revision["id"], page_id=page["id"], evidence_type=evidence_type, source=source, recognition_region_id=region_id, polygon_json=_polygon(box), private_asset_uri=uri, source_hash=hashlib.sha256(content).hexdigest(), redaction_version=None, masks_json={"manual": manual_masks}, public_asset_uri=None, public_asset_status="BLOCKED", sort_order=len(existing))
+    crop = add(conn, "evidence_crops", id=crop_id, revision_id=revision["id"], page_id=page["id"], evidence_type=evidence_type, source=source, recognition_region_id=region_id, polygon_json=_polygon(box), private_asset_uri=uri, source_hash=hashlib.sha256(content).hexdigest(), redaction_version=None, masks_json={"manual": manual_masks, "evidence": metadata}, public_asset_uri=None, public_asset_status="BLOCKED", sort_order=len(existing))
     return change(conn, "evidence_crops", crop_id, **_build_public_crop(conn, crop, page, manual_masks))
 
 
@@ -318,7 +373,9 @@ def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list,
 def add_crop(application_id: str, body: dict, user: dict = Depends(current_user)):
     with db.write() as conn:
         context, revision = _editable(conn, application_id, user)
-        if len(rows(conn, "evidence_crops", revision_id=revision["id"])) >= 30:
+        existing_crops = rows(conn, "evidence_crops", revision_id=revision["id"])
+        replacing_primary = body.get("evidence_type") == "PARTICIPATION" and any(crop["evidence_type"] == "PARTICIPATION" for crop in existing_crops)
+        if len(existing_crops) >= 30 and not replacing_primary:
             raise HTTPException(400, "每条申请最多30张证据截图。")
         if not isinstance(body.get("page_id"), str) or not body["page_id"]:
             raise HTTPException(400, "请选择截图页面。")
@@ -328,7 +385,16 @@ def add_crop(application_id: str, body: dict, user: dict = Depends(current_user)
         kind = str(body.get("evidence_type", ""))
         if kind not in ("VALIDITY", "PARTICIPATION"):
             raise HTTPException(400, "请选择有效性证明或本人参与证明。")
-        crop = create_crop(conn, revision, page, kind, body.get("box"), body.get("masks", []))
+        metadata = {"validity_kind": body.get("validity_kind"), "highlights": body.get("highlights", [])}
+        if kind == "PARTICIPATION":
+            attached_pages = [p for link in rows(conn, "revision_files", revision_id=revision["id"]) for p in rows(conn, "file_pages", file_id=link["file_id"])]
+            matches = identity_matches(conn, attached_pages, context["student"], context["user"], context["class"]["name"])
+            metadata["highlights"] = metadata["highlights"] or [{"box": match["box"], "field": match["field"]} for match in matches if match["page_id"] == page["id"]]
+            selected = checked_box(body.get("box"), page["width_px"], page["height_px"])
+            primary_box = quarter_page_box(page, selected[1])
+            metadata["other_matches"] = [match for match in matches if match["page_id"] != page["id"] or _intersection(primary_box, match["box"]) != match["box"]]
+        crop = create_crop(conn, revision, page, kind, body.get("box"), body.get("masks", []), metadata=metadata)
+        _mark_manual_evidence(conn, revision)
         _touch(conn, context["application"])
         return crop_view(crop)
 
@@ -346,6 +412,7 @@ def remove_crop(application_id: str, crop_id: str, user: dict = Depends(current_
         if not crop or crop["revision_id"] != revision["id"]:
             raise HTTPException(404, "截图不属于当前可编辑版本。")
         conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+        _mark_manual_evidence(conn, revision)
         _touch(conn, context["application"])
     return {"ok": True}
 
@@ -397,7 +464,7 @@ def revision_fingerprint(conn, revision: dict) -> str:
 def _usage(conn, action: str) -> int:
     month = now()[:7]
     table = tables["recognition_runs"]
-    return conn.scalar(select(func.count()).select_from(table).where(and_(table.c.api_name == action, table.c.started_at >= month + "-01"))) or 0
+    return conn.scalar(select(func.count()).select_from(table).where(and_(table.c.api_name == action, table.c.provider == "TENCENT", table.c.started_at >= month + "-01"))) or 0
 
 
 @router.get("/integrations/status")
@@ -409,11 +476,36 @@ def integration_status(user: dict = Depends(current_user)):
 
 
 def _ocr_page(page: dict, action: str, config: dict) -> dict:
-    param_hash = hashlib.sha256((page["render_sha256"] + action + "v1").encode()).hexdigest()
+    with OCR_CALL_LOCK:
+        return _ocr_page_locked(page, action, config)
+
+
+def _save_regions(conn, run: dict, data: dict):
+    if run["api_name"] == "GeneralAccurateOCR":
+        for index, item in enumerate(data.get("TextDetections") or []):
+            polygon = item.get("Polygon") or _rect_polygon(item.get("ItemPolygon") or {})
+            words = []
+            for word, coords in zip(item.get("Words") or [], item.get("WordCoordPoint") or []):
+                words.append({"text": str(word.get("Character", "")), "polygon": coords.get("WordCoordinate") or [], "confidence": word.get("Confidence")})
+            add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="TEXT", text=str(item.get("DetectedText", "")), confidence=Decimal(str(item.get("Confidence") or 0)) / 100, polygon_json=polygon, extra_json={"words": words})
+    else:
+        seals = data.get("SealInfos") or ([data] if data.get("Location") else [])
+        for index, item in enumerate(seals):
+            add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="SEAL", text=str(item.get("SealBody", "")), confidence=None, polygon_json=_rect_polygon(item.get("Location") or {}), extra_json={"shape": item.get("SealShape"), "other_texts": item.get("OtherTexts", [])})
+
+
+def _ocr_page_locked(page: dict, action: str, config: dict) -> dict:
+    param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
     with db.write() as conn:
-        cached = [r for r in rows(conn, "recognition_runs", page_id=page["id"], api_name=action, parameters_hash=param_hash) if r["status"] == "SUCCEEDED"]
+        cached = [r for r in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash) if r["status"] == "SUCCEEDED"]
         if cached:
-            return cached[-1]
+            own = [r for r in cached if r["page_id"] == page["id"]]
+            if own:
+                return own[-1]
+            source = cached[-1]
+            run = add(conn, "recognition_runs", page_id=page["id"], provider="CACHE", api_name=action, parameters_hash=param_hash, status="SUCCEEDED", provider_request_id=source.get("provider_request_id"), result_json=source["result_json"], started_at=None, finished_at=now())
+            _save_regions(conn, run, source["result_json"] or {})
+            return run
         limit = config["general_limit"] if action == "GeneralAccurateOCR" else config["seal_limit"]
         if _usage(conn, action) >= limit:
             raise ProviderError("LocalBudgetExceeded", "本月本地 OCR 保护预算已用完，已停止调用，可手动继续。")
@@ -426,14 +518,7 @@ def _ocr_page(page: dict, action: str, config: dict) -> dict:
         raise
     with db.write() as conn:
         run = change(conn, "recognition_runs", run["id"], status="SUCCEEDED", provider_request_id=data.get("RequestId"), result_json=data, finished_at=now())
-        if action == "GeneralAccurateOCR":
-            for index, item in enumerate(data.get("TextDetections") or []):
-                polygon = item.get("Polygon") or _rect_polygon(item.get("ItemPolygon") or {})
-                add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="TEXT", text=str(item.get("DetectedText", "")), confidence=Decimal(str(item.get("Confidence", 0))) / 100, polygon_json=polygon, extra_json={})
-        else:
-            seals = data.get("SealInfos") or ([data] if data.get("Location") else [])
-            for index, item in enumerate(seals):
-                add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="SEAL", text=str(item.get("SealBody", "")), confidence=None, polygon_json=_rect_polygon(item.get("Location") or {}), extra_json={"shape": item.get("SealShape"), "other_texts": item.get("OtherTexts", [])})
+        _save_regions(conn, run, data)
         return run
 
 
@@ -441,64 +526,201 @@ def _rect_polygon(rect: dict) -> list:
     return _polygon([int(rect.get("X", 0)), int(rect.get("Y", 0)), int(rect.get("Width", 0)), int(rect.get("Height", 0))])
 
 
-def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: dict, class_name: str) -> list[dict]:
-    result = []
+def _compact(text) -> str:
+    return re.sub(r"\s+", "", str(text or "")).casefold()
+
+
+def _page_regions(conn, page: dict) -> list[dict]:
+    # Latest successful result per API, not one copy of each cached execution.
+    latest = {}
+    for run in rows(conn, "recognition_runs", page_id=page["id"]):
+        if run["status"] == "SUCCEEDED" and (run["api_name"] not in latest or (run.get("finished_at") or "") >= (latest[run["api_name"]].get("finished_at") or "")):
+            latest[run["api_name"]] = run
+    return [region for run in latest.values() for region in rows(conn, "recognition_regions", run_id=run["id"])]
+
+
+def _token_box(region: dict, token: str) -> list[int]:
+    words = (region.get("extra_json") or {}).get("words", [])
+    text = "".join(_compact(word.get("text")) for word in words)
+    start = text.find(token)
+    if start < 0:
+        return polygon_box(region["polygon_json"])
+    cursor, boxes = 0, []
+    for word in words:
+        end = cursor + len(_compact(word.get("text")))
+        if end > start and cursor < start + len(token) and word.get("polygon"):
+            boxes.append(polygon_box(word["polygon"]))
+        cursor = end
+    if not boxes:
+        return polygon_box(region["polygon_json"])
+    left, top = min(box[0] for box in boxes), min(box[1] for box in boxes)
+    right, bottom = max(box[0] + box[2] for box in boxes), max(box[1] + box[3] for box in boxes)
+    return [left, top, right - left, bottom - top]
+
+
+def identity_matches(conn, pages: list[dict], student: dict, student_user: dict, class_name: str) -> list[dict]:
+    matches = []
+    tokens = [("STUDENT_NUMBER", _compact(student.get("student_number"))), ("NAME", _compact(student_user.get("display_name"))), ("CLASS", _compact(class_name))]
+    seen = set()
     for page in pages:
-        for run in rows(conn, "recognition_runs", page_id=page["id"]):
-            if run["status"] != "SUCCEEDED":
+        file = one(conn, "file_objects", page["file_id"])
+        for region in _page_regions(conn, page):
+            if region["kind"] != "TEXT":
                 continue
-            for region in rows(conn, "recognition_regions", run_id=run["id"]):
-                text = region.get("text") or ""
-                kind = None
-                if region["kind"] == "SEAL" or re.search(r"20\d{2}[年./\-]|证明|盖章|活动时间", text):
-                    kind = "VALIDITY"
-                if any(token and token in text for token in (student_user["display_name"], student.get("student_number"), class_name)):
-                    kind = "PARTICIPATION"
-                if kind and len([r for r in result if r["evidence_type"] == kind]) < 4:
-                    box = polygon_box(region["polygon_json"])
-                    x, y, w, h = box
-                    x1, y1 = max(0, x - 12), max(0, y - 10)
-                    right, bottom = min(page["width_px"], x + w + 12), min(page["height_px"], y + h + 10)
-                    if right - x1 >= 2 and bottom - y1 >= 2:
-                        result.append({"page_id": page["id"], "evidence_type": kind, "box": [x1, y1, right - x1, bottom - y1], "region_id": region["id"]})
+            text = _compact(region.get("text"))
+            for field, token in tokens:
+                if not token or token not in text:
+                    continue
+                if field == "STUDENT_NUMBER" and token.isdigit() and not re.search(r"(?<![0-9])" + re.escape(token) + r"(?![0-9])", text):
+                    continue
+                box = _token_box(region, token)
+                left, top = max(0, box[0]), max(0, box[1])
+                right, bottom = min(page["width_px"], box[0] + box[2]), min(page["height_px"], box[1] + box[3])
+                box = [left, top, right - left, bottom - top]
+                if box[2] < 2 or box[3] < 2:
+                    continue
+                key = (page["id"], field, tuple(box))
+                if key in seen:
+                    continue
+                seen.add(key)
+                matches.append({"page_id": page["id"], "page_number": page["page_index"], "file_name": file["original_name"], "box": box, "field": field, "region_id": region["id"], "confidence": str(region.get("confidence") or 0), "url": f"/api/pages/{page['id']}/image"})
+    order = {page["id"]: index for index, page in enumerate(pages)}
+    priority = {"STUDENT_NUMBER": 0, "NAME": 1, "CLASS": 2}
+    return sorted(matches, key=lambda match: (priority[match["field"]], -Decimal(match["confidence"]), order[match["page_id"]], match["box"][1]))
+
+
+GENERIC_ACTIVITY_TITLES = {"活动", "证明", "活动证明", "参与证明", "集体活动", "集体活动证明", "社会服务", "社会服务证明", "思想政治理论学习", "思想政治理论学习证明", "文体竞赛", "奖励分", "奖励证明", "加分申请", "德育分申请", "学术科研及创新创业", "学生活动证明", "证明材料", "材料识别结果", "具体活动名称", "待填写活动名称", "特此证明", "学生组织社团任职", "培训", "培训证明", "讲座", "讲座证明", "任职证明", "社会实践", "社会实践证明", "竞赛证明", "活动参与", "活动参与证明", "加分小项", "未填写具体活动名称", "待分析", "未命名活动", "集体活动申报"}
+
+
+def specific_activity_title(title: str) -> bool:
+    text = re.sub(r"[\s，,。.!！:：;；()（）\[\]【】《》“”\"'\-—_]+", "", str(title or ""))
+    if len(text) < 2 or text in GENERIC_ACTIVITY_TITLES:
+        return False
+    stripped = re.sub(r"(?:20\d{2}年?|[一二两三四五六七八九十百\d]+(?:次|场|项|个)|第[一二两三四五六七八九十百\d]+届|加分|申请|证明材料|证明|参加|参与)", "", text)
+    return bool(stripped and stripped not in GENERIC_ACTIVITY_TITLES)
+
+
+def _name_region(text: str, activity_names: list[str]) -> bool:
+    compact = _compact(text)
+    if not specific_activity_title(text):
+        return False
+    if any(_compact(name) in compact for name in activity_names if specific_activity_title(name)):
+        return True
+    if re.search(r"杯|广场舞|夜跑|运动会|党课|社会实践|志愿服务|讲座|培训|晚会|创新创业|互联网\+|挑战杯|任职|论坛", compact):
+        return True
+    labelled = re.search(r"(?:活动名称|项目名称|赛事名称)[：:]?(.+)", compact)
+    return bool(labelled and specific_activity_title(labelled.group(1)))
+
+
+def activity_title_supported(title: str, texts: list[dict], activities: list[dict]) -> bool:
+    """Require some material anchor; this is not proof of authenticity or correctness."""
+    normalize = lambda value: re.sub(r"[\W_]+", "", str(value or "")).casefold()
+    source = normalize("".join(item.get("text", "") for item in texts))
+    compact = normalize(title)
+    if compact and compact in source:
+        return True
+    for activity in activities:
+        name = normalize(activity["name"])
+        if len(name) >= 2 and name in compact and name in source:
+            return True
+    for anchor in ("广场舞", "夜跑", "运动会", "蓝桥杯", "挑战杯", "青年大学习", "党课", "暑期社会实践", "互联网创新创业"):
+        if normalize(anchor) in compact and normalize(anchor) in source:
+            return True
+    for fragment in re.split(r"[（()）:：，,《》“”\s]+", title):
+        fragment = re.sub(r"20\d{2}年?|[一二两三四五六七八九十百\d]+次|证明|参与|参加", "", fragment)
+        if len(fragment) >= 3 and specific_activity_title(fragment) and normalize(fragment) in source:
+            return True
+    return False
+
+
+def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, activity_names: list[str] | None = None) -> list[dict]:
+    result = []
+    activity_names = activity_names or []
+    for page in pages:
+        file = one(conn, "file_objects", page["file_id"])
+        for region in _page_regions(conn, page):
+            text = region.get("text") or ""
+            kinds = []
+            if region["kind"] == "SEAL":
+                kinds.append("SEAL")
+            if region["kind"] == "TEXT" and re.search(r"(?:19|20)\d{2}\s*(?:年|[./\-])\s*\d{1,2}|\d{1,2}\s*月\s*\d{1,2}\s*日", text):
+                kinds.append("TIME")
+            if region["kind"] == "TEXT" and _name_region(text, activity_names):
+                kinds.append("NAME")
+            for kind in kinds:
+                if len([item for item in result if item.get("validity_kind") == kind]) >= 4:
+                    continue
+                x, y, w, h = polygon_box(region["polygon_json"])
+                left, top = max(0, x - 10), max(0, y - 8)
+                right, bottom = min(page["width_px"], x + w + 10), min(page["height_px"], y + h + 8)
+                if right - left < 2 or bottom - top < 2:
+                    continue
+                result.append({"page_id": page["id"], "file_name": file["original_name"], "page_number": page["page_index"], "evidence_type": "VALIDITY", "validity_kind": kind, "box": [left, top, right - left, bottom - top], "region_id": region["id"]})
+    matches = identity_matches(conn, pages, student, student_user, class_name)
+    if matches:
+        primary = matches[0]
+        page = next(p for p in pages if p["id"] == primary["page_id"])
+        box = quarter_page_box(page, primary["box"][1] + primary["box"][3] / 2 - page["height_px"] / 8)
+        highlights, other = [], []
+        for match in matches:
+            overlap = _intersection(box, match["box"]) if match["page_id"] == page["id"] else None
+            if overlap:
+                highlights.append({"box": match["box"], "field": match["field"]})
+            if not overlap or overlap != match["box"]:
+                other.append(match)
+        result.append({"page_id": page["id"], "file_name": primary["file_name"], "page_number": page["page_index"], "evidence_type": "PARTICIPATION", "box": box, "region_id": primary["region_id"], "highlights": highlights, "other_matches": other, "layout_version": "context-quarter-v2"})
     return result
 
 
 @router.post("/applications/{application_id}/analyze")
 def analyze(application_id: str, body: dict | None = None, user: dict = Depends(current_user)):
-    config = configuration()
-    if not config["enabled"]:
-        return {"status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。"}
     if not ANALYSIS_LOCK.acquire(blocking=False):
         raise HTTPException(409, "已有识别任务正在进行，请稍后重试。")
     try:
-        return _analyze(application_id, user, config)
+        return run_ai(application_id, user)
     finally:
         ANALYSIS_LOCK.release()
 
 
-def _analyze(application_id: str, user: dict, config: dict) -> dict:
+def _recognition_snapshot(conn, application_id: str, user: dict, config: dict):
+    from .submissions import assert_confirmed
+    context, revision = _editable(conn, application_id, user)
+    assert_confirmed(conn, application_id)
+    links = sorted(rows(conn, "revision_files", revision_id=revision["id"]), key=lambda link: (link["sort_order"], link["id"]))
+    if not links:
+        raise HTTPException(400, "请先上传至少一份证明材料。")
+    pages = [page for link in links for page in sorted(rows(conn, "file_pages", file_id=link["file_id"]), key=lambda p: p["page_index"])]
+    if len(pages) > config["max_analysis_pages"]:
+        raise HTTPException(400, f"本次材料共{len(pages)}页，超过本地单次识别保护上限{config['max_analysis_pages']}页，请拆减附件或手动填写。")
+    return context, revision, pages, revision_fingerprint(conn, revision)
+
+
+def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None = None) -> dict:
+    """Server-worker entry point: OCR only, never calls the language model."""
+    config = _config or configuration()
     with db.write() as conn:
-        context, revision = _editable(conn, application_id, user)
-        links = rows(conn, "revision_files", revision_id=revision["id"])
-        if not links:
-            raise HTTPException(400, "请先上传至少一份证明材料。")
-        pages = [page for link in links for page in sorted(rows(conn, "file_pages", file_id=link["file_id"]), key=lambda p: p["page_index"])]
-        if len(pages) > config["max_analysis_pages"]:
-            raise HTTPException(400, f"本次材料共{len(pages)}页，超过本地单次识别保护上限{config['max_analysis_pages']}页，请拆减附件或手动填写。")
-        fingerprint = revision_fingerprint(conn, revision)
-        rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
-        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=fingerprint, score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v1", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
-        for index, page in enumerate(pages):
-            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=None, input_kind="PAGE", input_hash=page["render_sha256"], sort_order=index)
+        context, revision, pages, fingerprint = _recognition_snapshot(conn, application_id, user, config)
+    common = {"application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "page_ids": [p["id"] for p in pages]}
+    if not config["enabled"]:
+        return {**common, "status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。", "suggested_crops": [], "run_ids": [], "warnings": []}
     warnings = []
     ocr_runs = []
     blocked_actions = set()
-    if config["secret_id"] and config["secret_key"]:
-        for page in pages:
-            for action in ("GeneralAccurateOCR", "SealOCR"):
+    done, total = 0, len(pages) * 2
+    if progress:
+        progress("OCR准备", done, total)
+    for page in pages:
+        for action in ("GeneralAccurateOCR", "SealOCR"):
+            try:
                 if action in blocked_actions:
                     continue
+                if not config["secret_id"] or not config["secret_key"]:
+                    param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
+                    with db.read() as conn:
+                        cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
+                    if not cached:
+                        warnings.append("腾讯云 OCR 未配置，可手动填写和框选。")
+                        continue
                 try:
                     ocr_runs.append(_ocr_page(page, action, config))
                 except ProviderError as error:
@@ -508,34 +730,127 @@ def _analyze(application_id: str, user: dict, config: dict) -> dict:
                         blocked_actions.add(action)
                         if "AuthFailure" in error.code or "Unauthorized" in error.code or error.code in ("NetworkError", "HTTPError"):
                             blocked_actions.update(("GeneralAccurateOCR", "SealOCR"))
-    else:
-        warnings.append("腾讯云 OCR 未配置，可手动填写和框选。")
+            finally:
+                done += 1
+                if progress:
+                    progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
     with db.write() as conn:
-        texts = []
+        has_text = False
         for run in ocr_runs:
             regions = rows(conn, "recognition_regions", run_id=run["id"])
             text = "\n".join(region.get("text") or "" for region in regions).strip()[:12000]
             if text:
-                texts.append({"page_id": run["page_id"], "kind": run["api_name"], "text": text})
+                has_text = True
             page = one(conn, "file_pages", run["page_id"])
-            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run["id"], input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(texts) + len(pages))
-            # Material content is immutable; upgrading public redaction does not alter private evidence.
-            for crop in rows(conn, "evidence_crops", page_id=page["id"]):
+            for crop in rows(conn, "evidence_crops", page_id=page["id"], revision_id=revision["id"]):
+                current_revision = one(conn, "application_revisions", crop["revision_id"])
+                if current_revision.get("content_frozen_at"):
+                    continue
                 manual = (crop.get("masks_json") or {}).get("manual", [])
                 change(conn, "evidence_crops", crop["id"], **_build_public_crop(conn, crop, page, manual))
+        activities = rows(conn, "activities", status="ACTIVE")
+        names = [activity["canonical_name"] for activity in activities]
+        if specific_activity_title(revision.get("title", "")):
+            names.append(revision["title"])
+        evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], names)
+    found_validity = {item["validity_kind"] for item in evidence if item["evidence_type"] == "VALIDITY"}
+    missing = [kind for kind in ("NAME", "TIME", "SEAL") if kind not in found_validity]
+    for kind, label in (("NAME", "具体活动名称"), ("TIME", "活动时间"), ("SEAL", "印章")):
+        if kind in missing:
+            warnings.append(f"未定位到{label}，请人工核对原件。")
+    if not any(item["evidence_type"] == "PARTICIPATION" for item in evidence):
+        warnings.append("未定位到账户对应的姓名、班级或学号，请人工核对并选择主截图。")
+    return {**common, "status": "SUCCEEDED" if has_text else "MANUAL_REQUIRED", "run_ids": [run["id"] for run in ocr_runs], "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": "OCR已完成，请核对原页定位；识别结果不作为材料真实性结论。" if has_text else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
+
+
+def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_fingerprint=None) -> dict:
+    """Apply evidence only after the worker rechecks the exact immutable input snapshot."""
+    from .submissions import assert_confirmed
+    with db.write() as conn:
+        context, revision = _editable(conn, application_id, user)
+        assert_confirmed(conn, application_id)
+        fingerprint = revision_fingerprint(conn, revision)
+        expected = expected_fingerprint or result.get("input_fingerprint")
+        if result.get("input_revision_id") != revision["id"] or fingerprint != expected:
+            raise HTTPException(409, "OCR期间材料或内容已变动，建议保留但不会覆盖现稿。")
+        existing = rows(conn, "evidence_crops", revision_id=revision["id"])
+        if (revision.get("payload_json") or {}).get("evidence_manually_edited") or any(crop["source"] == "STUDENT" for crop in existing):
+            return {"fingerprint": fingerprint, "input_revision_id": revision["id"], "applied": False, "message": "保留学生已手动调整的截图。"}
+        for crop in existing:
+            if crop["source"] == "AI":
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+        _apply_evidence(conn, revision, result.get("suggested_crops", []))
+        _touch(conn, context["application"])
+        updated = one(conn, "application_revisions", revision["id"])
+        return {"fingerprint": revision_fingerprint(conn, updated), "input_revision_id": revision["id"], "applied": True}
+
+
+def run_ai(application_id: str, user: dict, progress=None) -> dict:
+    return _analyze(application_id, user, configuration(), progress)
+
+
+def _mark_manual_evidence(conn, revision: dict):
+    payload = dict(revision.get("payload_json") or {})
+    payload["evidence_manually_edited"] = True
+    change(conn, "application_revisions", revision["id"], payload_json=payload)
+
+
+def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
+    existing = rows(conn, "evidence_crops", revision_id=revision["id"])
+    manual_evidence = (revision.get("payload_json") or {}).get("evidence_manually_edited")
+    for item in sorted(suggestions, key=lambda item: item.get("evidence_type") != "PARTICIPATION")[:25]:
+        if manual_evidence:
+            break  # Explicitly preserve a student's additions, removals and adjustments.
+        page = one(conn, "file_pages", item.get("page_id"))
+        if not page or not one(conn, "revision_files", revision_id=revision["id"], file_id=page["file_id"]):
+            continue
+        if len(existing) >= 30:
+            break
+        if any(crop["page_id"] == page["id"] and crop["evidence_type"] == item["evidence_type"] and polygon_box(crop["polygon_json"]) == item["box"] and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == item.get("validity_kind") for crop in existing):
+            continue
+        metadata = {key: item[key] for key in ("file_name", "page_number", "highlights", "other_matches", "validity_kind", "layout_version") if key in item}
+        crop = create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"), metadata=metadata)
+        existing.append(crop)
+
+
+def _analyze(application_id: str, user: dict, config: dict, progress=None) -> dict:
+    ocr = run_ocr(application_id, user, progress, _config=config)
+    if ocr["status"] != "SUCCEEDED":
+        return ocr
+    with db.write() as conn:
+        context, revision = _editable(conn, application_id, user)
+        if revision["id"] != ocr["input_revision_id"] or revision_fingerprint(conn, revision) != ocr["input_fingerprint"]:
+            raise HTTPException(409, "识别期间填写内容或附件已变更，本次不再生成覆盖现稿的AI结果。")
+        pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
+        rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
+        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
+        texts = []
+        for index, page in enumerate(pages):
+            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=None, input_kind="PAGE", input_hash=page["render_sha256"], sort_order=index)
+        for index, run_id in enumerate(ocr["run_ids"]):
+            run = one(conn, "recognition_runs", run_id)
+            page = one(conn, "file_pages", run["page_id"])
+            text = "\n".join(region.get("text") or "" for region in rows(conn, "recognition_regions", run_id=run_id)).strip()[:12000]
+            if text:
+                texts.append({"page_id": run["page_id"], "kind": run["api_name"], "text": text})
+            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index)
         activities = [{"id": a["id"], "name": a["canonical_name"], "aliases": [v["alias"] for v in rows(conn, "activity_aliases", activity_id=a["id"]) if v["status"] == "ACTIVE"]} for a in rows(conn, "activities", status="ACTIVE")][:300]
-        evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"])
-    if not texts:
-        with db.write() as conn:
-            change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={"message": "未取得可供分析的OCR内容。", "warnings": list(dict.fromkeys(warnings))})
-        return {"status": "MANUAL_REQUIRED", "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": "未取得可供分析的文字，可手动填写、计分和框选证明。", "warnings": list(dict.fromkeys(warnings))}
+    evidence, warnings = ocr["suggested_crops"], ocr["warnings"]
+    if progress:
+        progress("AI分析具体活动与分值", 0, 1)
     prompt_context = {"category": context["category"]["name"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "untrusted_materials": texts}
     try:
         suggestion = deepseek_suggestion(prompt_context, config)
         title = str(suggestion.get("title", "")).strip()[:255]
         score = money(suggestion.get("requested_score", "0"))
-        if not title or score < 0 or score > 105:
+        if not specific_activity_title(title):
+            raise ProviderError("ActivityNameMissing", "未识别出具体活动名称，请学生按原件补充，不能只填泛称‘活动证明’。")
+        if not activity_title_supported(title, texts, activities):
+            raise ProviderError("ActivityNameUncertain", "建议活动名未能在识别文字中找到足够对应，请按原件人工补全。")
+        if score < 0 or score > 105:
             raise ValueError("invalid suggestion")
+        with db.read() as conn:
+            evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], [activity["name"] for activity in activities] + [title])
         valid_activity_ids = {activity["id"] for activity in activities}
         activity_id = suggestion.get("activity_id")
         if activity_id not in valid_activity_ids:
@@ -550,7 +865,9 @@ def _analyze(application_id: str, user: dict, config: dict) -> dict:
         return {"status": "MANUAL_REQUIRED", "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
     with db.write() as conn:
         change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={"suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
-    return {"status": "SUCCEEDED", "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "建议已生成；请核对后点击应用，当前填写内容尚未改变。"}
+    if progress:
+        progress("AI分析完成", 1, 1)
+    return {"status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "建议已生成；当前填写内容尚未改变。"}
 
 
 @router.post("/applications/{application_id}/apply-analysis")
@@ -570,14 +887,7 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
         payload["ai_match_uncertain"] = suggestion.get("match_uncertain", False)
         payload["ai_explanation"] = suggestion.get("explanation", "")
         revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=money(suggestion["requested_score"]), activity_id=suggestion.get("activity_id"), payload_json=payload, ai_analysis_id=analysis["id"])
-        existing = rows(conn, "evidence_crops", revision_id=revision["id"])
-        for item in suggestion.get("suggested_crops", [])[:8]:
-            page = one(conn, "file_pages", item["page_id"])
-            if not page or not one(conn, "revision_files", revision_id=revision["id"], file_id=page["file_id"]):
-                continue
-            if any(c["page_id"] == page["id"] and c["evidence_type"] == item["evidence_type"] and polygon_box(c["polygon_json"]) == item["box"] for c in existing):
-                continue
-            create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"))
+        _apply_evidence(conn, revision, suggestion.get("suggested_crops", []))
         _touch(conn, context["application"])
         return application_detail(conn, one(conn, "applications", application_id), user)
 

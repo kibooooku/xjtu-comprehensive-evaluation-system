@@ -34,7 +34,7 @@ def flow(tmp_path):
         application = created.json()
         with db.write() as conn:
             file = db.add(conn, "file_objects", uploaded_by=users["student"]["id"], original_name="证明.png",
-                          mime_type="image/png", byte_size=1, sha256="a" * 64, storage_uri="test-only.png")
+                          mime_type="image/png", byte_size=1, sha256=db.uid().replace("-", "") * 2, storage_uri="test-only.png")
         response = client.put("/api/applications/" + application["id"], json={"title": title, "requested_score": score,
                               "payload_json": facts or {}, "activity_id": activity_id, "file_ids": [file["id"]]})
         assert response.status_code == 200, response.text

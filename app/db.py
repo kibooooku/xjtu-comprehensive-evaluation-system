@@ -37,6 +37,32 @@ for definition in schema['tables']:
                               nullable=f.get('nullable', False) if not f.get('pk') else False))
     tables[definition['id']] = Table(definition['id'], metadata, *columns)
 
+# V2 extends the reviewed V1 model without rewriting immutable application history.
+tables['system_settings'] = Table('system_settings', metadata,
+    Column('id', String, primary_key=True), Column('value_json', JSON, nullable=False),
+    Column('changed_by', String, ForeignKey('users.id'), nullable=True), Column('updated_at', String, nullable=False))
+tables['category_submissions'] = Table('category_submissions', metadata,
+    Column('id', String, primary_key=True), Column('enrollment_id', String, ForeignKey('enrollments.id'), nullable=False),
+    Column('category_id', String, ForeignKey('score_categories.id'), nullable=False),
+    Column('created_at', String, nullable=False), Column('updated_at', String, nullable=False))
+tables['category_items'] = Table('category_items', metadata,
+    Column('id', String, primary_key=True), Column('submission_id', String, ForeignKey('category_submissions.id'), nullable=False),
+    Column('application_id', String, ForeignKey('applications.id'), nullable=False), Column('sort_order', Integer, nullable=False),
+    Column('confirmed_at', String, nullable=True), Column('deleted_at', String, nullable=True), Column('created_at', String, nullable=False))
+tables['background_jobs'] = Table('background_jobs', metadata,
+    Column('id', String, primary_key=True), Column('application_id', String, ForeignKey('applications.id'), nullable=False),
+    Column('owner_id', String, ForeignKey('users.id'), nullable=False), Column('kind', String, nullable=False),
+    Column('state', String, nullable=False), Column('stage', String, nullable=False),
+    Column('progress', Integer, nullable=False), Column('total', Integer, nullable=False),
+    Column('input_revision_id', String, ForeignKey('application_revisions.id'), nullable=False),
+    Column('input_fingerprint', String, nullable=False), Column('result_json', JSON, nullable=False),
+    Column('error_message', Text, nullable=True), Column('force', Boolean, nullable=False), Column('attempts', Integer, nullable=False),
+    Column('worker_token', String, nullable=True), Column('heartbeat_at', String, nullable=True),
+    Column('created_at', String, nullable=False), Column('started_at', String, nullable=True), Column('finished_at', String, nullable=True))
+Index('uq_submission_enrollment_category', tables['category_submissions'].c.enrollment_id, tables['category_submissions'].c.category_id, unique=True)
+Index('uq_category_item_application', tables['category_items'].c.application_id, unique=True)
+Index('ix_background_queue', tables['background_jobs'].c.state, tables['background_jobs'].c.created_at)
+
 for table, fields in [('users', ['username']), ('student_profiles', ['user_id']),
                       ('student_profiles', ['student_number']), ('classes', ['code']),
                       ('academic_years', ['code']), ('roles', ['code']), ('permissions', ['code']),

@@ -16,6 +16,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy import delete
 
 from . import db
+from .migrations import active_year, assert_current_year, ensure_group
 from .security import active_grants, allowed, class_context, current_user, require, student_enrollment
 
 router = APIRouter(prefix="/api", tags=["applications and evaluation"])
@@ -62,9 +63,9 @@ def _bump(conn, application):
     application.update(updated)
 
 
-def app_context(conn, application_id):
+def app_context(conn, application_id, include_archived=False):
     application = db.one(conn, "applications", application_id)
-    if not application or application.get("archived_at"):
+    if not application or application.get("archived_at") and not include_archived:
         _missing("申请不存在")
     context = class_context(conn, application["enrollment_id"])
     context.update(application=application, category=db.one(conn, "score_categories", application["category_id"]))
@@ -93,6 +94,7 @@ def editable_revision(conn, application, user):
     if user["base_identity"] != "STUDENT" or context["user"]["id"] != user["id"]:
         raise HTTPException(403, "只能修改本人的申请")
     require(conn, user, "application.write", class_id=context["class"]["id"], owner_id=user["id"])
+    assert_current_year(conn, context["year"]["id"])
     current = _round(conn, application)
     if current and current["state"] in LIVE:
         raise HTTPException(409, "待审申请请先撤回；已通过申请需由辅导员驳回后修改")
@@ -149,11 +151,11 @@ def _summary(conn, application, context=None):
     }
 
 
-def application_detail(conn, application, user, revision_id=None):
+def application_detail(conn, application, user, revision_id=None, include_deleted=False):
     from .materials import crop_view, file_view
     if isinstance(application, str):
         application = db.one(conn, "applications", application)
-    context = app_context(conn, application["id"])
+    context = app_context(conn, application["id"], include_archived=include_deleted)
     _readable(conn, user, context)
     revision = _display_revision(conn, application)
     historical = revision_id is not None
@@ -179,14 +181,15 @@ def application_detail(conn, application, user, revision_id=None):
     for event in history:
         actor = db.one(conn, "users", event["actor_id"]) if event.get("actor_id") else None
         event["actor_name"] = actor["display_name"] if actor else "系统"
-    can_edit = user["id"] == context["user"]["id"] and (not current or current["state"] not in LIVE)
+    in_current_year = active_year(conn)["id"] == context["year"]["id"]
+    can_edit = user["id"] == context["user"]["id"] and in_current_year and not application.get("archived_at") and (not current or current["state"] not in LIVE)
     can_peer = current and current["state"] == "PENDING_PEER" and user["id"] != context["user"]["id"] and allowed(conn, user, "review.peer", class_id=context["class"]["id"], owner_id=context["user"]["id"])
     can_counselor = current and current["state"] in {"PENDING_COUNSELOR", "APPROVED"} and user["base_identity"] == "COUNSELOR" and allowed(conn, user, "review.counselor" if current["state"] == "PENDING_COUNSELOR" else "review.revoke", class_id=context["class"]["id"])
     result.update(revision={**revision, "requested_score": str(db.money(revision["requested_score"]))},
                   files=files, crops=crops, history=history, reviews=reviews,
-                  round=current, rounds=rounds, can_edit=bool(can_edit and not historical), can_review=bool((can_peer or can_counselor) and not historical),
-                  can_withdraw=bool(not historical and current and current["state"] in PENDING and user["id"] == context["user"]["id"]),
-                  viewing_history=historical,
+                  round=current, rounds=rounds, can_edit=bool(can_edit and not historical), can_review=bool((can_peer or can_counselor) and not historical and not application.get("archived_at")),
+                  can_withdraw=bool(not historical and not application.get("archived_at") and in_current_year and current and current["state"] in PENDING and user["id"] == context["user"]["id"]),
+                  viewing_history=bool(historical or application.get("archived_at")),
                   versions=[{"id": r["id"], "revision_no": r["revision_no"], "title": r["title"],
                              "requested_score": str(db.money(r["requested_score"])), "frozen_at": r["content_frozen_at"],
                              "created_at": r["created_at"]}
@@ -198,6 +201,15 @@ def application_detail(conn, application, user, revision_id=None):
     if activity_id:
         result["activity"] = db.one(conn, "activities", activity_id)
         result["eligibility"] = activity_eligibility(conn, activity_id, application["category_id"], context["year"]["id"], revision["payload_json"])
+    item = db.one(conn, "category_items", application_id=application["id"])
+    result.update(submission_id=item["submission_id"] if item else None,
+                  confirmed_at=item["confirmed_at"] if item else application["created_at"],
+                  deleted_at=item["deleted_at"] if item else application.get("archived_at"),
+                  is_current_year=in_current_year)
+    analyses = sorted(db.rows(conn, "ai_analyses", application_id=application["id"], status="SUCCEEDED"), key=lambda a: a["created_at"])
+    # V1 generated suggestions before durable jobs existed. Keep them accessible
+    # after grouping instead of requiring another paid generation to view them.
+    result["latest_analysis"] = analyses[-1] if analyses else None
     return result
 
 
@@ -208,8 +220,9 @@ def list_applications(year_id: str | None = None, class_id: str | None = None,
         if user["base_identity"] == "ADMIN":
             raise HTTPException(403, "系统管理员不查看业务申请")
         result = []
+        from .submissions import visible_application
         for application in db.rows(conn, "applications"):
-            if application.get("archived_at"):
+            if not visible_application(conn, application):
                 continue
             context = app_context(conn, application["id"])
             if year_id and context["year"]["id"] != year_id or class_id and context["class"]["id"] != class_id:
@@ -230,33 +243,41 @@ def list_applications(year_id: str | None = None, class_id: str | None = None,
         return sorted(result, key=lambda r: r["updated_at"], reverse=True)
 
 
+def new_application(conn, user, category_id, year_id=None, confirmed=True):
+    if user["base_identity"] != "STUDENT":
+        raise HTTPException(403, "只有学生可以填报")
+    year = active_year(conn) if year_id is None else db.one(conn, "academic_years", year_id)
+    category = db.one(conn, "score_categories", category_id)
+    if not year or not year["is_selectable"] or not category:
+        raise HTTPException(400, "请选择有效的加分类别")
+    assert_current_year(conn, year["id"])
+    enrollment = student_enrollment(conn, user, year["id"])
+    context = class_context(conn, enrollment["id"])
+    require(conn, user, "application.write", class_id=context["class"]["id"], owner_id=user["id"])
+    application = db.add(conn, "applications", enrollment_id=enrollment["id"], category_id=category["id"],
+                         working_revision_id=None, current_round_id=None, lock_version=0)
+    revision = db.add(conn, "application_revisions", application_id=application["id"], revision_no=1,
+                      title="", requested_score=Decimal("0.00"), student_modified_score=False,
+                      activity_id=None, competition_project_id=None, ai_analysis_id=None,
+                      payload_json={}, content_frozen_at=None, created_by=user["id"])
+    application = db.change(conn, "applications", application["id"], working_revision_id=revision["id"])
+    ensure_group(conn, application, confirmed=confirmed)
+    _event(conn, application, "DRAFT_CREATED", user)
+    return application
+
+
 @router.post("/applications")
 def create_application(payload: dict = Body(...), user=Depends(current_user)):
     with db.write() as conn:
-        if user["base_identity"] != "STUDENT":
-            raise HTTPException(403, "只有学生可以填报")
-        year = db.one(conn, "academic_years", payload.get("year_id"))
-        category = db.one(conn, "score_categories", payload.get("category_id"))
-        if not year or not year["is_selectable"] or not category:
-            raise HTTPException(400, "请选择有效学年和加分类别")
-        enrollment = student_enrollment(conn, user, year["id"])
-        context = class_context(conn, enrollment["id"])
-        require(conn, user, "application.write", class_id=context["class"]["id"], owner_id=user["id"])
-        application = db.add(conn, "applications", enrollment_id=enrollment["id"], category_id=category["id"],
-                             working_revision_id=None, current_round_id=None, lock_version=0)
-        revision = db.add(conn, "application_revisions", application_id=application["id"], revision_no=1,
-                          title="", requested_score=Decimal("0.00"), student_modified_score=False,
-                          activity_id=None, competition_project_id=None, ai_analysis_id=None,
-                          payload_json={}, content_frozen_at=None, created_by=user["id"])
-        application = db.change(conn, "applications", application["id"], working_revision_id=revision["id"])
-        _event(conn, application, "DRAFT_CREATED", user)
+        application = new_application(conn, user, payload.get("category_id"), payload.get("year_id"), confirmed=True)
         return application_detail(conn, application, user)
 
 
 @router.get("/applications/{application_id}")
-def get_application(application_id: str, revision_id: str | None = None, user=Depends(current_user)):
+def get_application(application_id: str, revision_id: str | None = None, include_deleted: bool = False, user=Depends(current_user)):
     with db.read() as conn:
-        return application_detail(conn, app_context(conn, application_id)["application"], user, revision_id)
+        return application_detail(conn, app_context(conn, application_id, include_archived=include_deleted)["application"], user,
+                                  revision_id, include_deleted=include_deleted)
 
 
 @router.put("/applications/{application_id}")
@@ -269,11 +290,16 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
         if payload.get("category_id", application["category_id"]) != application["category_id"]:
             raise HTTPException(400, "修改大类请从对应入口新建申请")
         values = {}
+        original_facts = revision.get("payload_json") or {}
+        protected_flags = {k: original_facts[k] for k in ("evidence_manually_edited", "content_manually_edited") if original_facts.get(k)}
+        content_changed = False
         if "title" in payload:
             values["title"] = _text(payload["title"])
+            content_changed = values["title"] != revision["title"]
         if "requested_score" in payload:
             score = _amount(payload["requested_score"])
             values["requested_score"] = score
+            content_changed = content_changed or score != db.money(revision["requested_score"])
             # The marker records any manual edit, including reverting to the AI value.
             values["student_modified_score"] = revision["student_modified_score"] or score != db.money(revision["requested_score"])
         if "activity_id" in payload:
@@ -282,17 +308,24 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
             if activity_id and (not activity or activity["status"] != "ACTIVE"):
                 raise HTTPException(400, "所选活动不存在或已停用，请重新选择")
             values["activity_id"] = activity_id
+            content_changed = content_changed or activity_id != revision.get("activity_id")
         if "payload_json" in payload:
             facts = payload["payload_json"]
             if not isinstance(facts, dict) or len(json.dumps(facts, ensure_ascii=False)) > 12000:
                 raise HTTPException(400, "活动信息格式不正确或过长")
+            facts = {**facts, **protected_flags}
+            content_changed = content_changed or facts != original_facts
             values["payload_json"] = facts
         if "file_ids" in payload:
+            if not isinstance(payload["file_ids"], list) or len(payload["file_ids"]) > 12 or any(not isinstance(i, str) for i in payload["file_ids"]):
+                raise HTTPException(400, "附件列表格式无效或超过12份")
             ids = list(dict.fromkeys(payload["file_ids"]))
             for file_id in ids:
                 file = db.one(conn, "file_objects", file_id)
                 if not file or file["uploaded_by"] != user["id"]:
                     raise HTTPException(403, "只能使用本人上传的原文件")
+            from .submissions import assert_unique_files
+            assert_unique_files(conn, application_id, ids)
             for link in db.rows(conn, "revision_files", revision_id=revision["id"]):
                 if link["file_id"] not in ids:
                     conn.execute(delete(db.tables["revision_files"]).where(db.tables["revision_files"].c.id == link["id"]))
@@ -305,6 +338,8 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
             for crop in db.rows(conn, "evidence_crops", revision_id=revision["id"]):
                 if crop["page_id"] not in attached_pages:
                     conn.execute(delete(db.tables["evidence_crops"]).where(db.tables["evidence_crops"].c.id == crop["id"]))
+        if content_changed:
+            values["payload_json"] = {**values.get("payload_json", original_facts), **protected_flags, "content_manually_edited": True}
         db.change(conn, "application_revisions", revision["id"], **values)
         _bump(conn, application)
         _event(conn, application, "DRAFT_UPDATED", user, detail={"fields": list(values)})
@@ -448,7 +483,7 @@ def _restore(conn, failed_round):
     for replacement in db.rows(conn, "award_supersessions", new_round_id=failed_round["id"], status="ACTIVE"):
         old_round = db.one(conn, "submission_rounds", replacement["old_round_id"])
         old_app = db.one(conn, "applications", old_round["application_id"])
-        if (old_app["current_round_id"] == old_round["id"] and old_round["state"] == "REJECTED"
+        if (not old_app.get("archived_at") and old_app["current_round_id"] == old_round["id"] and old_round["state"] == "REJECTED"
                 and old_round.get("last_event_id") == replacement["superseded_event_id"]):
             event = _event(conn, old_app, "AWARD_RESTORED", round_=old_round, from_state="REJECTED",
                            to_state=replacement["old_state"], detail={"supersession_id": replacement["id"], "failed_round_id": failed_round["id"]})
@@ -486,6 +521,8 @@ def submit_application(application_id: str, payload: dict = Body(default={}), us
         require(conn, user, "application.submit", class_id=context["class"]["id"], owner_id=context["user"]["id"])
         if user["id"] != context["user"]["id"]:
             raise HTTPException(403, "只能提交本人申请")
+        from .submissions import assert_confirmed
+        assert_confirmed(conn, application_id)
         _assert_class_ready(conn, context)
         publication = db.one(conn, "class_publicity", class_year_id=context["class_year"]["id"])
         if publication and publication["is_open"]:
@@ -545,6 +582,7 @@ def withdraw_application(application_id: str, payload: dict = Body(default={}), 
         require(conn, user, "application.withdraw", class_id=context["class"]["id"], owner_id=context["user"]["id"])
         if user["id"] != context["user"]["id"]:
             raise HTTPException(403, "只能撤回本人待审申请")
+        assert_current_year(conn, context["year"]["id"])
         round_ = _round(conn, application)
         if not round_ or round_["state"] not in PENDING:
             raise HTTPException(409, "只有待审申请可以撤回")
@@ -777,6 +815,7 @@ def _safe_public_text(value, student_numbers):
 
 
 def class_scores(conn, class_id, year_id, public=False):
+    from .submissions import visible_application
     class_, year, class_year = _year_class(conn, class_id, year_id)
     publication = db.one(conn, "class_publicity", class_year_id=class_year["id"])
     categories = sorted(db.rows(conn, "score_categories"), key=lambda c: c["sort_order"])
@@ -790,6 +829,8 @@ def class_scores(conn, class_id, year_id, public=False):
         student = db.one(conn, "users", profile["user_id"])
         grouped = {c["id"]: [] for c in categories}
         for application in db.rows(conn, "applications", enrollment_id=enrollment["id"]):
+            if not visible_application(conn, application):
+                continue
             current = _round(conn, application)
             if not current or current["state"] != "APPROVED":
                 continue
@@ -889,6 +930,7 @@ def get_publicity(class_id: str, year_id: str, user=Depends(current_user)):
 
 @router.put("/publicity")
 def set_publicity(payload: dict = Body(...), user=Depends(current_user)):
+    from .submissions import visible_application
     with db.write() as conn:
         class_id, year_id = payload.get("class_id"), payload.get("year_id")
         _, _, class_year = _year_class(conn, class_id, year_id)
@@ -901,7 +943,7 @@ def set_publicity(payload: dict = Body(...), user=Depends(current_user)):
         enrollment_ids = {e["id"] for e in db.rows(conn, "enrollments", class_year_id=class_year["id"])}
         pending = 0
         for application in db.rows(conn, "applications"):
-            if application["enrollment_id"] in enrollment_ids:
+            if application["enrollment_id"] in enrollment_ids and visible_application(conn, application):
                 current = _round(conn, application)
                 pending += bool(current and current["state"] in PENDING)
         if is_open and pending:
@@ -924,6 +966,7 @@ def set_publicity(payload: dict = Body(...), user=Depends(current_user)):
 
 @router.get("/dashboard")
 def dashboard(year_id: str | None = None, class_id: str | None = None, user=Depends(current_user)):
+    from .submissions import visible_application
     with db.read() as conn:
         if user["base_identity"] == "ADMIN":
             return {"stats": {"users": len(db.rows(conn, "users")), "classes": len(db.rows(conn, "classes")),
@@ -931,6 +974,8 @@ def dashboard(year_id: str | None = None, class_id: str | None = None, user=Depe
                     "category_scores": [], "recent": []}
         summaries = []
         for application in db.rows(conn, "applications"):
+            if not visible_application(conn, application):
+                continue
             context = app_context(conn, application["id"])
             if year_id and context["year"]["id"] != year_id or class_id and context["class"]["id"] != class_id:
                 continue

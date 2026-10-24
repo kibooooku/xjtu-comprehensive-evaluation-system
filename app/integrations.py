@@ -100,7 +100,10 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
         raise ProviderError("NotConfigured", "腾讯云 OCR 密钥未配置，可以手动填写和截图。")
     if len(image) * 4 / 3 > 9_500_000:
         raise ProviderError("ImageTooLarge", "此页图片超过 OCR 请求上限，请手动填写和截图。")
-    payload = json.dumps({"ImageBase64": base64.b64encode(image).decode("ascii")}, separators=(",", ":")).encode()
+    parameters = {"ImageBase64": base64.b64encode(image).decode("ascii")}
+    if action == "GeneralAccurateOCR":
+        parameters["IsWords"] = True  # Original per-character coordinates support precise identity outlines.
+    payload = json.dumps(parameters, separators=(",", ":")).encode()
     try:
         with httpx.Client(timeout=httpx.Timeout(45.0, connect=10.0), follow_redirects=False) as client:
             result = client.post(f"https://{OCR_HOST}/", content=payload, headers=tencent_headers(action, payload, config))
@@ -138,8 +141,10 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
         "同一文件中的多次活动只生成一个合并条目，例如两次广场舞0.6分，普通集体活动每次0.3。"
         "志愿工时每学年32小时及以上只计1分，不足按比例。不能每32小时叠加。"
         "分值保留两位小数；没有充分依据时给出需人工核对的提示，不能虚构活动或参与人。"
+        "title必须是材料中有依据的具体活动名称（可包含次数），禁止仅写‘集体活动证明’、‘活动证明’、‘加分申请’等泛称。"
+        "找不到具体活动名称时title为空字符串，并在explanation提示学生补全，不能编造名称。"
         "从活动目录选择规范activity_id，不确定时为null，并写出match_uncertain=true。"
-        "输出格式示例：{\"title\":\"活动证明\",\"requested_score\":\"0.30\",\"activity_id\":null,"
+        "输出格式示例：{\"title\":\"仲英书院周末广场舞（2次）\",\"requested_score\":\"0.60\",\"activity_id\":null,"
         "\"match_uncertain\":false,\"explanation\":\"依据与不确定性\",\"payload_json\":{"
         "\"edition_key\":\"\",\"track_key\":\"\",\"group_key\":\"\",\"work_key\":\"\","
         "\"award_level\":\"\",\"subtype\":\"\"}}。同一竞赛的届次、赛道、组别、作品请分别提取。"

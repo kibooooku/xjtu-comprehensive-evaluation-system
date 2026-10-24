@@ -93,10 +93,14 @@ def test_csv_atomic_import_and_setup_class_activation(client):
     assert client.put(f"/api/admin/classes/{newclass['id']}/assignments", json={'monitor_id': 'no', 'reviewer_ids': []}).status_code == 400
 
 
-def test_missing_identifiers_never_resolve_first_record(client):
+def test_current_year_defaults_but_missing_identifiers_never_resolve_first_record(client):
     boot = login(client, 'student')
     category = boot['categories'][0]['id']
-    assert client.post('/api/applications', json={'category_id': category}).status_code in (400, 404)
+    defaulted = client.post('/api/applications', json={'category_id': category})
+    assert defaulted.status_code == 200
+    assert defaulted.json()['year_id'] == boot['active_year']['id']
+    assert client.post('/api/applications', json={'category_id': category, 'year_id': 'does-not-exist'}).status_code in (400, 404)
+    assert client.post('/api/applications', json={}).status_code in (400, 404)
     assert client.get('/api/applications/not-a-real-id').status_code == 404
     with db.read() as conn:
         assert db.one(conn, 'users') is None

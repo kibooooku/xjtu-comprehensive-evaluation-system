@@ -1,6 +1,8 @@
 from __future__ import annotations
 import hmac
 import os
+import asyncio
+from contextlib import asynccontextmanager
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -14,13 +16,29 @@ from . import db
 from .security import COOKIE, csrf_token
 
 
-def create_app(database_url=None, storage_dir=None, seed_demo=True):
+def create_app(database_url=None, storage_dir=None, seed_demo=True, start_worker=True):
     load_dotenv(db.ROOT / '.env', override=False)
+    from .jobs import JobWorker, stop_all
+    stop_all()
     db.configure(database_url, storage_dir)
     if seed_demo:
         from .seed import initialize
         initialize()
-    application = FastAPI(title='西安交通大学德育分统计管理系统', version='1.0.0', docs_url='/api/docs', redoc_url=None)
+    from .migrations import initialize_v2
+    initialize_v2()
+
+    @asynccontextmanager
+    async def lifespan(application):
+        worker = JobWorker() if start_worker else None
+        if worker:
+            worker.start()
+        try:
+            yield
+        finally:
+            if worker:
+                await asyncio.to_thread(worker.stop)
+
+    application = FastAPI(title='西安交通大学德育分统计管理系统', version='2.0.0', docs_url='/api/docs', redoc_url=None, lifespan=lifespan)
 
     @application.middleware('http')
     async def secure_request(request: Request, call_next):
@@ -65,14 +83,18 @@ def create_app(database_url=None, storage_dir=None, seed_demo=True):
     def health():
         with db.read() as conn:
             conn.exec_driver_sql('SELECT 1')
-        return {'status': 'ok', 'version': '1.0.0'}
+        return {'status': 'ok', 'version': '2.0.0'}
 
     from .organization import router as organization_router
     from .workflow import router as workflow_router
     from .materials import router as materials_router
+    from .submissions import router as submissions_router
+    from .jobs import router as jobs_router
     application.include_router(organization_router)
     application.include_router(workflow_router)
     application.include_router(materials_router)
+    application.include_router(submissions_router)
+    application.include_router(jobs_router)
     application.mount('/static', StaticFiles(directory=Path(__file__).parent / 'static'), name='static')
 
     @application.get('/')
