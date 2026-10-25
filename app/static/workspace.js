@@ -11,15 +11,20 @@ const jobName=k=>k==='OCR'?'文字与证据识别':'AI 条目分析';
 const taskNames={QUEUED:'排队中',RUNNING:'处理中',SUCCEEDED:'已完成',FAILED:'失败，可重试',STALE:'已保留建议'};
 const analysisLabels={UNANALYZED:'未分析',NOT_ANALYZED:'未分析',PENDING:'未分析',RUNNING:'AI 分析中',QUEUED:'排队中',SUCCEEDED:'已分析',SUCCESS:'已分析',COMPLETED:'已分析',FAILED:'分析失败',STALE:'建议待核对'};
 function itemTask(i){
-  const running=S.jobs.find(j=>j.application_id===i.id&&['QUEUED','RUNNING'].includes(j.state));
-  const latest=running||i.latest_job||S.jobs.find(j=>j.application_id===i.id);
-  if(latest&&['QUEUED','RUNNING'].includes(latest.state))return {label:latest.kind==='OCR'?'OCR '+(latest.state==='QUEUED'?'排队中':'识别中'):'AI '+(latest.state==='QUEUED'?'排队中':'分析中'),color:'info',busy:true};
+  const jobs=S.jobs.filter(j=>j.application_id===i.id);if(i.latest_job&&!jobs.some(j=>j.id===i.latest_job.id))jobs.push(i.latest_job);
+  const runningOcr=jobs.find(j=>j.kind==='OCR'&&j.state==='RUNNING');
+  const activeAi=jobs.find(j=>j.kind==='AI'&&j.state==='RUNNING')||jobs.find(j=>j.kind==='AI'&&j.state==='QUEUED');
+  if(runningOcr){const progress=Number(runningOcr.total)>0?` ${Number(runningOcr.progress||0)}/${Number(runningOcr.total)}`:'';return {label:`OCR 识别中${progress}${activeAi?.state==='QUEUED'?' · AI 等待 OCR':activeAi?' · AI 分析中':''}`,color:'info',busy:true};}
+  if(activeAi)return {label:activeAi.state==='RUNNING'?'AI 分析中':waitingForOcr(activeAi)?'AI 等待 OCR':'AI 排队中',color:'info',busy:true};
+  const queuedOcr=jobs.find(j=>j.kind==='OCR'&&j.state==='QUEUED');if(queuedOcr)return {label:'OCR 排队中',color:'info',busy:true};
+  const latest=jobs.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')))[0]||i.latest_job;
   if(latest?.state==='FAILED')return {label:(latest.kind==='OCR'?'OCR':'分析')+'失败',color:'danger'};
   if(latest?.state==='STALE')return {label:'建议待核对',color:'purple'};
   if(['SUCCEEDED','SUCCESS','COMPLETED'].includes(i.analysis_status))return {label:'已分析',color:'success'};
   if(['SUCCEEDED','SUCCESS','COMPLETED'].includes(i.ocr_status))return {label:'OCR 完成 · 未分析',color:''};
   return {label:analysisLabels[i.analysis_status]||'未分析',color:''};
 }
+function waitingForOcr(job){return job.kind==='AI'&&job.state==='QUEUED'&&Boolean(job.waiting_for_ocr||job.wait_for_ocr_job_id||job.result_json?.wait_for_ocr_job_id||S.jobs.some(j=>j.application_id===job.application_id&&j.kind==='OCR'&&['QUEUED','RUNNING'].includes(j.state)));}
 function taskTag(i){const p=itemTask(i);return `<span class="tag ${p.color}" data-item-progress="${esc(i.id)}">${p.busy?'<span class="tiny-spinner"></span>':''}${esc(p.label)}</span>`;}
 
 function setupWorkspaceShell(){
@@ -48,11 +53,12 @@ async function pollJobs(initial=false){
 }
 function drawJobs(){
   const bar=$('#background-jobs');if(!bar)return;
-  const active=S.jobs.filter(j=>['QUEUED','RUNNING'].includes(j.state)),recent=S.jobs.slice(0,6);
+  const active=S.jobs.filter(j=>['QUEUED','RUNNING'].includes(j.state)).sort((a,b)=>{const rank=j=>j.state==='RUNNING'?(j.kind==='OCR'?0:1):2;return rank(a)-rank(b)||String(b.created_at||'').localeCompare(String(a.created_at||''));});
+  const activeIds=new Set(active.map(j=>j.id)),recent=[...active,...S.jobs.filter(j=>!activeIds.has(j.id)).slice(0,6)];
   if(!recent.length){bar.classList.add('hidden');document.body.classList.remove('has-jobs');return;}
   bar.classList.remove('hidden');document.body.classList.add('has-jobs');
   $('#jobs-summary').innerHTML=`<button class="jobs-summary" data-job-action="expand"><span class="row gap6">${active.length?'<span class="tiny-spinner"></span>':icon('check')}<strong>${active.length?`${active.length} 个后台任务正在进行`:'后台任务已处理'}</strong><span class="muted small">切换页面或刷新后继续运行</span></span><span class="row gap6 small">查看进度 ${icon('chevron')}</span></button>`;
-  $('#jobs-list').innerHTML=recent.map(j=>{const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(j.stage||taskNames[j.state]||j.state)}${j.state==='RUNNING'?` · ${Number(j.progress||0)}/${Number(j.total||0)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${j.error_message?`<p class="small danger-text mt8">${esc(j.error_message)}</p>`:''}</div><span class="tag ${j.state==='SUCCEEDED'?'success':j.state==='FAILED'?'danger':'info'}">${esc(taskNames[j.state]||j.state)}</span>${j.state==='FAILED'?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join('');
+  $('#jobs-list').innerHTML=recent.map(j=>{const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row" data-job-id="${esc(j.id)}" data-job-kind="${esc(j.kind)}"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(waitingForOcr(j)?(j.stage?.includes('OCR')?j.stage:'等待OCR完成（原OCR任务继续执行）'):(j.stage||taskNames[j.state]||j.state))}${j.state==='RUNNING'?` · ${Number(j.progress||0)}/${Number(j.total||0)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${j.error_message?`<p class="small danger-text mt8">${esc(j.error_message)}</p>`:''}</div><span class="tag ${j.state==='SUCCEEDED'?'success':j.state==='FAILED'?'danger':'info'}">${esc(waitingForOcr(j)?'等待 OCR':taskNames[j.state]||j.state)}</span>${j.state==='FAILED'?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join('');
   $$('[data-item-progress]').forEach(el=>{const item=findItem(el.dataset.itemProgress);if(!item)return;const task=itemTask(item);el.className='tag '+task.color;el.innerHTML=(task.busy?'<span class="tiny-spinner"></span>':'')+esc(task.label);});
 }
 function findItem(id){return S.submissions.flatMap(g=>groupItems(g)).find(i=>i.id===id);}
@@ -133,7 +139,7 @@ async function handleWorkspaceAction(action,button){
 function uploadOrganizerModal(categoryId='',submissionId=null){
   if(!isStudent())return;
   S.uploadGroups=[];S.uploadSubmissionId=submissionId;S.uploadCategory=categoryId;S.uploading=false;
-  showModal('整理本次上传材料',`<div class="upload-organizer"><div class="organizer-intro"><span class="step-num">01</span><div><h3>先按小项整理文件</h3><p>每个主文件默认一个小项。若一个小项有多份支撑材料，请在对应行点击“补充附件”。此窗口不会进行 OCR。</p></div></div><div class="form-grid mt16"><div class="field"><label for="organizer-category">加分类别</label><select id="organizer-category" ${submissionId?'disabled':''}>${options(S.boot.categories,categoryId,'name','请选择加分类别')}</select></div><div class="field"><label>所属学年</label><div class="current-year-field">${esc(activeYear()?.name||'当前统计学年')} <span class="tag">管理员指定</span></div></div></div><label class="upload-zone mt16" id="organizer-drop">${icon('upload')}<p>选择主文件，每个文件建立一个加分小项</p><small>支持 PDF、JPG、JPEG、PNG，可一次选择多个文件</small><input type="file" id="organizer-main-files" class="hidden" accept=".pdf,.png,.jpg,.jpeg" multiple></label><div id="organizer-groups" class="mt16"></div><div class="notice mt16">${icon('clock')}<span>点击“确认上传”后才会上传文件并开始后台 OCR。完成后仍留在大类小项表格，可一键分析并逐项核对。</span></div></div>`,`<span class="hint" id="organizer-count">尚未选择文件</span><button class="btn" data-action="close-modal" id="organizer-cancel">取消</button><button class="btn primary" id="organizer-confirm" disabled>${icon('upload')}确认上传</button>`,true);
+  showModal('整理本次上传材料',`<div class="upload-organizer"><div class="organizer-intro"><span class="step-num">01</span><div><h3>先按小项整理文件</h3><p>每个主文件默认一个小项。若一个小项有多份支撑材料，请在对应行点击“补充附件”。此窗口不会进行 OCR。</p></div></div><div class="form-grid mt16"><div class="field"><label for="organizer-category">加分类别</label><select id="organizer-category" ${submissionId?'disabled':''}>${options(S.boot.categories,categoryId,'name','请选择加分类别')}</select></div><div class="field"><label>所属学年</label><div class="current-year-field">${esc(activeYear()?.name||'当前统计学年')} <span class="tag">管理员指定</span></div></div></div><label class="upload-zone mt16" id="organizer-drop">${icon('upload')}<p>选择主文件，每个文件建立一个加分小项</p><small>支持 PDF、JPG、JPEG、PNG · 单文件≤200MB，PDF≤500页 · 可一次多选</small><input type="file" id="organizer-main-files" class="hidden" accept=".pdf,.png,.jpg,.jpeg" multiple></label><div id="organizer-groups" class="mt16"></div><div class="notice mt16">${icon('clock')}<span>点击“确认上传”后才会上传文件并开始后台 OCR。完成后仍留在大类小项表格，可一键分析并逐项核对。</span></div></div>`,`<span class="hint" id="organizer-count">尚未选择文件</span><button class="btn" data-action="close-modal" id="organizer-cancel">取消</button><button class="btn primary" id="organizer-confirm" disabled>${icon('upload')}确认上传</button>`,true);
   $('#organizer-main-files').onchange=e=>{addMainFiles(Array.from(e.target.files));e.target.value='';};
   $('#organizer-category').onchange=e=>S.uploadCategory=e.target.value;
   const drop=$('#organizer-drop');drop.ondragover=e=>{e.preventDefault();drop.classList.add('dragover');};drop.ondragleave=()=>drop.classList.remove('dragover');drop.ondrop=e=>{e.preventDefault();drop.classList.remove('dragover');addMainFiles(Array.from(e.dataTransfer.files));};
@@ -149,7 +155,7 @@ function uploadOrganizerModal(categoryId='',submissionId=null){
   };
   $('#organizer-groups').onchange=e=>{if(!e.target.matches('[data-supplement-input]'))return;const g=S.uploadGroups.find(x=>x.id===e.target.dataset.supplementInput);if(g&&!g.confirmed){g.files.push(...validLocalFiles(Array.from(e.target.files)));drawOrganizer();}};
 }
-function validLocalFiles(files){return files.filter(f=>{if(!/\.(pdf|png|jpe?g)$/i.test(f.name)){toast(`${f.name}：仅支持 PDF / JPG / PNG`,true);return false;}return true;});}
+function validLocalFiles(files){return files.filter(f=>{if(!/\.(pdf|png|jpe?g)$/i.test(f.name)){toast(`${f.name}：仅支持 PDF / JPG / PNG`,true);return false;}if(f.size>200*1024*1024){toast(`${f.name}：单个文件不能超过200MB`,true);return false;}return true;});}
 function addMainFiles(files){if(S.uploading)return;for(const f of validLocalFiles(files))S.uploadGroups.push({id:crypto.randomUUID(),files:[f],uploaded:new Set(),applicationId:null,confirmed:false,error:''});drawOrganizer();}
 function drawOrganizer(){
   const el=$('#organizer-groups');if(!el)return;
@@ -220,7 +226,7 @@ async function enqueueItem(id,kind='AI',force=false){
   toast(kind==='OCR'?'OCR 已加入后台队列，可切换页面继续操作。':'AI 分析已加入后台队列，已有人工修改时仅生成建议。');await pollJobs(true);return result;
 }
 async function bulkAnalyze(button,submissionId=null){
-  await buttonTask(button,async()=>{if(S.workspaceDirty)await saveWorkspaceItem();const body={kind:'AI'};if(submissionId)body.submission_id=submissionId;const result=await api('/analysis-jobs/bulk',{method:'POST',body});toast(`已安排 ${result.jobs?.length||0} 项后台分析${result.skipped?.length?`，跳过 ${result.skipped.length} 项已分析或锁定项`:''}。人工稿仅生成建议，不覆盖已填写信息。`);await pollJobs(true);await refreshWorkspaceData();});
+  await buttonTask(button,async()=>{if(S.workspaceDirty)await saveWorkspaceItem();const body={kind:'AI'};if(submissionId)body.submission_id=submissionId;const result=await api('/analysis-jobs/bulk',{method:'POST',body});toast(`已安排 ${result.jobs?.length||0} 项后台分析${result.skipped?.length?`，跳过 ${result.skipped.length} 项已分析或锁定项`:''}。${(result.jobs||[]).some(waitingForOcr)?'原OCR继续执行，AI等待其完成。':''}人工稿仅生成建议，不覆盖已填写信息。`);await pollJobs(true);await refreshWorkspaceData();});
 }
 function showWorkspaceSuggestion(job){
   const out=$('#workspace-analysis-suggestion');if(!out)return;const result=job.result_json||{};const suggestion=result.suggestion||result.analysis?.result_json?.suggestion;const analysisId=result.analysis_id||result.analysis?.id;
@@ -240,7 +246,7 @@ function deleteItemModal(groupId,id){
   $('#confirm-delete-item').onclick=e=>buttonTask(e.currentTarget,async()=>{try{await api(`/submissions/${groupId}/items/${id}`,{method:'DELETE'});closeModal();S.checkedItems.delete(id);if(S.selectedItem===id)S.selectedItem=null;S.workspaceDirty=false;toast('小项已删除，历史记录保留。');await refreshWorkspaceData();}catch(err){modalError(err.message);}});
 }
 function supplementItemModal(id){
-  showModal('为此小项补充证明附件','<p class="small muted">选择的附件会归入当前小项，不创建其他小项。确认后上传并安排后台OCR。</p><div class="field mt16"><label for="supplement-files">补充附件</label><input id="supplement-files" type="file" accept=".pdf,.png,.jpg,.jpeg" multiple></div>',`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" id="supplement-confirm">确认补传</button>`);
+  showModal('为此小项补充证明附件','<p class="small muted">选择的附件会归入当前小项，不创建其他小项。单文件≤200MB，PDF≤500页。确认后上传并安排后台OCR。</p><div class="field mt16"><label for="supplement-files">补充附件</label><input id="supplement-files" type="file" accept=".pdf,.png,.jpg,.jpeg" multiple></div>',`<button class="btn" data-action="close-modal">取消</button><button class="btn primary" id="supplement-confirm">确认补传</button>`);
   $('#supplement-confirm').onclick=e=>buttonTask(e.currentTarget,async()=>{const files=validLocalFiles(Array.from($('#supplement-files').files));if(!files.length){modalError('请选择至少一份有效文件。');return;}try{if(S.workspaceDirty)await saveWorkspaceItem();for(const file of files){const body=new FormData();body.append('file',file);await api(`/applications/${id}/files`,{method:'POST',body});}await enqueueItem(id,'OCR',true);closeModal();await refreshWorkspaceData();toast('附件已归入此小项，OCR在后台继续。');}catch(err){modalError(err.message);}});
 }
 async function withdrawWorkspaceItem(id){

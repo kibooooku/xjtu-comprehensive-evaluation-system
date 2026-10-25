@@ -11,13 +11,19 @@ from .security import current_user
 
 router = APIRouter(prefix='/api', tags=['background recognition'])
 ACTIVE = {'QUEUED', 'RUNNING'}
+OCR_FINGERPRINT_KIND = 'OCR_FILES_V1'
+WAITING_FOR_OCR = '等待OCR完成（原OCR任务继续执行）'
 _workers = []
 
 
 def job_view(job):
     if not job:
         return None
-    return {k: v for k, v in job.items() if k not in ('worker_token',)}
+    result = {k: v for k, v in job.items() if k not in ('worker_token',)}
+    dependency = (job.get('result_json') or {}).get('wait_for_ocr_job_id')
+    result.update(wait_for_ocr_job_id=dependency,
+                  waiting_for_ocr=bool(dependency and job['state'] == 'QUEUED' and job['stage'] == WAITING_FOR_OCR))
+    return result
 
 
 def latest_jobs(conn, application_id):
@@ -53,16 +59,84 @@ def _context(conn, application_id, user):
     return context, revision
 
 
+def _normalize_queued_ocr(conn, job):
+    """Upgrade persisted V2 queue records; never replace/cancel a live OCR task.
+
+    A legacy queued task has not started reading material. Its current working
+    revision can safely supply the file-only snapshot; the old content snapshot
+    stays in metadata for legacy AI dependency matching.
+    """
+    if job['kind'] != 'OCR' or job['state'] != 'QUEUED':
+        return job
+    meta = dict(job.get('result_json') or {})
+    if meta.get('fingerprint_kind') == OCR_FINGERPRINT_KIND:
+        return job
+    application = db.one(conn, 'applications', job['application_id'])
+    revision = db.one(conn, 'application_revisions', job['input_revision_id'])
+    if not application or not revision or application['working_revision_id'] != revision['id']:
+        return job
+    from .materials import ocr_input_fingerprint
+    meta.update(fingerprint_kind=OCR_FINGERPRINT_KIND,
+                legacy_content_input_fingerprint=job['input_fingerprint'],
+                content_input_fingerprint=job['input_fingerprint'])
+    return db.change(conn, 'background_jobs', job['id'], input_fingerprint=ocr_input_fingerprint(conn, revision), result_json=meta)
+
+
+def _new_ocr(conn, application_id, user, revision, content_fingerprint, files_fingerprint, total, force=False):
+    return db.add(conn, 'background_jobs', application_id=application_id, owner_id=user['id'], kind='OCR',
+                  state='QUEUED', stage='排队等待OCR', progress=0, total=total,
+                  input_revision_id=revision['id'], input_fingerprint=files_fingerprint,
+                  result_json={'auto_apply': not force and _pristine(conn, revision),
+                               'fingerprint_kind': OCR_FINGERPRINT_KIND,
+                               'content_input_fingerprint': content_fingerprint}, force=bool(force), attempts=0)
+
+
+def _matching_ocr(job, revision, content_fingerprint, files_fingerprint):
+    if job['input_revision_id'] != revision['id']:
+        return False
+    meta = job.get('result_json') or {}
+    if meta.get('fingerprint_kind') == OCR_FINGERPRINT_KIND:
+        return job['input_fingerprint'] == files_fingerprint
+    if meta.get('ocr_fingerprint'):
+        return meta['ocr_fingerprint'] == files_fingerprint
+    return content_fingerprint in (job['input_fingerprint'], meta.get('output_fingerprint'))
+
+
+def _dependency_for_enqueue(conn, application_id, revision, content_fingerprint, files_fingerprint):
+    all_ocr = sorted(db.rows(conn, 'background_jobs', application_id=application_id, kind='OCR'), key=lambda j: j['created_at'])
+    all_ocr = [_normalize_queued_ocr(conn, j) for j in all_ocr]
+    matching = [j for j in all_ocr if _matching_ocr(j, revision, content_fingerprint, files_fingerprint)]
+    active = [j for j in matching if j['state'] in ACTIVE]
+    if active:
+        return active[-1]
+    if matching and matching[-1]['state'] == 'SUCCEEDED':
+        return matching[-1]
+    # AI never turns a failed/stale OCR dependency into an implicit cloud retry.
+    if matching and matching[-1]['state'] in ('FAILED', 'STALE'):
+        raise HTTPException(409, '该小项OCR未成功，请先重试OCR；成功后再开始AI分析')
+    if any(j['state'] in ACTIVE for j in all_ocr):
+        raise HTTPException(409, '该小项OCR正在处理其他材料版本，请等待其结束后重试OCR，不会中断原任务')
+    if all_ocr and all_ocr[-1]['state'] in ('FAILED', 'STALE'):
+        raise HTTPException(409, '该小项此前OCR未成功，请先明确重试OCR，不会自动重新调用识别服务')
+    return None
+
+
 def enqueue(application_id, user, kind='AI', force=False):
-    from .materials import revision_fingerprint
+    from .materials import ocr_input_fingerprint, revision_fingerprint
     if kind not in ('OCR', 'AI'):
         raise HTTPException(400, '任务类型无效')
     with db.write() as conn:
         context, revision = _context(conn, application_id, user)
-        fingerprint = revision_fingerprint(conn, revision)
+        content_fingerprint = revision_fingerprint(conn, revision)
+        files_fingerprint = ocr_input_fingerprint(conn, revision)
+        fingerprint = files_fingerprint if kind == 'OCR' else content_fingerprint
         previous = sorted(db.rows(conn, 'background_jobs', application_id=application_id, kind=kind), key=lambda j: j['created_at'])
+        if kind == 'OCR':
+            previous = [_normalize_queued_ocr(conn, j) for j in previous]
         for job in reversed(previous):
             if job['input_revision_id'] == revision['id'] and job['input_fingerprint'] == fingerprint and job['state'] in ACTIVE:
+                if kind == 'AI' and job['state'] == 'QUEUED':
+                    job = _ensure_dependency(conn, job)
                 return job_view(job)
         if not force:
             for job in reversed(previous):
@@ -78,10 +152,18 @@ def enqueue(application_id, user, kind='AI', force=False):
                 if current_files <= old_files:
                     raise HTTPException(409, '该小项已经分析完成；可单独重新分析获取建议')
         pages = [p for f in db.rows(conn, 'revision_files', revision_id=revision['id']) for p in db.rows(conn, 'file_pages', file_id=f['file_id'])]
+        total = max(len(pages) * 2, 1)
+        if kind == 'OCR':
+            return job_view(_new_ocr(conn, application_id, user, revision, content_fingerprint, files_fingerprint, total, force))
+        dependency = _dependency_for_enqueue(conn, application_id, revision, content_fingerprint, files_fingerprint)
+        if dependency is None:
+            dependency = _new_ocr(conn, application_id, user, revision, content_fingerprint, files_fingerprint, total)
         return job_view(db.add(conn, 'background_jobs', application_id=application_id, owner_id=user['id'], kind=kind,
-                              state='QUEUED', stage='排队等待OCR' if kind == 'OCR' else '排队等待AI分析',
-                              progress=0, total=max(len(pages) * 2, 1), input_revision_id=revision['id'],
-                              input_fingerprint=fingerprint, result_json={'auto_apply': not force and _pristine(conn, revision)},
+                              state='QUEUED', stage=WAITING_FOR_OCR if dependency['state'] in ACTIVE else '排队等待AI分析（OCR已完成）',
+                              progress=0, total=total, input_revision_id=revision['id'],
+                              input_fingerprint=fingerprint, result_json={'auto_apply': not force and _pristine(conn, revision),
+                                                                         'wait_for_ocr_job_id': dependency['id'],
+                                                                         'ocr_input_fingerprint': files_fingerprint},
                               force=bool(force), attempts=0))
 
 
@@ -140,7 +222,7 @@ def bulk_jobs(payload: dict | None = None, user=Depends(current_user)):
 
 
 def _snapshot_valid(conn, job):
-    from .materials import revision_fingerprint
+    from .materials import ocr_input_fingerprint, revision_fingerprint
     application = db.one(conn, 'applications', job['application_id'])
     if not application or application.get('archived_at') or application['working_revision_id'] != job['input_revision_id']:
         return False
@@ -154,28 +236,190 @@ def _snapshot_valid(conn, job):
     if not item or not item['confirmed_at'] or item['deleted_at']:
         return False
     revision = db.one(conn, 'application_revisions', job['input_revision_id'])
-    return bool(revision and revision_fingerprint(conn, revision) == job['input_fingerprint'])
+    if not revision:
+        return False
+    if job['kind'] == 'OCR' and (job.get('result_json') or {}).get('fingerprint_kind') == OCR_FINGERPRINT_KIND:
+        return ocr_input_fingerprint(conn, revision) == job['input_fingerprint']
+    return revision_fingerprint(conn, revision) == job['input_fingerprint']
 
 
-def process_job(job_id):
+def _fail_dependency(conn, job, message, dependency=None):
+    meta = {**(job.get('result_json') or {}), 'dependency_failed': True,
+            'ocr_dependency_state': dependency['state'] if dependency else 'MISSING'}
+    return db.change(conn, 'background_jobs', job['id'], state='FAILED', stage=message,
+                     result_json=meta, error_message=message, finished_at=db.now(), worker_token=None)
+
+
+def _ensure_dependency(conn, job):
+    """Attach persisted legacy AI jobs without superseding a running OCR."""
+    if job['kind'] != 'AI':
+        return job
+    from .materials import ocr_input_fingerprint, revision_fingerprint
+    revision = db.one(conn, 'application_revisions', job['input_revision_id'])
+    if not revision:
+        return job
+    meta = dict(job.get('result_json') or {})
+    dependency = db.one(conn, 'background_jobs', meta.get('wait_for_ocr_job_id'))
+    current_full = revision_fingerprint(conn, revision)
+    files_fingerprint = ocr_input_fingerprint(conn, revision)
+    # A newer explicit OCR request for the same sources must also finish before
+    # this queued AI job runs. Multiple workers never race it for the same item.
+    active = [_normalize_queued_ocr(conn, j) for j in db.rows(conn, 'background_jobs', application_id=job['application_id'], kind='OCR') if j['state'] in ACTIVE]
+    active = sorted((j for j in active if _matching_ocr(j, revision, current_full, files_fingerprint)), key=lambda j: j['created_at'])
+    if active:
+        dependency = active[-1]
+    elif not dependency:
+        matches = [j for j in db.rows(conn, 'background_jobs', application_id=job['application_id'], kind='OCR')
+                   if _matching_ocr(j, revision, current_full, files_fingerprint)]
+        dependency = max(matches, key=lambda j: j['created_at']) if matches else None
+    if not dependency:
+        if not _snapshot_valid(conn, job):
+            return db.change(conn, 'background_jobs', job['id'], state='STALE', stage='内容已修改，原AI请求失效', finished_at=db.now())
+        prior_ocr = sorted(db.rows(conn, 'background_jobs', application_id=job['application_id'], kind='OCR'), key=lambda j: j['created_at'])
+        if prior_ocr and (prior_ocr[-1]['state'] in ACTIVE or prior_ocr[-1]['state'] in ('FAILED', 'STALE')):
+            return _fail_dependency(conn, job, '现有OCR未成功或材料版本不同，AI未开始；请先重试OCR', prior_ocr[-1])
+        owner = db.one(conn, 'users', job['owner_id'])
+        if not owner or owner['status'] != 'ACTIVE':
+            return db.change(conn, 'background_jobs', job['id'], state='STALE', stage='账号已停用', finished_at=db.now())
+        pages = [p for attachment in db.rows(conn, 'revision_files', revision_id=revision['id'])
+                 for p in db.rows(conn, 'file_pages', file_id=attachment['file_id'])]
+        dependency = _new_ocr(conn, job['application_id'], owner, revision, current_full, files_fingerprint, max(2 * len(pages), 1))
+    if dependency:
+        updated = {**meta, 'wait_for_ocr_job_id': dependency['id'],
+                   'ocr_input_fingerprint': meta.get('ocr_input_fingerprint') or files_fingerprint}
+        stage = WAITING_FOR_OCR if dependency['state'] in ACTIVE else job['stage']
+        if updated != meta or stage != job['stage']:
+            job = db.change(conn, 'background_jobs', job['id'], result_json=updated, stage=stage)
+    return job
+
+
+def _dependency_ready(conn, job):
+    if job['kind'] != 'AI':
+        return True
+    meta = job.get('result_json') or {}
+    dependency_id = meta.get('wait_for_ocr_job_id')
+    if not dependency_id:
+        _fail_dependency(conn, job, '缺少可复用的OCR任务，AI未开始；请先重试OCR')
+        return False
+    dependency = db.one(conn, 'background_jobs', dependency_id)
+    if not dependency or dependency['kind'] != 'OCR' or dependency['application_id'] != job['application_id']:
+        _fail_dependency(conn, job, '原OCR任务不存在，AI未开始；请先重试OCR', dependency)
+        return False
+    if dependency['state'] in ACTIVE:
+        if job['stage'] != WAITING_FOR_OCR:
+            db.change(conn, 'background_jobs', job['id'], stage=WAITING_FOR_OCR)
+        return False
+    if dependency['state'] != 'SUCCEEDED':
+        _fail_dependency(conn, job, 'OCR未成功，AI未开始；请先重试OCR后重试AI', dependency)
+        return False
+    revision = db.one(conn, 'application_revisions', job['input_revision_id'])
+    from .materials import ocr_input_fingerprint
+    if not revision or not _matching_ocr(dependency, revision, job['input_fingerprint'], ocr_input_fingerprint(conn, revision)):
+        _fail_dependency(conn, job, 'OCR材料版本已变更，AI未开始；请先重试OCR', dependency)
+        return False
+    return True
+
+
+def _claim_next(conn, worker_token):
+    pending = sorted(db.rows(conn, 'background_jobs', state='QUEUED'), key=lambda j: (j['created_at'], j['id']))
+    for candidate in pending:
+        job = _normalize_queued_ocr(conn, candidate)
+        job = _ensure_dependency(conn, job)
+        if job['state'] != 'QUEUED':
+            continue
+        if not _dependency_ready(conn, job):
+            continue
+        if job['kind'] == 'OCR' and any(other['id'] != job['id'] for other in db.rows(conn, 'background_jobs', application_id=job['application_id'], kind='OCR', state='RUNNING')):
+            continue
+        user = db.one(conn, 'users', job['owner_id'])
+        if not user or user['status'] != 'ACTIVE' or not _snapshot_valid(conn, job):
+            db.change(conn, 'background_jobs', job['id'], state='STALE', stage='材料或学年已变更', finished_at=db.now())
+            continue
+        return db.change(conn, 'background_jobs', job['id'], state='RUNNING',
+                         stage='AI准备（OCR已完成）' if job['kind'] == 'AI' and (job.get('result_json') or {}).get('wait_for_ocr_job_id') else job['stage'],
+                         started_at=db.now(), heartbeat_at=db.now(), worker_token=worker_token,
+                         attempts=job['attempts'] + 1)
+    return None
+
+
+def _advance_waiting_ai(conn, ocr_job, before_fingerprint, after_fingerprint):
+    """Called inside the crop transaction: no f0/f1 enqueue race can exist."""
+    for queued in db.rows(conn, 'background_jobs', application_id=ocr_job['application_id'], kind='AI', state='QUEUED'):
+        if queued['input_revision_id'] != ocr_job['input_revision_id'] or queued['input_fingerprint'] != before_fingerprint:
+            continue
+        meta = dict(queued.get('result_json') or {})
+        if meta.get('wait_for_ocr_job_id') not in (None, ocr_job['id']):
+            continue
+        meta['wait_for_ocr_job_id'] = ocr_job['id']
+        meta['ocr_input_fingerprint'] = ocr_job['input_fingerprint']
+        db.change(conn, 'background_jobs', queued['id'], input_fingerprint=after_fingerprint,
+                  result_json=meta, stage=WAITING_FOR_OCR)
+
+
+def _ocr_result_for_ai(conn, job):
+    dependency_id = (job.get('result_json') or {}).get('wait_for_ocr_job_id')
+    if not dependency_id:
+        return None
+    dependency = db.one(conn, 'background_jobs', dependency_id)
+    if not dependency or dependency['state'] != 'SUCCEEDED':
+        raise HTTPException(409, 'OCR尚未成功，AI不会重新调用OCR')
+    result = dict(dependency.get('result_json') or {})
+    # OCR owns source bytes; AI owns the latest user-requested content snapshot.
+    # A title/score correction does not invalidate already recognised text.
+    result.update(input_revision_id=job['input_revision_id'], input_fingerprint=job['input_fingerprint'])
+    from .materials import ocr_input_fingerprint
+    revision = db.one(conn, 'application_revisions', job['input_revision_id'])
+    result['ocr_fingerprint'] = ocr_input_fingerprint(conn, revision)
+    return result
+
+
+def process_job(job_id, worker_token=None):
     """Process one already-claimed job; callable directly by deterministic tests."""
     from . import materials
-    with db.read() as conn:
+    with db.write() as conn:
         job = db.one(conn, 'background_jobs', job_id)
+        if not job or job['state'] not in ACTIVE:
+            return
+        job = _normalize_queued_ocr(conn, job)
+        job = _ensure_dependency(conn, job)
+        if job['state'] not in ACTIVE:
+            return
+        # Check a changed AI draft before deferring to OCR. It must never be
+        # brought back to life after the user has edited or deleted it.
+        if job['kind'] == 'AI' and not _snapshot_valid(conn, job):
+            db.change(conn, 'background_jobs', job_id, state='STALE', stage='内容已修改，原AI请求失效', finished_at=db.now())
+            return
+        if not _dependency_ready(conn, job):
+            if job['state'] == 'RUNNING':
+                latest = db.one(conn, 'background_jobs', job_id)
+                if latest['state'] == 'RUNNING':
+                    db.change(conn, 'background_jobs', job_id, state='QUEUED', worker_token=None)
+            return
         user = db.one(conn, 'users', job['owner_id']) if job else None
         valid = bool(job and user and user['status'] == 'ACTIVE' and _snapshot_valid(conn, job))
-    if not valid:
-        with db.write() as conn:
-            if job:
-                db.change(conn, 'background_jobs', job_id, state='STALE', stage='材料或学年已变更', finished_at=db.now())
-        return
+        if not valid:
+            db.change(conn, 'background_jobs', job_id, state='STALE', stage='材料或学年已变更', finished_at=db.now())
+            return
+        if job['state'] == 'RUNNING':
+            if not worker_token or job.get('worker_token') != worker_token:
+                return
+        else:
+            worker_token = worker_token or f'{os.getpid()}:direct:{db.uid()}'
+            job = db.change(conn, 'background_jobs', job_id, state='RUNNING', started_at=db.now(),
+                            heartbeat_at=db.now(), worker_token=worker_token, attempts=job['attempts'] + 1)
+        ocr_result = _ocr_result_for_ai(conn, job) if job['kind'] == 'AI' else None
 
     def progress(stage, done, total):
         with db.write() as conn:
             db.change(conn, 'background_jobs', job_id, stage=str(stage)[:150], progress=int(done), total=max(int(total), 1), heartbeat_at=db.now())
 
     try:
-        result = materials.run_ocr(job['application_id'], user, progress) if job['kind'] == 'OCR' else materials.run_ai(job['application_id'], user, progress)
+        if job['kind'] == 'OCR':
+            result = materials.run_ocr(job['application_id'], user, progress)
+        elif ocr_result is not None:
+            result = materials.run_ai(job['application_id'], user, progress, ocr_result=ocr_result)
+        else:
+            result = materials.run_ai(job['application_id'], user, progress)
         with db.read() as conn:
             valid = _snapshot_valid(conn, job)
         succeeded = result.get('status') == 'SUCCEEDED'
@@ -187,15 +431,17 @@ def process_job(job_id):
         else:
             state, stage = 'SUCCEEDED', 'OCR完成' if job['kind'] == 'OCR' else 'AI分析完毕'
             if job['kind'] == 'OCR':
-                materials.apply_ocr_evidence(job['application_id'], user, result, expected_fingerprint=job['input_fingerprint'])
+                def on_applied(conn, before_fp, after_fp):
+                    _advance_waiting_ai(conn, job, before_fp, after_fp)
+                material_mode = (job.get('result_json') or {}).get('fingerprint_kind') == OCR_FINGERPRINT_KIND
+                applied = materials.apply_ocr_evidence(job['application_id'], user, result,
+                                                     expected_fingerprint=None if material_mode else job['input_fingerprint'],
+                                                     expected_ocr_fingerprint=job['input_fingerprint'] if material_mode else None,
+                                                     on_applied=on_applied)
                 with db.write() as conn:
                     revision = db.one(conn, 'application_revisions', job['input_revision_id'])
-                    new_fingerprint = materials.revision_fingerprint(conn, revision)
+                    new_fingerprint = (applied or {}).get('fingerprint') or materials.revision_fingerprint(conn, revision)
                     output['output_fingerprint'] = new_fingerprint
-                    # Only this exact system-generated crop update may advance queued AI snapshots.
-                    for queued in db.rows(conn, 'background_jobs', application_id=job['application_id'], kind='AI', state='QUEUED'):
-                        if queued['input_revision_id'] == job['input_revision_id'] and queued['input_fingerprint'] == job['input_fingerprint']:
-                            db.change(conn, 'background_jobs', queued['id'], input_fingerprint=new_fingerprint)
             elif output.get('auto_apply') and not job['force']:
                 analysis_id = result.get('analysis_id') or (result.get('analysis') or {}).get('id')
                 materials.apply_analysis(job['application_id'], {'analysis_id': analysis_id}, user)
@@ -227,7 +473,32 @@ def _process_alive(token):
         pid = int(str(token).split(':', 1)[0])
         if pid <= 0:
             return False
+        if pid == os.getpid():
+            return True
+        if os.name == 'nt':
+            # On Windows signal 0 is CTRL_C_EVENT, not a harmless POSIX probe.
+            # Never use os.kill for liveness: it can interrupt live OCR workers.
+            import ctypes
+            from ctypes import wintypes
+            kernel = ctypes.WinDLL('kernel32', use_last_error=True)
+            kernel.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+            kernel.OpenProcess.restype = wintypes.HANDLE
+            kernel.GetExitCodeProcess.argtypes = (wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD))
+            kernel.GetExitCodeProcess.restype = wintypes.BOOL
+            kernel.CloseHandle.argtypes = (wintypes.HANDLE,)
+            handle = kernel.OpenProcess(0x1000, False, pid)  # PROCESS_QUERY_LIMITED_INFORMATION
+            if not handle:
+                return ctypes.get_last_error() == 5  # Access denied is not proof of death.
+            try:
+                code = wintypes.DWORD()
+                if not kernel.GetExitCodeProcess(handle, ctypes.byref(code)):
+                    return ctypes.get_last_error() == 5
+                return code.value == 259
+            finally:
+                kernel.CloseHandle(handle)
         os.kill(pid, 0)
+        return True
+    except PermissionError:
         return True
     except (ValueError, TypeError, OSError):
         return False
@@ -248,6 +519,10 @@ class JobWorker:
                     retry = job['attempts'] < 2
                     db.change(conn, 'background_jobs', job['id'], state='QUEUED' if retry else 'FAILED',
                               stage='恢复中断的任务' if retry else '服务中断，请手动重试', worker_token=None)
+            for job in db.rows(conn, 'background_jobs', kind='OCR', state='QUEUED'):
+                _normalize_queued_ocr(conn, job)
+            for job in db.rows(conn, 'background_jobs', kind='AI', state='QUEUED'):
+                _ensure_dependency(conn, job)
         _workers.append(self)
         self.thread.start()
 
@@ -260,13 +535,9 @@ class JobWorker:
     def run(self):
         while not self.stop_event.is_set() and self.engine is db.engine:
             with db.write() as conn:
-                pending = sorted(db.rows(conn, 'background_jobs', state='QUEUED'), key=lambda j: j['created_at'])
-                job = pending[0] if pending else None
-                if job:
-                    db.change(conn, 'background_jobs', job['id'], state='RUNNING', started_at=db.now(),
-                              heartbeat_at=db.now(), worker_token=self.token, attempts=job['attempts'] + 1)
+                job = _claim_next(conn, self.token)
             if job:
-                process_job(job['id'])
+                process_job(job['id'], worker_token=self.token)
             else:
                 self.stop_event.wait(.35)
 

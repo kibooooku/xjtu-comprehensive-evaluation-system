@@ -19,11 +19,12 @@ from sqlalchemy import and_, delete, func, select
 from . import db
 from .db import add, change, money, now, one, rows, tables, uid
 from .integrations import ProviderError, configuration, deepseek_suggestion, tencent_ocr
+from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES
 from .security import current_user, require
 
 router = APIRouter(prefix="/api")
-MAX_UPLOAD_BYTES = 20 * 1024 * 1024
-MAX_PAGES = 60
+MAX_UPLOAD_BYTES = MAX_ATTACHMENT_BYTES
+MAX_PAGES = MAX_ATTACHMENT_PAGES
 MAX_PAGE_PIXELS = 36_000_000
 REDACTION_VERSION = "student-number-v1"
 PDF_LOCK = threading.Lock()
@@ -59,7 +60,7 @@ def render_upload(content: bytes, filename: str) -> tuple[str, list[bytes]]:
     if suffix not in (".pdf", ".jpg", ".jpeg", ".png"):
         raise HTTPException(400, "仅支持 PDF、JPG、JPEG、PNG 文件。")
     if not content or len(content) > MAX_UPLOAD_BYTES:
-        raise HTTPException(400, "每个文件需大于0字节且不超过20MB。")
+        raise HTTPException(400, "每个文件需大于0字节且不超过200MB。")
     pages = []
     if suffix == ".pdf":
         if not content.startswith(b"%PDF-"):
@@ -461,6 +462,21 @@ def revision_fingerprint(conn, revision: dict) -> str:
     return hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
+def ocr_input_fingerprint(conn, revision: dict) -> str:
+    """An OCR task depends on source pages, not a student's title, score or crops."""
+    attachments = sorted(rows(conn, "revision_files", revision_id=revision["id"]), key=lambda item: (item["sort_order"], item["id"]))
+    sources = []
+    for attachment in attachments:
+        file = one(conn, "file_objects", attachment["file_id"])
+        pages = sorted(rows(conn, "file_pages", file_id=file["id"]), key=lambda page: (page["page_index"], page["id"]))
+        sources.append({
+            "file_id": file["id"], "sha256": file["sha256"], "byte_size": file["byte_size"],
+            "mime_type": file["mime_type"], "sort_order": attachment["sort_order"],
+            "pages": [{key: page[key] for key in ("id", "page_index", "render_version", "render_sha256", "width_px", "height_px", "rotation_degrees")} for page in pages],
+        })
+    return hashlib.sha256(json.dumps({"revision_id": revision["id"], "sources": sources}, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
+
+
 def _usage(conn, action: str) -> int:
     month = now()[:7]
     table = tables["recognition_runs"]
@@ -635,6 +651,7 @@ def activity_title_supported(title: str, texts: list[dict], activities: list[dic
 
 def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, activity_names: list[str] | None = None) -> list[dict]:
     result = []
+    last_seals = {}
     activity_names = activity_names or []
     for page in pages:
         file = one(conn, "file_objects", page["file_id"])
@@ -648,14 +665,21 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
             if region["kind"] == "TEXT" and _name_region(text, activity_names):
                 kinds.append("NAME")
             for kind in kinds:
-                if len([item for item in result if item.get("validity_kind") == kind]) >= 4:
+                if kind != "SEAL" and len([item for item in result if item.get("validity_kind") == kind]) >= 4:
                     continue
                 x, y, w, h = polygon_box(region["polygon_json"])
                 left, top = max(0, x - 10), max(0, y - 8)
                 right, bottom = min(page["width_px"], x + w + 10), min(page["height_px"], y + h + 8)
                 if right - left < 2 or bottom - top < 2:
                     continue
-                result.append({"page_id": page["id"], "file_name": file["original_name"], "page_number": page["page_index"], "evidence_type": "VALIDITY", "validity_kind": kind, "box": [left, top, right - left, bottom - top], "region_id": region["id"]})
+                suggestion = {"page_id": page["id"], "file_name": file["original_name"], "page_number": page["page_index"], "evidence_type": "VALIDITY", "validity_kind": kind, "box": [left, top, right - left, bottom - top], "region_id": region["id"]}
+                if kind == "SEAL":
+                    order = (page["page_index"], y, x)
+                    if file["id"] not in last_seals or order > last_seals[file["id"]][0]:
+                        last_seals[file["id"]] = (order, suggestion)
+                else:
+                    result.append(suggestion)
+    result.extend(value[1] for value in last_seals.values())
     matches = identity_matches(conn, pages, student, student_user, class_name)
     if matches:
         primary = matches[0]
@@ -670,6 +694,40 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
                 other.append(match)
         result.append({"page_id": page["id"], "file_name": primary["file_name"], "page_number": page["page_index"], "evidence_type": "PARTICIPATION", "box": box, "region_id": primary["region_id"], "highlights": highlights, "other_matches": other, "layout_version": "context-quarter-v2"})
     return result
+
+
+def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
+    """Normalize persisted V2 results too; provider array order never defines 'last'."""
+    normalized, last = [], {}
+    for index, item in enumerate(suggestions):
+        item = dict(item)
+        region = one(conn, "recognition_regions", item.get("region_id")) if item.get("region_id") else None
+        if item.get("evidence_type") == "VALIDITY" and (item.get("validity_kind") == "SEAL" or (region and region["kind"] == "SEAL")):
+            item["validity_kind"] = "SEAL"
+            page = one(conn, "file_pages", item.get("page_id"))
+            if page:
+                box = polygon_box(region["polygon_json"]) if region else item.get("box", [0, 0, 0, 0])
+                order = (page["page_index"], box[1], box[0])
+                if page["file_id"] not in last or order > last[page["file_id"]][0]:
+                    last[page["file_id"]] = (order, index)
+        normalized.append(item)
+    selected = {value[1] for value in last.values()}
+    return [item for index, item in enumerate(normalized) if item.get("validity_kind") != "SEAL" or index in selected]
+
+
+def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[dict]:
+    """Re-derive existing successful OCR, including old jobs, without making any cloud call."""
+    pages = []
+    for page_id in result.get("page_ids", []):
+        page = one(conn, "file_pages", page_id)
+        if page and one(conn, "revision_files", revision_id=revision["id"], file_id=page["file_id"]):
+            pages.append(page)
+    if pages and any(_page_regions(conn, page) for page in pages):
+        names = [activity["canonical_name"] for activity in rows(conn, "activities", status="ACTIVE")]
+        if specific_activity_title(revision.get("title", "")):
+            names.append(revision["title"])
+        return _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], names)
+    return _last_seal_suggestions(conn, result.get("suggested_crops", []))
 
 
 @router.post("/applications/{application_id}/analyze")
@@ -700,7 +758,8 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
     config = _config or configuration()
     with db.write() as conn:
         context, revision, pages, fingerprint = _recognition_snapshot(conn, application_id, user, config)
-    common = {"application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "page_ids": [p["id"] for p in pages]}
+        source_fingerprint = ocr_input_fingerprint(conn, revision)
+    common = {"application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "ocr_fingerprint": source_fingerprint, "page_ids": [p["id"] for p in pages]}
     if not config["enabled"]:
         return {**common, "status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。", "suggested_crops": [], "run_ids": [], "warnings": []}
     warnings = []
@@ -763,7 +822,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
     return {**common, "status": "SUCCEEDED" if has_text else "MANUAL_REQUIRED", "run_ids": [run["id"] for run in ocr_runs], "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": "OCR已完成，请核对原页定位；识别结果不作为材料真实性结论。" if has_text else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
 
 
-def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_fingerprint=None) -> dict:
+def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_fingerprint=None, on_applied=None, expected_ocr_fingerprint=None) -> dict:
     """Apply evidence only after the worker rechecks the exact immutable input snapshot."""
     from .submissions import assert_confirmed
     with db.write() as conn:
@@ -771,22 +830,31 @@ def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_f
         assert_confirmed(conn, application_id)
         fingerprint = revision_fingerprint(conn, revision)
         expected = expected_fingerprint or result.get("input_fingerprint")
-        if result.get("input_revision_id") != revision["id"] or fingerprint != expected:
+        if expected_ocr_fingerprint is not None:
+            valid_input = bool(expected_ocr_fingerprint and result.get("ocr_fingerprint") == expected_ocr_fingerprint and ocr_input_fingerprint(conn, revision) == expected_ocr_fingerprint)
+        else:
+            valid_input = fingerprint == expected
+        if result.get("input_revision_id") != revision["id"] or not valid_input:
             raise HTTPException(409, "OCR期间材料或内容已变动，建议保留但不会覆盖现稿。")
         existing = rows(conn, "evidence_crops", revision_id=revision["id"])
         if (revision.get("payload_json") or {}).get("evidence_manually_edited") or any(crop["source"] == "STUDENT" for crop in existing):
+            if on_applied:
+                on_applied(conn, fingerprint, fingerprint)
             return {"fingerprint": fingerprint, "input_revision_id": revision["id"], "applied": False, "message": "保留学生已手动调整的截图。"}
         for crop in existing:
             if crop["source"] == "AI":
                 conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
-        _apply_evidence(conn, revision, result.get("suggested_crops", []))
+        _apply_evidence(conn, revision, _result_evidence(conn, context, revision, result))
         _touch(conn, context["application"])
         updated = one(conn, "application_revisions", revision["id"])
-        return {"fingerprint": revision_fingerprint(conn, updated), "input_revision_id": revision["id"], "applied": True}
+        after_fingerprint = revision_fingerprint(conn, updated)
+        if on_applied:
+            on_applied(conn, fingerprint, after_fingerprint)
+        return {"fingerprint": after_fingerprint, "before_fingerprint": fingerprint, "input_revision_id": revision["id"], "applied": True}
 
 
-def run_ai(application_id: str, user: dict, progress=None) -> dict:
-    return _analyze(application_id, user, configuration(), progress)
+def run_ai(application_id: str, user: dict, progress=None, ocr_result=None) -> dict:
+    return _analyze(application_id, user, configuration(), progress, ocr_result=ocr_result)
 
 
 def _mark_manual_evidence(conn, revision: dict):
@@ -796,8 +864,28 @@ def _mark_manual_evidence(conn, revision: dict):
 
 
 def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
+    suggestions = _last_seal_suggestions(conn, suggestions)
     existing = rows(conn, "evidence_crops", revision_id=revision["id"])
     manual_evidence = (revision.get("payload_json") or {}).get("evidence_manually_edited")
+    if not manual_evidence:
+        desired_seals = {}
+        for suggestion in suggestions:
+            if suggestion.get("validity_kind") == "SEAL":
+                page = one(conn, "file_pages", suggestion["page_id"])
+                if page:
+                    desired_seals[page["file_id"]] = (page["id"], suggestion["box"])
+        for crop in list(existing):
+            if crop["source"] != "AI":
+                continue
+            metadata = (crop.get("masks_json") or {}).get("evidence") or {}
+            region = one(conn, "recognition_regions", crop["recognition_region_id"]) if crop.get("recognition_region_id") else None
+            if metadata.get("validity_kind") != "SEAL" and not (region and region["kind"] == "SEAL"):
+                continue
+            page = one(conn, "file_pages", crop["page_id"])
+            wanted = desired_seals.get(page["file_id"])
+            if wanted and (page["id"], polygon_box(crop["polygon_json"])) != wanted:
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+                existing.remove(crop)
     for item in sorted(suggestions, key=lambda item: item.get("evidence_type") != "PARTICIPATION")[:25]:
         if manual_evidence:
             break  # Explicitly preserve a student's additions, removals and adjustments.
@@ -813,14 +901,18 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
         existing.append(crop)
 
 
-def _analyze(application_id: str, user: dict, config: dict, progress=None) -> dict:
-    ocr = run_ocr(application_id, user, progress, _config=config)
+def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_result=None) -> dict:
+    ocr = ocr_result if ocr_result is not None else run_ocr(application_id, user, progress, _config=config)
     if ocr["status"] != "SUCCEEDED":
         return ocr
     with db.write() as conn:
         context, revision = _editable(conn, application_id, user)
         if revision["id"] != ocr["input_revision_id"] or revision_fingerprint(conn, revision) != ocr["input_fingerprint"]:
             raise HTTPException(409, "识别期间填写内容或附件已变更，本次不再生成覆盖现稿的AI结果。")
+        if ocr.get("application_id", application_id) != application_id or (ocr.get("ocr_fingerprint") and ocr["ocr_fingerprint"] != ocr_input_fingerprint(conn, revision)):
+            raise HTTPException(409, "OCR结果对应的材料来源已变更，请重新识别。")
+        if not config["enabled"]:
+            return {"status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。"}
         pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
         rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
         analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
@@ -860,9 +952,10 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None) -> di
         suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "suggested_crops": evidence}
     except (ProviderError, InvalidOperation, ValueError, TypeError, HTTPException) as error:
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
+        error_code = error.code if isinstance(error, ProviderError) else "InvalidSuggestion"
         with db.write() as conn:
-            change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={"message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence})
-        return {"status": "MANUAL_REQUIRED", "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
+            change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={"error_code": error_code, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence})
+        return {"status": "MANUAL_REQUIRED", "error_code": error_code, "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
     with db.write() as conn:
         change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={"suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
     if progress:

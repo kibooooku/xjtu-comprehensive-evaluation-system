@@ -58,7 +58,7 @@ def configuration() -> dict:
         "deepseek_model": pick("DEEPSEEK_MODEL", default="deepseek-flash"),
         "general_limit": limit("OCR_GENERAL_MONTHLY_LIMIT", 100),
         "seal_limit": limit("OCR_SEAL_MONTHLY_LIMIT", 100),
-        "max_analysis_pages": max(1, min(limit("OCR_MAX_ANALYSIS_PAGES", 12), 60)),
+        "max_analysis_pages": max(1, min(limit("OCR_MAX_ANALYSIS_PAGES", 500), 500)),
         "enabled": pick("CLOUD_ANALYSIS_ENABLED", default="true").lower() not in ("0", "false", "no"),
     }
 
@@ -161,15 +161,42 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
     try:
         with httpx.Client(timeout=httpx.Timeout(90.0, connect=10.0), follow_redirects=False) as client:
             response = client.post("https://api.deepseek.com/chat/completions", headers={"Authorization": f"Bearer {config['deepseek_key']}"}, json=payload)
-            if response.status_code != 200:
-                raise ProviderError("HTTPError", f"DeepSeek 暂不可用（HTTP {response.status_code}），可以手动填写。")
-            body = response.json()
-            choice = body["choices"][0]
-            if choice.get("finish_reason") != "stop":
-                raise ProviderError("IncompleteOutput", "AI 建议未完整生成，可以重新发起或手动填写。")
-            suggestion = json.loads(choice["message"]["content"])
-            if not isinstance(suggestion, dict):
-                raise ValueError("invalid output")
-    except (httpx.HTTPError, ValueError, KeyError, IndexError, TypeError):
-        raise ProviderError("InvalidResponse", "DeepSeek 请求失败或返回格式不完整，可以手动填写。") from None
+    except httpx.TimeoutException:
+        raise ProviderError("Timeout", "DeepSeek 连接或响应超时；OCR结果已保留，可稍后重试AI分析。") from None
+    except httpx.ConnectError:
+        raise ProviderError("ConnectionError", "无法连接DeepSeek；OCR结果已保留，请检查网络后重试。") from None
+    except httpx.RemoteProtocolError:
+        raise ProviderError("ProtocolError", "DeepSeek连接在响应完成前中断；OCR结果已保留，可稍后重试。") from None
+    except httpx.HTTPError:
+        raise ProviderError("NetworkError", "DeepSeek网络请求失败；OCR结果已保留，可稍后重试。") from None
+    if response.status_code != 200:
+        known = {401: ("AuthenticationFailed", "DeepSeek凭据未通过验证，请检查后端配置。"),
+                 402: ("InsufficientBalance", "DeepSeek账户余额不足；OCR结果已保留。"),
+                 429: ("RateLimited", "DeepSeek请求过于频繁，请稍后重试；OCR结果已保留。")}
+        code, message = known.get(response.status_code, (f"HTTP{response.status_code}", f"DeepSeek服务请求失败（HTTP {response.status_code}）；OCR结果已保留。"))
+        raise ProviderError(code, message)
+    try:
+        body = response.json()
+    except ValueError:
+        raise ProviderError("ResponseJSONError", "DeepSeek返回的HTTP响应不是完整JSON；OCR结果已保留，可稍后重试。") from None
+    if not isinstance(body, dict) or not isinstance(body.get("choices"), list) or not body["choices"] or not isinstance(body["choices"][0], dict):
+        raise ProviderError("UnexpectedResponse", "DeepSeek响应缺少有效的choices结果；OCR结果已保留。")
+    choice = body["choices"][0]
+    if choice.get("finish_reason") == "length":
+        raise ProviderError("OutputTruncated", "DeepSeek输出达到长度上限，建议未生成完整；OCR结果已保留。")
+    if choice.get("finish_reason") != "stop":
+        raise ProviderError("IncompleteOutput", "DeepSeek未正常完成生成；OCR结果已保留，可重试或手动填写。")
+    message = choice.get("message")
+    content = message.get("content") if isinstance(message, dict) else None
+    if not isinstance(content, str) or not content.strip():
+        raise ProviderError("EmptyOutput", "DeepSeek返回了空的条目内容；OCR结果已保留，可重试或手动填写。")
+    content = content.strip()
+    if content.startswith('```') and content.endswith('```'):
+        content = re.sub(r'^```(?:json)?\s*', '', content, flags=re.IGNORECASE)[:-3].strip()
+    try:
+        suggestion = json.loads(content)
+    except ValueError:
+        raise ProviderError("OutputJSONError", "DeepSeek生成的条目不是完整JSON对象；OCR结果已保留，可重试或手动填写。") from None
+    if not isinstance(suggestion, dict):
+        raise ProviderError("OutputFormatError", "DeepSeek条目格式错误（需要JSON对象）；OCR结果已保留。")
     return suggestion

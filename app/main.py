@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError, StatementError
 
 from . import db
 from .security import COOKIE, csrf_token
+from .limits import MAX_REQUEST_BYTES
 
 
 def create_app(database_url=None, storage_dir=None, seed_demo=True, start_worker=True):
@@ -47,8 +48,8 @@ def create_app(database_url=None, storage_dir=None, seed_demo=True, start_worker
             try:
                 if int(length) < 0:
                     raise ValueError
-                if int(length) > 25 * 1024 * 1024:
-                    return JSONResponse({'detail': '请求体不能超过25MB，单文件不能超过20MB'}, 413)
+                if int(length) > MAX_REQUEST_BYTES:
+                    return JSONResponse({'detail': '单文件不能超过200MB（请求体上限205MB，含上传表单）'}, 413)
             except ValueError:
                 return JSONResponse({'detail': '请求长度无效'}, 400)
         if request.method in ('POST', 'PUT', 'DELETE', 'PATCH') and request.url.path.startswith('/api/'):

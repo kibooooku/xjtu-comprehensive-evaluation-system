@@ -1,0 +1,39 @@
+{
+  "source": "Every /api request intercepted by browser fixture; no real API writes or provider calls",
+  "checks": [
+    "已有运行OCR优先展示原进度3/18",
+    "点击一键分析后仍显示OCR运行，并同时注明AI等待OCR",
+    "即使存在6条更新的历史任务，任务栏仍优先保留运行OCR与排队AI两行",
+    "后续轮询继续推进同一OCR到8/18，未被排队AI覆盖",
+    "未修改的表单点击一键分析仅提交bulk，没有PUT保存、DELETE取消或任务中止请求",
+    "切换页面仍保留OCR进度和等待AI，不销毁任务显示"
+  ],
+  "errors": [],
+  "writes": [
+    {
+      "method": "POST",
+      "path": "/api/analysis-jobs/bulk"
+    }
+  ],
+  "reads": [
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/activities",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/activities",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/activities",
+    "/api/activities",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/activities"
+  ],
+  "createdAt": "2026-10-24T15:08:52.772Z"
+}

@@ -17,7 +17,7 @@ from app.migrations import initialize_v2
 
 @pytest.fixture
 def system(tmp_path):
-    with TestClient(create_app(storage_dir=tmp_path, start_worker=False)) as client:
+    with TestClient(create_app(database_url='sqlite:///' + (tmp_path / 'jobs-test.db').as_posix(), storage_dir=tmp_path, start_worker=False)) as client:
         yield client
 
 
@@ -102,7 +102,11 @@ def test_ocr_system_crops_advance_matching_queued_ai_snapshot(system, monkeypatc
     def add_generated_crop(*args, **kwargs):
         with db.write() as conn:
             revision = db.one(conn, 'application_revisions', app['revision']['id'])
+            before = materials.revision_fingerprint(conn, revision)
             db.change(conn, 'application_revisions', revision['id'], payload_json={'system_evidence_test': True})
+            after = materials.revision_fingerprint(conn, db.one(conn, 'application_revisions', revision['id']))
+            kwargs['on_applied'](conn, before, after)
+            return {'fingerprint': after}
 
     monkeypatch.setattr(materials, 'apply_ocr_evidence', add_generated_crop, raising=False)
     jobs.process_job(ocr['id'])
@@ -130,7 +134,11 @@ def test_force_analysis_preserves_human_draft_and_job_is_private(system, monkeyp
     first = system.post(f"/api/applications/{app['id']}/jobs", json={'kind': 'AI'})
     assert first.status_code == 200 and first.json()['job']['result_json']['auto_apply'] is False
     queued = system.post(f"/api/applications/{app['id']}/jobs", json={'kind': 'AI', 'force': True}).json()['job']
-    monkeypatch.setattr(materials, 'run_ai', lambda *args: {'status': 'SUCCEEDED', 'suggestion': {'title': '新的参考', 'requested_score': '.3'}}, raising=False)
+    monkeypatch.setattr(materials, 'run_ocr', lambda *args: {'status': 'SUCCEEDED'}, raising=False)
+    monkeypatch.setattr(materials, 'apply_ocr_evidence', lambda *args, **kwargs: {}, raising=False)
+    monkeypatch.setattr(materials, 'run_ai', lambda *args, **kwargs: {'status': 'SUCCEEDED', 'suggestion': {'title': '新的参考', 'requested_score': '.3'}}, raising=False)
+    ocr = next(j for j in system.get('/api/analysis-jobs').json()['jobs'] if j['kind'] == 'OCR')
+    jobs.process_job(ocr['id'])  # AI must explicitly wait for its original OCR.
     jobs.process_job(queued['id'])
     assert system.get(f"/api/applications/{app['id']}").json()['requested_score'] == '0.90'
     assert system.get('/api/analysis-jobs/' + queued['id']).json()['result_json']['automatically_applied'] is False

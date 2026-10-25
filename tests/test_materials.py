@@ -436,3 +436,186 @@ def test_v2_generic_activity_titles_are_rejected():
     assert materials._name_region("活动名称：仲英书院夜跑活动", [])
     assert materials.activity_title_supported("仲英书院周末广场舞（2次）", [{"text": "2026年周末广场舞活动"}], [])
     assert not materials.activity_title_supported("完全虚构的飞天竞赛", [{"text": "王欣然参加周末广场舞"}], [])
+
+
+def test_ocr_source_fingerprint_ignores_form_edits_but_tracks_attachment_pages(material_app):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    uploaded = upload(client, claim["id"])
+    with db.read() as conn:
+        application = db.one(conn, "applications", claim["id"])
+        revision = db.one(conn, "application_revisions", application["working_revision_id"])
+        source_before = materials.ocr_input_fingerprint(conn, revision)
+        full_before = materials.revision_fingerprint(conn, revision)
+    saved = client.put(f"/api/applications/{claim['id']}", json={"title": "周末广场舞", "requested_score": "0.60", "payload_json": {"note": "学生改稿"}})
+    assert saved.status_code == 200
+    cropped = client.post(f"/api/applications/{claim['id']}/crops", json={"page_id": uploaded["pages"][0]["id"], "evidence_type": "PARTICIPATION", "box": [0, 20, 100, 80]})
+    assert cropped.status_code == 200
+    with db.read() as conn:
+        revision = db.one(conn, "application_revisions", revision["id"])
+        assert materials.ocr_input_fingerprint(conn, revision) == source_before
+        assert materials.revision_fingerprint(conn, revision) != full_before
+    added = client.post(f"/api/applications/{claim['id']}/files", files={"file": ("another.png", png(color="blue"), "image/png")})
+    assert added.status_code == 200
+    with db.write() as conn:
+        source_after = materials.ocr_input_fingerprint(conn, revision)
+        assert source_after != source_before
+        page = db.one(conn, "file_pages", added.json()["pages"][0]["id"])
+        db.change(conn, "file_pages", page["id"], render_sha256="changed-source-hash")
+        assert materials.ocr_input_fingerprint(conn, revision) != source_after
+
+
+def test_ai_dependency_reuses_successful_ocr_without_retrying_failed_seal(material_app, monkeypatch):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    upload(client, claim["id"])
+    config = {"enabled": True, "secret_id": "synthetic", "secret_key": "synthetic", "deepseek_key": "synthetic", "deepseek_model": "synthetic", "general_limit": 10, "seal_limit": 10, "max_analysis_pages": 12}
+    monkeypatch.setattr(materials, "configuration", lambda: config)
+    calls = []
+
+    def fake_ocr(action, image, config):
+        calls.append(action)
+        if action == "SealOCR":
+            raise ProviderError("FailedOperation.ImageNoText", "未识别出印章。")
+        return {"RequestId": "synthetic", "TextDetections": [{"DetectedText": "王欣然参加周末广场舞，2026年10月24日", "Confidence": 100, "Polygon": [{"X": 10, "Y": 10}, {"X": 200, "Y": 10}, {"X": 200, "Y": 35}, {"X": 10, "Y": 35}]}]}
+
+    monkeypatch.setattr(materials, "tencent_ocr", fake_ocr)
+    with db.read() as conn:
+        user = db.one(conn, "users", username="student")
+    ocr = materials.run_ocr(claim["id"], user)
+    assert ocr["status"] == "SUCCEEDED" and ocr["ocr_fingerprint"]
+    assert calls == ["GeneralAccurateOCR", "SealOCR"]
+    monkeypatch.setattr(materials, "run_ocr", lambda *args, **kwargs: pytest.fail("AI dependency must not rerun OCR"))
+    monkeypatch.setattr(materials, "deepseek_suggestion", lambda *args, **kwargs: {"title": "周末广场舞", "requested_score": "0.30", "activity_id": None, "payload_json": {}})
+    result = materials.run_ai(claim["id"], user, ocr_result=ocr)
+    assert result["status"] == "SUCCEEDED"
+    assert calls == ["GeneralAccurateOCR", "SealOCR"]
+    with db.read() as conn:
+        assert materials._usage(conn, "SealOCR") == 1
+        assert len(db.rows(conn, "recognition_runs", api_name="SealOCR")) == 1
+    saved = client.put(f"/api/applications/{claim['id']}", json={"title": "周末广场舞（学生修订）", "requested_score": "0.60", "payload_json": {}})
+    assert saved.status_code == 200
+    with pytest.raises(HTTPException) as stale:
+        materials.run_ai(claim["id"], user, ocr_result=ocr)
+    assert stale.value.status_code == 409
+    assert calls == ["GeneralAccurateOCR", "SealOCR"]
+
+
+def test_ocr_evidence_source_guard_and_queue_advance_are_one_transaction(material_app):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    uploaded = upload(client, claim["id"])
+    with db.write() as conn:
+        user = db.one(conn, "users", username="student")
+        context = materials._app_context(conn, claim["id"])
+        revision = db.one(conn, "application_revisions", context["application"]["working_revision_id"])
+        page = db.one(conn, "file_pages", uploaded["pages"][0]["id"])
+        run = _text_run(conn, page, [("周末广场舞", [10, 10, 150, 20]), (user["display_name"], [10, 60, 100, 20])])
+        original_full = materials.revision_fingerprint(conn, revision)
+        source_fp = materials.ocr_input_fingerprint(conn, revision)
+        result = {"status": "SUCCEEDED", "application_id": claim["id"], "input_revision_id": revision["id"], "input_fingerprint": original_full, "ocr_fingerprint": source_fp, "page_ids": [page["id"]], "run_ids": [run["id"]], "suggested_crops": []}
+    # This edit must not cancel OCR: no attachment has changed.
+    assert client.put(f"/api/applications/{claim['id']}", json={"title": "学生的具体活动名", "requested_score": "0.90", "payload_json": {}}).status_code == 200
+    with db.write() as conn:
+        revision = db.one(conn, "application_revisions", revision["id"])
+        before = materials.revision_fingerprint(conn, revision)
+        assert before != original_full
+        queued = db.add(conn, "background_jobs", application_id=claim["id"], owner_id=user["id"], kind="AI", state="QUEUED", stage="等待OCR", input_revision_id=revision["id"], input_fingerprint=before, result_json={})
+
+    def advance_and_fail(conn, before_fp, after_fp):
+        assert before_fp == before and after_fp != before_fp
+        db.change(conn, "background_jobs", queued["id"], input_fingerprint=after_fp)
+        raise RuntimeError("synthetic failure after queue update")
+
+    with pytest.raises(RuntimeError, match="synthetic failure"):
+        materials.apply_ocr_evidence(claim["id"], user, result, expected_fingerprint=original_full, expected_ocr_fingerprint=source_fp, on_applied=advance_and_fail)
+    with db.read() as conn:
+        assert not db.rows(conn, "evidence_crops", revision_id=revision["id"])
+        assert db.one(conn, "background_jobs", queued["id"])["input_fingerprint"] == before
+    calls = []
+
+    def advance(conn, before_fp, after_fp):
+        calls.append((before_fp, after_fp))
+        db.change(conn, "background_jobs", queued["id"], input_fingerprint=after_fp)
+
+    applied = materials.apply_ocr_evidence(claim["id"], user, result, expected_fingerprint=original_full, expected_ocr_fingerprint=source_fp, on_applied=advance)
+    assert applied["applied"] is True
+    with db.read() as conn:
+        assert db.one(conn, "background_jobs", queued["id"])["input_fingerprint"] == applied["fingerprint"]
+        unchanged_content = db.one(conn, "application_revisions", revision["id"])
+        assert unchanged_content["title"] == "学生的具体活动名"
+        assert unchanged_content["requested_score"] == Decimal("0.90")
+        assert materials.ocr_input_fingerprint(conn, unchanged_content) == source_fp
+    assert calls == [(before, applied["fingerprint"])]
+    # Actual source changes still invalidate the completed OCR snapshot.
+    assert client.post(f"/api/applications/{claim['id']}/files", files={"file": ("new.png", png(color="blue"), "image/png")}).status_code == 200
+    with pytest.raises(HTTPException) as stale:
+        materials.apply_ocr_evidence(claim["id"], user, result, expected_ocr_fingerprint=source_fp)
+    assert stale.value.status_code == 409
+
+
+def test_last_seal_is_selected_per_file_by_page_y_x_and_old_results_are_filtered(material_app):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    pdf = io.BytesIO()
+    Image.new("RGB", (500, 800), "white").save(pdf, format="PDF", save_all=True, append_images=[Image.new("RGB", (500, 800), "white")])
+    response = client.post(f"/api/applications/{claim['id']}/files", files={"file": ("multi-seals.pdf", pdf.getvalue(), "application/pdf")})
+    assert response.status_code == 200, response.text
+    second = client.post(f"/api/applications/{claim['id']}/files", files={"file": ("supplement.png", png(color="blue"), "image/png")})
+    assert second.status_code == 200
+    with db.write() as conn:
+        user = db.one(conn, "users", username="student")
+        context = materials._app_context(conn, claim["id"])
+        revision = db.one(conn, "application_revisions", context["application"]["working_revision_id"])
+        pdf_pages = sorted(db.rows(conn, "file_pages", file_id=response.json()["id"]), key=lambda page: page["page_index"])
+        supplement = db.one(conn, "file_pages", second.json()["pages"][0]["id"])
+        old_suggestions = []
+        expected_regions = []
+
+        def seal_run(page, locations, expected_text):
+            data = {"RequestId": "synthetic-seals", "SealInfos": [{"SealBody": text, "Location": {"X": x, "Y": y, "Width": 80, "Height": 60}} for text, x, y in locations]}
+            run = db.add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name="SealOCR", parameters_hash="synthetic-seals", status="SUCCEEDED", result_json=data, started_at=db.now(), finished_at=db.now())
+            materials._save_regions(conn, run, data)
+            for region in db.rows(conn, "recognition_regions", run_id=run["id"]):
+                x, y, w, h = materials.polygon_box(region["polygon_json"])
+                old_suggestions.append({"page_id": page["id"], "evidence_type": "VALIDITY", "validity_kind": "SEAL", "region_id": region["id"], "box": [x - 5, y - 5, w + 10, h + 10]})
+                if region["text"] == expected_text:
+                    expected_regions.append(region["id"])
+
+        # Last element in provider order is deliberately not the last stamp on the page.
+        seal_run(pdf_pages[0], [("first-page-bottom", 850, 1450), ("first-page-top", 20, 50)], None)
+        seal_run(pdf_pages[1], [("last-pdf", 700, 600), ("same-y-left", 500, 600), ("last-array-but-earlier", 800, 100)], "last-pdf")
+        seal_run(supplement, [("last-image", 170, 120), ("same-y-left", 20, 120), ("last-array-but-earlier", 200, 30)], "last-image")
+        pages = [supplement, pdf_pages[1], pdf_pages[0]]  # Input page order is deliberately mixed too.
+        suggestions = materials._evidence_suggestions(conn, pages, context["student"], user, context["class"]["name"])
+        seals = [item for item in suggestions if item.get("validity_kind") == "SEAL"]
+        assert len(seals) == 2
+        assert {item["region_id"] for item in seals} == set(expected_regions)
+        full_fp = materials.revision_fingerprint(conn, revision)
+        result = {"status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": full_fp, "ocr_fingerprint": materials.ocr_input_fingerprint(conn, revision), "page_ids": [page["id"] for page in pages], "suggested_crops": list(reversed(old_suggestions))}
+    # Even a persisted job carrying every stamp is re-derived from existing OCR, without a cloud call.
+    materials.apply_ocr_evidence(claim["id"], user, result, expected_fingerprint=full_fp)
+    with db.write() as conn:
+        current = db.rows(conn, "evidence_crops", revision_id=revision["id"])
+        assert len(current) == 2 and {crop["recognition_region_id"] for crop in current} == set(expected_regions)
+        # The compatibility path without page_ids also filters old stored AI suggestions.
+        earlier = next(item for item in old_suggestions if item["region_id"] not in expected_regions)
+        page = db.one(conn, "file_pages", earlier["page_id"])
+        materials.create_crop(conn, revision, page, "VALIDITY", earlier["box"], source="AI", region_id=earlier["region_id"], metadata={"validity_kind": "SEAL"})
+        assert len(db.rows(conn, "evidence_crops", revision_id=revision["id"])) == 3
+        materials._apply_evidence(conn, revision, list(reversed(old_suggestions)))
+        final = db.rows(conn, "evidence_crops", revision_id=revision["id"])
+        assert len(final) == 2 and {crop["recognition_region_id"] for crop in final} == set(expected_regions)
+        frozen_ids = {crop["id"] for crop in final}
+    assert client.put(f"/api/applications/{claim['id']}", json={"title": "周末广场舞", "requested_score": "0.30", "payload_json": {}}).status_code == 200
+    assert client.post(f"/api/applications/{claim['id']}/submit", json={}).status_code == 200
+    assert login("reviewer1").post(f"/api/applications/{claim['id']}/review", json={"action": "APPROVE"}).status_code == 200
+    with pytest.raises(HTTPException) as locked:
+        materials.apply_ocr_evidence(claim["id"], user, result, expected_ocr_fingerprint=result["ocr_fingerprint"])
+    assert locked.value.status_code == 409
+    with db.read() as conn:
+        assert {crop["id"] for crop in db.rows(conn, "evidence_crops", revision_id=revision["id"])} == frozen_ids
