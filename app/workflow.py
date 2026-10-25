@@ -171,7 +171,7 @@ def application_detail(conn, application, user, revision_id=None, include_delete
     for attachment in sorted(db.rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: r["sort_order"]):
         file = db.one(conn, "file_objects", attachment["file_id"])
         files.append(file_view(conn, file))
-    crops = [crop_view(c) for c in db.rows(conn, "evidence_crops", revision_id=revision["id"])]
+    crops = [crop_view(c, conn=conn) for c in db.rows(conn, "evidence_crops", revision_id=revision["id"])]
     rounds = db.rows(conn, "submission_rounds", application_id=application["id"])
     round_ids = {r["id"] for r in rounds}
     reviews = [r for r in db.rows(conn, "review_decisions") if r["round_id"] in round_ids]

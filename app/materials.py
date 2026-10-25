@@ -19,7 +19,7 @@ from sqlalchemy import and_, delete, func, select
 from . import db
 from .db import add, change, money, now, one, rows, tables, uid
 from .integrations import ProviderError, configuration, deepseek_suggestion, tencent_ocr
-from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES
+from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES, MAX_AUTOMATIC_OCR_PAGES, OCR_POLICY_VERSION
 from .security import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -31,6 +31,15 @@ PDF_LOCK = threading.Lock()
 ANALYSIS_LOCK = threading.Lock()
 OCR_CALL_LOCK = threading.Lock()
 Image.MAX_IMAGE_PIXELS = MAX_PAGE_PIXELS
+NATIVE_TEXT_API = "NativePDFText"
+
+
+def _page_limit(config=None):
+    config = configuration() if config is None else config
+    try:
+        return max(1, min(MAX_AUTOMATIC_OCR_PAGES, int(config.get("max_analysis_pages", MAX_AUTOMATIC_OCR_PAGES))))
+    except (TypeError, ValueError):
+        return MAX_AUTOMATIC_OCR_PAGES
 
 
 def asset_path(relative: str) -> Path:
@@ -110,11 +119,46 @@ def render_upload(content: bytes, filename: str) -> tuple[str, list[bytes]]:
 
 
 def file_view(conn, record: dict) -> dict:
+    pages = sorted(rows(conn, "file_pages", file_id=record["id"]), key=lambda page: page["page_index"])
+    native_pages = [page["page_index"] for page in pages if _native_text_cached(conn, page)]
+    max_pages = _page_limit()
+    long_file = len(pages) > max_pages
+    native_ids = {page["id"] for page in pages if page["page_index"] in native_pages}
+    text_ids = set(native_ids)
+    checked_seals, checked_text_layers, seal_found = set(), set(), False
+    boundary_ids = {pages[0]["id"], pages[-1]["id"]} if pages else set()
+    for page in pages:
+        latest = {}
+        for run in rows(conn, "recognition_runs", page_id=page["id"]):
+            if run["status"] != "SUCCEEDED":
+                continue
+            if run["api_name"] not in latest or (run.get("finished_at") or "") >= (latest[run["api_name"]].get("finished_at") or ""):
+                latest[run["api_name"]] = run
+        for run in latest.values():
+            if run["api_name"] == NATIVE_TEXT_API and "usable" in (run.get("result_json") or {}):
+                checked_text_layers.add(page["id"])
+            if run["api_name"] == "GeneralAccurateOCR" and not long_file and any((region.get("text") or "").strip() for region in rows(conn, "recognition_regions", run_id=run["id"])):
+                text_ids.add(page["id"])
+            if run["api_name"] == "SealOCR" and not long_file and page["id"] in boundary_ids:
+                checked_seals.add(page["id"])
+                seal_found = seal_found or any(region["kind"] == "SEAL" for region in rows(conn, "recognition_regions", run_id=run["id"]))
+    seal_status = "SKIPPED" if long_file else ("FOUND" if seal_found else ("NOT_FOUND" if boundary_ids and boundary_ids <= checked_seals else ("LIMITED" if checked_seals else "NOT_RUN")))
+    text_layer_check_complete = record["mime_type"] != "application/pdf" or len(checked_text_layers) == len(pages)
     return {
         "id": record["id"], "original_name": record["original_name"],
         "mime_type": record["mime_type"], "byte_size": record["byte_size"],
         "url": f"/api/files/{record['id']}/original",
-        "pages": [{"id": page["id"], "page_index": page["page_index"], "width_px": page["width_px"], "height_px": page["height_px"], "url": f"/api/pages/{page['id']}/image"} for page in sorted(rows(conn, "file_pages", file_id=record["id"]), key=lambda p: p["page_index"])],
+        "page_count": len(pages), "max_pages": max_pages, "cloud_ocr_eligible": not long_file,
+        "text_layer_used": bool(native_pages), "native_pages": native_pages,
+        "text_layer_check_complete": text_layer_check_complete, "text_layer_checked_page_count": len(checked_text_layers),
+        "native_text_status": "PENDING" if not text_layer_check_complete else ("USED" if pages and len(native_pages) == len(pages) else ("PARTIAL" if native_pages else "NONE")),
+        "automatic_ocr_status": "CHECKING_TEXT_LAYER" if not text_layer_check_complete else ("COMPLETED" if pages and len(text_ids) == len(pages) else ("PARTIAL" if text_ids else ("MANUAL_REQUIRED" if long_file else "ELIGIBLE"))),
+        "ocr_skip_reason": f"超过{max_pages}页：仅可本地读取已有文字层，不调用云OCR；无文字层页面及印章请自行寻找并手动框选。" if long_file and text_layer_check_complete and len(native_ids) < len(pages) else None,
+        "seal_pages": [] if long_file or not pages else sorted({pages[0]["page_index"], pages[-1]["page_index"]}),
+        "manual_page_numbers": [page["page_index"] for page in pages if page["id"] not in native_ids] if long_file and text_layer_check_complete else [],
+        "seal_status": seal_status, "seal_found": seal_found,
+        "seal_message": f"超过{max_pages}页文件不调用云端查章，请自行寻找并手动框选。" if long_file else ("仅检查文件首页和末页，未定位到印章；请自行寻找并手动框选。" if seal_status in ("NOT_FOUND", "LIMITED") else ("已定位首页/末页中的最后一枚印章，请核对原件。" if seal_found else "将仅检查文件首页和末页。")),
+        "pages": [{"id": page["id"], "page_index": page["page_index"], "width_px": page["width_px"], "height_px": page["height_px"], "url": f"/api/pages/{page['id']}/image"} for page in pages],
     }
 
 
@@ -129,7 +173,7 @@ def polygon_box(polygon) -> list[int]:
     return [int(x1), int(y1), int(x2 - x1), int(y2 - y1)]
 
 
-def crop_view(record: dict, public: bool = False) -> dict:
+def crop_view(record: dict, public: bool = False, conn=None) -> dict:
     ready = record.get("public_asset_status") == "READY"
     result = {"id": record["id"], "page_id": record["page_id"], "evidence_type": record["evidence_type"], "public_asset_status": record.get("public_asset_status"), "public_url": f"/api/crops/{record['id']}/public" if ready else None}
     if not public:
@@ -138,13 +182,63 @@ def crop_view(record: dict, public: bool = False) -> dict:
         if not evidence.get("file_name") or not evidence.get("page_number"):
             # Frozen V1 evidence has no presentation metadata; derive its real
             # source instead of incorrectly labelling every legacy crop page 1.
-            with db.read() as source_conn:
-                original_page = one(source_conn, "file_pages", record["page_id"])
-                original_file = one(source_conn, "file_objects", original_page["file_id"]) if original_page else None
+            if conn is not None:
+                original_page = one(conn, "file_pages", record["page_id"])
+                original_file = one(conn, "file_objects", original_page["file_id"]) if original_page else None
+            else:
+                with db.read() as source_conn:
+                    original_page = one(source_conn, "file_pages", record["page_id"])
+                    original_file = one(source_conn, "file_objects", original_page["file_id"]) if original_page else None
             evidence = {**evidence, "file_name": evidence.get("file_name") or (original_file or {}).get("original_name"),
                         "page_number": evidence.get("page_number") or (original_page or {}).get("page_index")}
         result.update({"source": record["source"], "box": polygon_box(record["polygon_json"]), "url": f"/api/crops/{record['id']}/image", "masks": metadata.get("manual", []), "file_name": evidence.get("file_name"), "page_number": evidence.get("page_number"), "highlights": evidence.get("highlights", []), "other_matches": evidence.get("other_matches", []), "validity_kind": evidence.get("validity_kind"), "layout_version": evidence.get("layout_version")})
+        if conn is not None:
+            accepted, reason = automatic_crop_policy(conn, record)
+        else:
+            with db.read() as policy_conn:
+                accepted, reason = automatic_crop_policy(policy_conn, record)
+        result.update(automatic_policy_allowed=accepted, policy_exclusion_reason=reason)
     return result
+
+
+def _file_policy(conn, file_id, max_pages=None):
+    pages = sorted(rows(conn, "file_pages", file_id=file_id), key=lambda page: page["page_index"])
+    return pages, bool(pages and len(pages) <= (max_pages if max_pages is not None else _page_limit())), {pages[0]["id"], pages[-1]["id"]} if pages else set()
+
+
+def _native_text_cached(conn, page):
+    candidates = [run for run in rows(conn, "recognition_runs", page_id=page["id"], api_name=NATIVE_TEXT_API) if run["status"] == "SUCCEEDED" and (run.get("result_json") or {}).get("usable")]
+    return sorted(candidates, key=lambda run: run.get("finished_at") or "")[-1] if candidates else None
+
+
+def _is_seal_crop(conn, crop):
+    metadata = (crop.get("masks_json") or {}).get("evidence") or {}
+    region = one(conn, "recognition_regions", crop["recognition_region_id"]) if crop.get("recognition_region_id") else None
+    return metadata.get("validity_kind") == "SEAL" or bool(region and region["kind"] == "SEAL")
+
+
+def automatic_crop_policy(conn, crop, revision=None):
+    """Hide obsolete machine suggestions only; never rewrite manual/frozen evidence."""
+    if crop.get("source") != "AI":
+        return True, None
+    revision = revision or one(conn, "application_revisions", crop.get("revision_id"))
+    if revision and revision.get("content_frozen_at"):
+        return True, None
+    page = one(conn, "file_pages", crop.get("page_id"))
+    if not page:
+        return False, "来源页不存在。"
+    max_pages = _page_limit()
+    _, cloud_allowed, boundaries = _file_policy(conn, page["file_id"], max_pages)
+    if _is_seal_crop(conn, crop):
+        if not cloud_allowed:
+            return False, f"超过{max_pages}页文件不自动查章，请自行寻找并手动框选。"
+        return (True, None) if page["id"] in boundaries else (False, "自动查章只限文件首页和末页，中间页旧候选不再展示。")
+    if not cloud_allowed:
+        region = one(conn, "recognition_regions", crop["recognition_region_id"]) if crop.get("recognition_region_id") else None
+        run = one(conn, "recognition_runs", region["run_id"]) if region else None
+        if not run or run["api_name"] != NATIVE_TEXT_API:
+            return False, f"超过{max_pages}页文件仅使用可用原生文字层，旧云OCR候选不再自动展示。"
+    return True, None
 
 
 def _app_context(conn, application_id: str) -> dict:
@@ -292,19 +386,26 @@ def _build_public_crop(conn, crop: dict, page: dict, manual_masks: list) -> dict
     """Fail closed without a successful text run; never substitute a private crop."""
     metadata = dict(crop.get("masks_json") or {})
     metadata.pop("reason", None)
-    runs = [r for r in rows(conn, "recognition_runs", page_id=page["id"]) if r["api_name"] == "GeneralAccurateOCR" and r["status"] == "SUCCEEDED"]
+    runs = [r for r in rows(conn, "recognition_runs", page_id=page["id"]) if r["api_name"] in ("GeneralAccurateOCR", NATIVE_TEXT_API) and r["status"] == "SUCCEEDED" and (r["api_name"] != NATIVE_TEXT_API or (r.get("result_json") or {}).get("usable"))]
     if not runs:
         return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "需要成功的文字OCR定位学号后才能生成公示截图"}}
-    run = sorted(runs, key=lambda item: item.get("finished_at") or "")[-1]
+    run = sorted(runs, key=lambda item: (item["api_name"] == NATIVE_TEXT_API, item.get("finished_at") or ""))[-1]
     regions = rows(conn, "recognition_regions", run_id=run["id"])
     if not any((region.get("text") or "").strip() for region in regions):
         return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "文字OCR未检测到可靠文本，未生成公示截图"}}
+    if run["api_name"] == NATIVE_TEXT_API:
+        source_numbers = re.findall(r"[0-9０-９]{6,}", _compact((run.get("result_json") or {}).get("text")))
+        positioned = _compact("".join(region.get("text") or "" for region in regions))
+        if any(number not in positioned for number in source_numbers):
+            return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "原生文字中的个人编号未全部取得可靠坐标，未生成公示截图"}}
     automatic = []
     for region in regions:
         text = re.sub(r"\s+", "", region.get("text") or "")
         # Mask every long numeric identifier, including OCR-separated digits and the whole 学号 row.
         if re.search(r"[0-9０-９]{6,}", text) or "学号" in text or (region.get("confidence") is not None and Decimal(str(region["confidence"])) < Decimal("0.85")):
             box = polygon_box(region["polygon_json"])
+            if box[2] <= 0 or box[3] <= 0:
+                return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "含个人编号的文字缺少可靠坐标，未生成公示截图"}}
             box = [max(0, box[0] - 5), max(0, box[1] - 4), box[2] + 10, box[3] + 8]
             automatic.append(box)
     box = polygon_box(crop["polygon_json"])
@@ -397,7 +498,7 @@ def add_crop(application_id: str, body: dict, user: dict = Depends(current_user)
         crop = create_crop(conn, revision, page, kind, body.get("box"), body.get("masks", []), metadata=metadata)
         _mark_manual_evidence(conn, revision)
         _touch(conn, context["application"])
-        return crop_view(crop)
+        return crop_view(crop, conn=conn)
 
 
 @router.delete("/applications/{application_id}/crops/{crop_id}")
@@ -458,7 +559,8 @@ def get_public_crop(crop_id: str, user: dict = Depends(current_user)):
 def revision_fingerprint(conn, revision: dict) -> str:
     attachments = sorted(rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: (r["sort_order"], r["id"]))
     crops = sorted(rows(conn, "evidence_crops", revision_id=revision["id"]), key=lambda c: c["id"])
-    body = {"revision_id": revision["id"], "title": revision["title"], "score": str(revision["requested_score"]), "activity_id": revision.get("activity_id"), "payload": revision.get("payload_json") or {}, "files": [link["file_id"] for link in attachments], "crops": [{"id": c["id"], "hash": c["source_hash"], "box": c["polygon_json"], "manual_masks": (c.get("masks_json") or {}).get("manual", [])} for c in crops]}
+    body = {"policy_version": OCR_POLICY_VERSION, "revision_id": revision["id"], "title": revision["title"], "score": str(revision["requested_score"]), "activity_id": revision.get("activity_id"), "payload": revision.get("payload_json") or {}, "files": [link["file_id"] for link in attachments], "crops": [{"id": c["id"], "hash": c["source_hash"], "box": c["polygon_json"], "manual_masks": (c.get("masks_json") or {}).get("manual", [])} for c in crops]}
+    body["max_automatic_pages"] = _page_limit()
     return hashlib.sha256(json.dumps(body, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
@@ -474,7 +576,7 @@ def ocr_input_fingerprint(conn, revision: dict) -> str:
             "mime_type": file["mime_type"], "sort_order": attachment["sort_order"],
             "pages": [{key: page[key] for key in ("id", "page_index", "render_version", "render_sha256", "width_px", "height_px", "rotation_degrees")} for page in pages],
         })
-    return hashlib.sha256(json.dumps({"revision_id": revision["id"], "sources": sources}, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
+    return hashlib.sha256(json.dumps({"policy_version": OCR_POLICY_VERSION, "max_automatic_pages": _page_limit(), "revision_id": revision["id"], "sources": sources}, ensure_ascii=False, sort_keys=True, default=str).encode()).hexdigest()
 
 
 def _usage(conn, action: str) -> int:
@@ -555,6 +657,53 @@ def _page_regions(conn, page: dict) -> list[dict]:
     return [region for run in latest.values() for region in rows(conn, "recognition_regions", run_id=run["id"])]
 
 
+def _automatic_regions(conn, page: dict, policy=None) -> list[dict]:
+    """Current suggestion policy only; historical/public/manual reads remain intact."""
+    _, cloud_allowed, boundaries = policy or _file_policy(conn, page["file_id"])
+    native = _native_text_cached(conn, page)
+    latest = {}
+    for run in rows(conn, "recognition_runs", page_id=page["id"]):
+        if run["status"] != "SUCCEEDED":
+            continue
+        action = run["api_name"]
+        allowed = (action == NATIVE_TEXT_API and native and run["id"] == native["id"]) or (action == "GeneralAccurateOCR" and cloud_allowed and not native) or (action == "SealOCR" and cloud_allowed and page["id"] in boundaries)
+        if allowed and (action not in latest or (run.get("finished_at") or "") >= (latest[action].get("finished_at") or "")):
+            latest[action] = run
+    return [region for run in latest.values() for region in rows(conn, "recognition_regions", run_id=run["id"])]
+
+
+def _native_pages(file: dict, pages: list[dict]) -> dict:
+    """Persist local text with real character geometry; never spends OCR quota."""
+    if file["mime_type"] != "application/pdf":
+        return {}
+    cached, missing = {}, []
+    with db.read() as conn:
+        for page in pages:
+            parameter_hash = hashlib.sha256((file["sha256"] + str(page["page_index"]) + page["render_sha256"] + NATIVE_TEXT_API + "textlayer-v1").encode()).hexdigest()
+            runs = rows(conn, "recognition_runs", page_id=page["id"], api_name=NATIVE_TEXT_API, parameters_hash=parameter_hash)
+            if runs:
+                cached[page["id"]] = sorted(runs, key=lambda item: item.get("finished_at") or "")[-1]
+            else:
+                missing.append((page, parameter_hash))
+    if not missing:
+        return cached
+    from .pdf_text import extract_pages_text
+    with PDF_LOCK:
+        extracted_pages = extract_pages_text(asset_path(file["storage_uri"]), [page for page, _ in missing])
+    for page, parameter_hash in missing:
+        extracted = extracted_pages.get(page["id"], extracted_pages.get(page["page_index"], {}))
+        usable = bool(extracted.get("usable") and str(extracted.get("text") or "").strip())
+        # Large searchable PDFs retain every page, without holding the SQLite
+        # writer lock across the entire document.
+        with db.write() as conn:
+            run = add(conn, "recognition_runs", page_id=page["id"], provider="LOCAL_PDF", api_name=NATIVE_TEXT_API, parameters_hash=parameter_hash, status="SUCCEEDED", provider_request_id=None, result_json={"usable": usable, "text": str(extracted.get("text") or ""), "reason": str(extracted.get("reason") or "")[:200]}, started_at=None, finished_at=now())
+            if usable:
+                for index, region in enumerate(extracted.get("regions") or []):
+                    add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="TEXT", text=str(region.get("text") or ""), confidence=None, polygon_json=region.get("polygon_json") or [], extra_json=region.get("extra_json") or {})
+            cached[page["id"]] = run
+    return cached
+
+
 def _token_box(region: dict, token: str) -> list[int]:
     words = (region.get("extra_json") or {}).get("words", [])
     text = "".join(_compact(word.get("text")) for word in words)
@@ -574,13 +723,15 @@ def _token_box(region: dict, token: str) -> list[int]:
     return [left, top, right - left, bottom - top]
 
 
-def identity_matches(conn, pages: list[dict], student: dict, student_user: dict, class_name: str) -> list[dict]:
+def identity_matches(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, automatic=False) -> list[dict]:
     matches = []
     tokens = [("STUDENT_NUMBER", _compact(student.get("student_number"))), ("NAME", _compact(student_user.get("display_name"))), ("CLASS", _compact(class_name))]
     seen = set()
+    max_pages = _page_limit() if automatic else None
+    policies = {file_id: _file_policy(conn, file_id, max_pages) for file_id in {page["file_id"] for page in pages}} if automatic else {}
     for page in pages:
         file = one(conn, "file_objects", page["file_id"])
-        for region in _page_regions(conn, page):
+        for region in (_automatic_regions(conn, page, policies[page["file_id"]]) if automatic else _page_regions(conn, page)):
             if region["kind"] != "TEXT":
                 continue
             text = _compact(region.get("text"))
@@ -653,9 +804,11 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
     result = []
     last_seals = {}
     activity_names = activity_names or []
+    max_pages = _page_limit()
+    policies = {file_id: _file_policy(conn, file_id, max_pages) for file_id in {page["file_id"] for page in pages}}
     for page in pages:
         file = one(conn, "file_objects", page["file_id"])
-        for region in _page_regions(conn, page):
+        for region in _automatic_regions(conn, page, policies[page["file_id"]]):
             text = region.get("text") or ""
             kinds = []
             if region["kind"] == "SEAL":
@@ -680,7 +833,7 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
                 else:
                     result.append(suggestion)
     result.extend(value[1] for value in last_seals.values())
-    matches = identity_matches(conn, pages, student, student_user, class_name)
+    matches = identity_matches(conn, pages, student, student_user, class_name, automatic=True)
     if matches:
         primary = matches[0]
         page = next(p for p in pages if p["id"] == primary["page_id"])
@@ -702,6 +855,9 @@ def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
     for index, item in enumerate(suggestions):
         item = dict(item)
         region = one(conn, "recognition_regions", item.get("region_id")) if item.get("region_id") else None
+        candidate = {"source": "AI", "revision_id": None, "page_id": item.get("page_id"), "recognition_region_id": item.get("region_id"), "masks_json": {"evidence": {"validity_kind": item.get("validity_kind")}}}
+        if not automatic_crop_policy(conn, candidate)[0]:
+            continue
         if item.get("evidence_type") == "VALIDITY" and (item.get("validity_kind") == "SEAL" or (region and region["kind"] == "SEAL")):
             item["validity_kind"] = "SEAL"
             page = one(conn, "file_pages", item.get("page_id"))
@@ -710,9 +866,9 @@ def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
                 order = (page["page_index"], box[1], box[0])
                 if page["file_id"] not in last or order > last[page["file_id"]][0]:
                     last[page["file_id"]] = (order, index)
-        normalized.append(item)
+        normalized.append((index, item))
     selected = {value[1] for value in last.values()}
-    return [item for index, item in enumerate(normalized) if item.get("validity_kind") != "SEAL" or index in selected]
+    return [item for index, item in normalized if item.get("validity_kind") != "SEAL" or index in selected]
 
 
 def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[dict]:
@@ -748,58 +904,73 @@ def _recognition_snapshot(conn, application_id: str, user: dict, config: dict):
     if not links:
         raise HTTPException(400, "请先上传至少一份证明材料。")
     pages = [page for link in links for page in sorted(rows(conn, "file_pages", file_id=link["file_id"]), key=lambda p: p["page_index"])]
-    if len(pages) > config["max_analysis_pages"]:
-        raise HTTPException(400, f"本次材料共{len(pages)}页，超过本地单次识别保护上限{config['max_analysis_pages']}页，请拆减附件或手动填写。")
     return context, revision, pages, revision_fingerprint(conn, revision)
 
 
 def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None = None) -> dict:
     """Server-worker entry point: OCR only, never calls the language model."""
     config = _config or configuration()
+    max_pages = _page_limit(config)
     with db.write() as conn:
         context, revision, pages, fingerprint = _recognition_snapshot(conn, application_id, user, config)
         source_fingerprint = ocr_input_fingerprint(conn, revision)
-    common = {"application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "ocr_fingerprint": source_fingerprint, "page_ids": [p["id"] for p in pages]}
-    if not config["enabled"]:
-        return {**common, "status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。", "suggested_crops": [], "run_ids": [], "warnings": []}
-    warnings = []
-    ocr_runs = []
-    blocked_actions = set()
-    done, total = 0, len(pages) * 2
+        files = {page["file_id"]: one(conn, "file_objects", page["file_id"]) for page in pages}
+    common = {"policy_version": OCR_POLICY_VERSION, "application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "ocr_fingerprint": source_fingerprint, "page_ids": [p["id"] for p in pages]}
+    warnings, ocr_runs, tasks, file_results = [], [], [], []
+    if progress:
+        progress("检查PDF已有文字层", 0, 0)
+    for file_id, file in files.items():
+        file_pages = [page for page in pages if page["file_id"] == file_id]
+        native = _native_pages(file, file_pages)
+        native_ids = {page_id for page_id, run in native.items() if (run.get("result_json") or {}).get("usable")}
+        ocr_runs.extend(native[page["id"]] for page in file_pages if page["id"] in native_ids)
+        cloud_allowed = len(file_pages) <= max_pages
+        boundaries = {file_pages[0]["id"], file_pages[-1]["id"]}
+        missing_native = [page["page_index"] for page in file_pages if page["id"] not in native_ids]
+        file_results.append({"file_id": file_id, "file_name": file["original_name"], "page_count": len(file_pages), "max_pages": max_pages, "cloud_ocr_eligible": cloud_allowed,
+                             "native_text_status": "USED" if len(native_ids) == len(file_pages) else ("PARTIAL" if native_ids else "NONE"),
+                             "text_layer_used": bool(native_ids), "native_pages": [page["page_index"] for page in file_pages if page["id"] in native_ids],
+                             "manual_page_numbers": missing_native if not cloud_allowed else [], "seal_pages": sorted({file_pages[0]["page_index"], file_pages[-1]["page_index"]}) if cloud_allowed else [], "warnings": []})
+        for page in file_pages:
+            if cloud_allowed and page["id"] not in native_ids:
+                tasks.append((page, "GeneralAccurateOCR"))
+            if cloud_allowed and page["id"] in boundaries:
+                tasks.append((page, "SealOCR"))
+    done, total, stopped, stop_reason = 0, len(tasks), False, None
     if progress:
         progress("OCR准备", done, total)
-    for page in pages:
-        for action in ("GeneralAccurateOCR", "SealOCR"):
-            try:
-                if action in blocked_actions:
-                    continue
-                if not config["secret_id"] or not config["secret_key"]:
-                    param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
-                    with db.read() as conn:
-                        cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
-                    if not cached:
-                        warnings.append("腾讯云 OCR 未配置，可手动填写和框选。")
-                        continue
-                try:
-                    ocr_runs.append(_ocr_page(page, action, config))
-                except ProviderError as error:
-                    warnings.append(error.message)
-                    # A resource/permission error is not resolved by charging through subsequent pages.
-                    if error.code in ("LocalBudgetExceeded", "NotConfigured", "NetworkError", "HTTPError") or any(p in error.code for p in ("AuthFailure", "Unauthorized", "ResourcePackageRunOut", "InArrears", "ChargeStatusException")):
-                        blocked_actions.add(action)
-                        if "AuthFailure" in error.code or "Unauthorized" in error.code or error.code in ("NetworkError", "HTTPError"):
-                            blocked_actions.update(("GeneralAccurateOCR", "SealOCR"))
-            finally:
-                done += 1
-                if progress:
-                    progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
+    failed_tasks = []
+    for page, action in tasks:
+        # Disabling cloud access still permits explicitly cached results and local PDF text.
+        if not config["enabled"] or not config["secret_id"] or not config["secret_key"]:
+            param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
+            with db.read() as conn:
+                cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
+            if not cached:
+                stopped, stop_reason = True, "NotConfigured"
+                warnings.append("腾讯云 OCR 未配置或已关闭，未继续云调用；可手动填写和框选。")
+                break
+        try:
+            ocr_runs.append(_ocr_page(page, action, config))
+        except ProviderError as error:
+            warnings.append(error.message)
+            failed_tasks.append((page["id"], action))
+            # Stop all further cloud actions, including the other API, on quota/resource errors.
+            if error.code in ("LocalBudgetExceeded", "NotConfigured", "NetworkError", "HTTPError") or any(part in error.code for part in ("AuthFailure", "Unauthorized", "ResourcePackageRunOut", "InArrears", "ChargeStatusException", "LimitExceeded", "ResourceUnavailable", "ResourcesSoldOut", "Quota", "UnOpenError")):
+                stopped, stop_reason = True, error.code
+        done += 1
+        if progress:
+            progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
+        if stopped:
+            break
     with db.write() as conn:
-        has_text = False
+        text_pages, seal_pages = set(), set()
         for run in ocr_runs:
             regions = rows(conn, "recognition_regions", run_id=run["id"])
-            text = "\n".join(region.get("text") or "" for region in regions).strip()[:12000]
-            if text:
-                has_text = True
+            if run["api_name"] in ("GeneralAccurateOCR", NATIVE_TEXT_API) and any((region.get("text") or "").strip() for region in regions):
+                text_pages.add(run["page_id"])
+            if run["api_name"] == "SealOCR":
+                seal_pages.add(run["page_id"])
             page = one(conn, "file_pages", run["page_id"])
             for crop in rows(conn, "evidence_crops", page_id=page["id"], revision_id=revision["id"]):
                 current_revision = one(conn, "application_revisions", crop["revision_id"])
@@ -812,6 +983,33 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
         if specific_activity_title(revision.get("title", "")):
             names.append(revision["title"])
         evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], names)
+        seal_files = {one(conn, "file_pages", item["page_id"])["file_id"] for item in evidence if item.get("validity_kind") == "SEAL"}
+    skipped_files, per_file_warnings = [], []
+    for item in file_results:
+        file_pages = [page for page in pages if page["file_id"] == item["file_id"]]
+        completed = sum(page["id"] in text_pages for page in file_pages)
+        item["processed_page_count"] = completed
+        item["automatic_ocr_status"] = "COMPLETED" if completed == len(file_pages) else ("PARTIAL" if completed else "MANUAL_REQUIRED")
+        item["seal_found"] = item["file_id"] in seal_files
+        boundary_ids = {file_pages[0]["id"], file_pages[-1]["id"]}
+        item["seal_status"] = "SKIPPED" if not item["cloud_ocr_eligible"] else ("FOUND" if item["seal_found"] else ("NOT_FOUND" if boundary_ids <= seal_pages else "LIMITED"))
+        item["seal_message"] = "已定位首页/末页中的最后一枚印章，请核对原件。" if item["seal_found"] else (f"超过{max_pages}页文件不调用云端查章，请自行寻找并手动框选。" if not item["cloud_ocr_eligible"] else "仅检查文件首页和末页，未定位到印章；请自行寻找并手动框选。")
+        if not item["seal_found"]:
+            item["warnings"].append(item["seal_message"])
+            per_file_warnings.append({"file_id": item["file_id"], "file_name": item["file_name"], "code": "SEAL_SKIPPED_LONG_FILE" if not item["cloud_ocr_eligible"] else ("SEAL_NOT_FOUND" if item["seal_status"] == "NOT_FOUND" else "SEAL_CHECK_LIMITED"), "message": item["seal_message"]})
+        if item["manual_page_numbers"]:
+            reason = f"文件超过{max_pages}页，无可用文字层的页面不调用云OCR，请查看原件并手动填写和框选。"
+            skipped_files.append({"file_id": item["file_id"], "file_name": item["file_name"], "page_count": item["page_count"], "max_pages": max_pages, "page_numbers": item["manual_page_numbers"], "reason": reason, "code": "FILE_TOO_LONG"})
+            item["warnings"].append(reason)
+            per_file_warnings.append({"file_id": item["file_id"], "file_name": item["file_name"], "code": "FILE_TOO_LONG", "message": reason})
+        elif completed < len(file_pages):
+            message = "部分页面未取得可用文字，请按原件手动补充；已成功结果予以保留。"
+            item["warnings"].append(message)
+            per_file_warnings.append({"file_id": item["file_id"], "file_name": item["file_name"], "code": "TEXT_INCOMPLETE", "message": message})
+    warnings.extend(warning["message"] for warning in per_file_warnings)
+    partial = bool(stopped or failed_tasks or skipped_files or len(text_pages) < len(pages))
+    if partial:
+        warnings.append("本次仅完成部分自动识别，未覆盖页面或印章需人工核对，已成功结果不会丢失。")
     found_validity = {item["validity_kind"] for item in evidence if item["evidence_type"] == "VALIDITY"}
     missing = [kind for kind in ("NAME", "TIME", "SEAL") if kind not in found_validity]
     for kind, label in (("NAME", "具体活动名称"), ("TIME", "活动时间"), ("SEAL", "印章")):
@@ -819,7 +1017,10 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
             warnings.append(f"未定位到{label}，请人工核对原件。")
     if not any(item["evidence_type"] == "PARTICIPATION" for item in evidence):
         warnings.append("未定位到账户对应的姓名、班级或学号，请人工核对并选择主截图。")
-    return {**common, "status": "SUCCEEDED" if has_text else "MANUAL_REQUIRED", "run_ids": [run["id"] for run in ocr_runs], "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": "OCR已完成，请核对原页定位；识别结果不作为材料真实性结论。" if has_text else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
+    return {**common, "status": "SUCCEEDED" if text_pages else "MANUAL_REQUIRED", "partial": partial, "stopped": stopped, "stop_reason": stop_reason,
+            "planned_tasks": total, "completed_tasks": done, "native_text_page_count": sum(len(item["native_pages"]) for item in file_results),
+            "skipped_files": skipped_files, "manual_required_files": skipped_files, "file_results": file_results, "processed_files": [item for item in file_results if item["processed_page_count"]], "processed_page_ids": [page["id"] for page in pages if page["id"] in text_pages], "per_file_warnings": per_file_warnings,
+            "run_ids": list(dict.fromkeys(run["id"] for run in ocr_runs)), "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": ("已取得可用文字，部分页面或印章仍需人工核对。" if partial else "文字识别已完成，请核对原页定位；识别结果不作为材料真实性结论。") if text_pages else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
 
 
 def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_fingerprint=None, on_applied=None, expected_ocr_fingerprint=None) -> dict:
@@ -864,6 +1065,8 @@ def _mark_manual_evidence(conn, revision: dict):
 
 
 def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
+    if revision.get("content_frozen_at"):
+        return
     suggestions = _last_seal_suggestions(conn, suggestions)
     existing = rows(conn, "evidence_crops", revision_id=revision["id"])
     manual_evidence = (revision.get("payload_json") or {}).get("evidence_manually_edited")
@@ -877,13 +1080,17 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
         for crop in list(existing):
             if crop["source"] != "AI":
                 continue
+            if not automatic_crop_policy(conn, crop, revision)[0]:
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+                existing.remove(crop)
+                continue
             metadata = (crop.get("masks_json") or {}).get("evidence") or {}
             region = one(conn, "recognition_regions", crop["recognition_region_id"]) if crop.get("recognition_region_id") else None
             if metadata.get("validity_kind") != "SEAL" and not (region and region["kind"] == "SEAL"):
                 continue
             page = one(conn, "file_pages", crop["page_id"])
             wanted = desired_seals.get(page["file_id"])
-            if wanted and (page["id"], polygon_box(crop["polygon_json"])) != wanted:
+            if not wanted or (page["id"], polygon_box(crop["polygon_json"])) != wanted:
                 conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
                 existing.remove(crop)
     for item in sorted(suggestions, key=lambda item: item.get("evidence_type") != "PARTICIPATION")[:25]:
@@ -901,6 +1108,86 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
         existing.append(crop)
 
 
+def _ai_material_excerpt(conn, ocr: dict, student: dict, student_user: dict, max_chars=48000):
+    """Bound the LLM input, while full local text/geometry remains in recognition storage."""
+    records, seen, policies = [], set(), {}
+    max_pages = _page_limit()
+    for run_id in ocr.get("run_ids", []):
+        run = one(conn, "recognition_runs", run_id)
+        if not run or run["status"] != "SUCCEEDED" or run["id"] in seen:
+            continue
+        seen.add(run["id"])
+        page = one(conn, "file_pages", run["page_id"])
+        if page["file_id"] not in policies:
+            policies[page["file_id"]] = _file_policy(conn, page["file_id"], max_pages)
+        _, cloud_allowed, boundaries = policies[page["file_id"]]
+        if (run["api_name"] == "GeneralAccurateOCR" and (not cloud_allowed or _native_text_cached(conn, page))) or (run["api_name"] == "SealOCR" and (not cloud_allowed or page["id"] not in boundaries)):
+            continue
+        text = (run.get("result_json") or {}).get("text") if run["api_name"] == NATIVE_TEXT_API else None
+        if text is None:
+            text = "\n".join(region.get("text") or "" for region in rows(conn, "recognition_regions", run_id=run_id))
+        if str(text).strip():
+            records.append({"page_id": page["id"], "file_id": page["file_id"], "page_number": page["page_index"], "kind": run["api_name"], "text": str(text)})
+    source_chars = sum(len(record["text"]) for record in records)
+    source_page_count = len({record["page_id"] for record in records})
+    selected = []
+    if source_chars <= max_chars:
+        selected = records
+    else:
+        tokens = [str(value).strip() for value in (student.get("student_number"), student_user.get("display_name")) if str(value or "").strip()]
+        patterns = [re.compile((r"(?<![0-9])" if token.isdigit() else "") + r"\s*".join(re.escape(character) for character in token) + (r"(?![0-9])" if token.isdigit() else "")) for token in tokens]
+        boundaries = {}
+        for file_id in {record["file_id"] for record in records}:
+            file_pages = rows(conn, "file_pages", file_id=file_id)
+            boundaries[file_id] = {min(page["page_index"] for page in file_pages), max(page["page_index"] for page in file_pages)}
+        matched, match_pages = [], set()
+        for record in records:
+            spans = [match.span() for pattern in patterns for match in pattern.finditer(record["text"])][:12]
+            if spans:
+                windows = []
+                for start, end in sorted(spans):
+                    left, right = max(0, start - 650), min(len(record["text"]), end + 650)
+                    if windows and left <= windows[-1][1]:
+                        windows[-1] = (windows[-1][0], max(right, windows[-1][1]))
+                    else:
+                        windows.append((left, right))
+                text = "\n[该页其余内容略]\n".join(record["text"][left:right] for left, right in windows)[:8000]
+                matched.append({**record, "text": text, "excerpt_reason": "账户姓名或学号命中上下文", "page_excerpt": len(text) < len(record["text"])})
+                match_pages.add((record["file_id"], record["page_number"]))
+        # Reserve space for file boundaries, so a very long roster cannot crowd out
+        # the activity heading/date. Match windows still receive most of the budget.
+        budget, selected_keys = 32000, set()
+        for record in matched:
+            if budget <= 0:
+                break
+            text = record["text"][:budget]
+            selected.append({**record, "text": text})
+            selected_keys.add((record["page_id"], record["kind"]))
+            budget -= len(text)
+        remaining = max_chars - sum(len(record["text"]) for record in selected)
+        candidates = []
+        for record in records:
+            if (record["page_id"], record["kind"]) in selected_keys:
+                continue
+            if record["page_number"] in boundaries[record["file_id"]]:
+                candidates.append((0, record))
+            elif any(file_id == record["file_id"] and abs(number - record["page_number"]) == 1 for file_id, number in match_pages):
+                candidates.append((1, record))
+        for priority, record in sorted(candidates, key=lambda pair: (pair[0], pair[1]["file_id"], pair[1]["page_number"])):
+            if remaining <= 0:
+                break
+            text = record["text"][:min(3000 if priority == 0 else 1200, remaining)]
+            selected.append({**record, "text": text, "excerpt_reason": "原文件首页或末页" if priority == 0 else "本人命中页的相邻页", "page_excerpt": len(text) < len(record["text"])})
+            remaining -= len(text)
+    selected_chars = sum(len(record["text"]) for record in selected)
+    selected_pages = len({record["page_id"] for record in selected})
+    excerpt = {"character_limit": max_chars, "source_character_count": source_chars, "selected_character_count": selected_chars,
+               "source_page_count": source_page_count, "selected_page_count": selected_pages, "omitted_page_count": source_page_count - selected_pages,
+               "omitted_character_count": max(0, source_chars - selected_chars), "coverage_complete": source_chars <= max_chars,
+               "note": "全文已在本地保存；AI仅收到按本人姓名/学号命中、文件首页末页及邻页选择的摘录，未覆盖内容需核对原件。" if source_chars > max_chars else "AI收到已提取的可用文字；这不代表原件全部页面或印章均已自动识别。"}
+    return selected, excerpt
+
+
 def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_result=None) -> dict:
     ocr = ocr_result if ocr_result is not None else run_ocr(application_id, user, progress, _config=config)
     if ocr["status"] != "SUCCEEDED":
@@ -916,21 +1203,24 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
         rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
         analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
-        texts = []
+        if ocr.get("policy_version") not in (None, OCR_POLICY_VERSION):
+            raise HTTPException(409, "OCR结果使用旧识别策略，请按当前策略重新排队。")
+        texts, excerpt = _ai_material_excerpt(conn, ocr, context["student"], context["user"])
         for index, page in enumerate(pages):
             add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=None, input_kind="PAGE", input_hash=page["render_sha256"], sort_order=index)
         for index, run_id in enumerate(ocr["run_ids"]):
             run = one(conn, "recognition_runs", run_id)
             page = one(conn, "file_pages", run["page_id"])
-            text = "\n".join(region.get("text") or "" for region in rows(conn, "recognition_regions", run_id=run_id)).strip()[:12000]
-            if text:
-                texts.append({"page_id": run["page_id"], "kind": run["api_name"], "text": text})
             add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index)
         activities = [{"id": a["id"], "name": a["canonical_name"], "aliases": [v["alias"] for v in rows(conn, "activity_aliases", activity_id=a["id"]) if v["status"] == "ACTIVE"]} for a in rows(conn, "activities", status="ACTIVE")][:300]
-    evidence, warnings = ocr["suggested_crops"], ocr["warnings"]
+    evidence, warnings = ocr["suggested_crops"], list(ocr["warnings"])
+    metadata = {key: ocr[key] for key in ("partial", "skipped_files", "manual_required_files", "file_results", "per_file_warnings", "planned_tasks", "completed_tasks", "native_text_page_count", "stopped", "stop_reason") if key in ocr}
+    metadata.update(policy_version=OCR_POLICY_VERSION, context_excerpt=excerpt)
+    if not excerpt["coverage_complete"]:
+        warnings.append(excerpt["note"])
     if progress:
         progress("AI分析具体活动与分值", 0, 1)
-    prompt_context = {"category": context["category"]["name"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "untrusted_materials": texts}
+    prompt_context = {"category": context["category"]["name"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "context_excerpt": excerpt, "untrusted_materials": texts}
     try:
         suggestion = deepseek_suggestion(prompt_context, config)
         title = str(suggestion.get("title", "")).strip()[:255]
@@ -954,13 +1244,13 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
         error_code = error.code if isinstance(error, ProviderError) else "InvalidSuggestion"
         with db.write() as conn:
-            change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={"error_code": error_code, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence})
-        return {"status": "MANUAL_REQUIRED", "error_code": error_code, "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
+            change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={**metadata, "error_code": error_code, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence})
+        return {**metadata, "status": "MANUAL_REQUIRED", "error_code": error_code, "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
     with db.write() as conn:
-        change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={"suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
+        change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={**metadata, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
     if progress:
         progress("AI分析完成", 1, 1)
-    return {"status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "建议已生成；当前填写内容尚未改变。"}
+    return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "建议已生成；当前填写内容尚未改变。"}
 
 
 @router.post("/applications/{application_id}/apply-analysis")

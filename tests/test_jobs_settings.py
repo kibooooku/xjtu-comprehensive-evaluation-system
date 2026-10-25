@@ -282,3 +282,120 @@ def test_legacy_evidence_uses_real_source_page_without_rewriting_frozen_data(sys
     assert result['page_number'] == 7 and result['file_name'] == 'proof.png'
     with db.read() as conn:
         assert 'evidence' not in db.one(conn, 'evidence_crops', result['id'])['masks_json']
+
+
+def test_policy_change_preserves_approved_history_without_reanalysis(system, monkeypatch):
+    _, app = child(system)
+    assert system.put(f"/api/applications/{app['id']}", json={'title': '审核通过的迎新活动', 'requested_score': '.3'}).status_code == 200
+    with db.write() as conn:
+        old_job = db.rows(conn, 'background_jobs', application_id=app['id'], kind='OCR')[0]
+        old_job = db.change(conn, 'background_jobs', old_job['id'], state='SUCCEEDED', finished_at=db.now(),
+                            result_json={'status': 'SUCCEEDED', 'policy_version': 'LEGACY_500_PAGES', 'run_ids': []})
+    assert system.post(f"/api/applications/{app['id']}/submit", json={}).status_code == 200
+    login(system, 'reviewer1')
+    approved = system.post(f"/api/applications/{app['id']}/review", json={'action': 'APPROVE'})
+    assert approved.status_code == 200 and approved.json()['state'] == 'APPROVED'
+    with db.read() as conn:
+        revision_before = db.one(conn, 'application_revisions', app['revision']['id'])
+    monkeypatch.setattr(materials, 'run_ocr', lambda *args: pytest.fail('approved history cannot start OCR'))
+    monkeypatch.setattr(materials, 'run_ai', lambda *args, **kwargs: pytest.fail('approved history cannot start AI'))
+    login(system, 'student')
+    assert system.post(f"/api/applications/{app['id']}/jobs", json={'kind': 'AI', 'force': True}).status_code == 409
+    assert system.post(f"/api/applications/{app['id']}/jobs", json={'kind': 'OCR', 'force': True}).status_code == 409
+    jobs.process_job(old_job['id'])
+    with db.read() as conn:
+        assert db.one(conn, 'application_revisions', app['revision']['id']) == revision_before
+        assert db.one(conn, 'background_jobs', old_job['id']) == old_job
+        assert len(db.rows(conn, 'background_jobs', application_id=app['id'])) == 1
+
+
+def test_real_long_pdf_text_layer_flows_through_queue_without_tencent(system, tmp_path, monkeypatch):
+    import pypdfium2 as pdfium
+    from test_pdf_text import make_pdf
+    source = make_pdf(tmp_path / 'native-one-page.pdf')
+    destination = tmp_path / 'native-thirteen-pages.pdf'
+    original, document = pdfium.PdfDocument(source), pdfium.PdfDocument.new()
+    try:
+        document.import_pages(original, pages=[0] * 13)
+        document.save(destination)
+    finally:
+        document.close()
+        original.close()
+    config = {'enabled': True, 'secret_id': 'not-a-real-key', 'secret_key': 'not-a-real-key',
+              'deepseek_key': 'not-a-real-key', 'deepseek_model': 'test-model',
+              'max_analysis_pages': 12, 'general_limit': 100, 'seal_limit': 100}
+    monkeypatch.setattr(materials, 'configuration', lambda: config)
+    monkeypatch.setattr(materials, 'tencent_ocr', lambda *args: pytest.fail('long native PDF must not call Tencent'))
+    prompts = []
+
+    def model(context, options):
+        prompts.append(context)
+        return {'title': 'Volunteer event', 'requested_score': '.3', 'payload_json': {}, 'explanation': '本地文字层模拟模型建议'}
+
+    monkeypatch.setattr(materials, 'deepseek_suggestion', model)
+    boot = login(system, 'student')
+    parent = system.post('/api/submissions', json={'category_id': boot['categories'][0]['id']}).json()
+    item = system.post(f"/api/submissions/{parent['id']}/items", json={}).json()
+    uploaded = system.post(f"/api/applications/{item['id']}/files", files={'file': ('native.pdf', destination.read_bytes(), 'application/pdf')})
+    assert uploaded.status_code == 200, uploaded.text
+    confirmed = system.post(f"/api/submissions/{parent['id']}/confirm-upload", json={'item_ids': [item['id']]})
+    assert confirmed.status_code == 200, confirmed.text
+    ocr = confirmed.json()['jobs'][0]
+    queued = system.post(f"/api/applications/{item['id']}/jobs", json={'kind': 'AI'}).json()['job']
+    jobs.process_job(ocr['id'])
+    source_result = system.get('/api/analysis-jobs/' + ocr['id']).json()
+    assert source_result['state'] == 'SUCCEEDED', source_result
+    assert source_result['result_json']['native_text_page_count'] == 13
+    assert source_result['result_json']['planned_tasks'] == source_result['total'] == source_result['progress'] == 0
+    jobs.process_job(queued['id'])
+    completed = system.get('/api/analysis-jobs/' + queued['id']).json()
+    assert completed['state'] == 'SUCCEEDED', completed
+    assert completed['result_json']['native_text_page_count'] == 13 and len(prompts) == 1
+    assert 'Volunteer event' in str(prompts[0]['untrusted_materials'])
+    assert system.get(f"/api/applications/{item['id']}").json()['title'] == 'Volunteer event'
+    with db.read() as conn:
+        runs = db.rows(conn, 'recognition_runs')
+        assert len(runs) == 13 and all(run['provider'] == 'LOCAL_PDF' for run in runs)
+        analysis = db.one(conn, 'ai_analyses', completed['result_json']['analysis_id'])
+        assert analysis['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
+
+
+def test_lower_seven_page_limit_queues_eight_page_scan_as_zero_cloud_manual(system, tmp_path, monkeypatch):
+    import pypdfium2 as pdfium
+    from test_pdf_text import make_pdf
+    source = make_pdf(tmp_path / 'scan-one-page.pdf', image=True, text=False)
+    destination = tmp_path / 'scan-eight-pages.pdf'
+    original, document = pdfium.PdfDocument(source), pdfium.PdfDocument.new()
+    try:
+        document.import_pages(original, pages=[0] * 8)
+        document.save(destination)
+    finally:
+        document.close()
+        original.close()
+    config = {'enabled': True, 'secret_id': 'not-a-real-key', 'secret_key': 'not-a-real-key',
+              'deepseek_key': 'not-a-real-key', 'deepseek_model': 'test-model',
+              'max_analysis_pages': 7, 'general_limit': 100, 'seal_limit': 100}
+    monkeypatch.setattr(materials, 'configuration', lambda: config)
+    monkeypatch.setattr(materials, 'tencent_ocr', lambda *args: pytest.fail('eight-page file exceeds effective seven-page limit'))
+    monkeypatch.setattr(materials, 'deepseek_suggestion', lambda *args: pytest.fail('manual material must not call AI'))
+    boot = login(system, 'student')
+    parent = system.post('/api/submissions', json={'category_id': boot['categories'][0]['id']}).json()
+    item = system.post(f"/api/submissions/{parent['id']}/items", json={}).json()
+    uploaded = system.post(f"/api/applications/{item['id']}/files", files={'file': ('scan.pdf', destination.read_bytes(), 'application/pdf')})
+    assert uploaded.status_code == 200, uploaded.text
+    confirmed = system.post(f"/api/submissions/{parent['id']}/confirm-upload", json={'item_ids': [item['id']]})
+    assert confirmed.status_code == 200, confirmed.text
+    queued = confirmed.json()['jobs'][0]
+    assert queued['total'] == queued['progress'] == 0
+    ai = system.post(f"/api/applications/{item['id']}/jobs", json={'kind': 'AI'}).json()['job']
+    jobs.process_job(queued['id'])
+    jobs.process_job(ai['id'])
+    completed = system.get('/api/analysis-jobs/' + queued['id']).json()
+    manual_ai = system.get('/api/analysis-jobs/' + ai['id']).json()
+    assert completed['state'] == manual_ai['state'] == 'SUCCEEDED'
+    assert completed['result_json']['status'] == manual_ai['result_json']['status'] == 'MANUAL_REQUIRED'
+    assert completed['total'] == completed['progress'] == completed['result_json']['planned_tasks'] == 0
+    skipped = completed['result_json']['manual_required_files'][0]
+    assert skipped['page_count'] == 8 and skipped['max_pages'] == 7
+    with db.read() as conn:
+        assert all(run['provider'] == 'LOCAL_PDF' for run in db.rows(conn, 'recognition_runs'))

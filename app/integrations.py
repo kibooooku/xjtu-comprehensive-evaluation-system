@@ -13,6 +13,7 @@ from pathlib import Path
 
 import httpx
 from dotenv import dotenv_values
+from .limits import MAX_AUTOMATIC_OCR_PAGES
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OCR_HOST = "ocr.tencentcloudapi.com"
@@ -58,7 +59,7 @@ def configuration() -> dict:
         "deepseek_model": pick("DEEPSEEK_MODEL", default="deepseek-flash"),
         "general_limit": limit("OCR_GENERAL_MONTHLY_LIMIT", 100),
         "seal_limit": limit("OCR_SEAL_MONTHLY_LIMIT", 100),
-        "max_analysis_pages": max(1, min(limit("OCR_MAX_ANALYSIS_PAGES", 500), 500)),
+        "max_analysis_pages": max(1, min(limit("OCR_MAX_ANALYSIS_PAGES", MAX_AUTOMATIC_OCR_PAGES), MAX_AUTOMATIC_OCR_PAGES)),
         "enabled": pick("CLOUD_ANALYSIS_ENABLED", default="true").lower() not in ("0", "false", "no"),
     }
 

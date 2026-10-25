@@ -67,11 +67,15 @@ def test_json_object_in_markdown_wrapper_is_parsed_without_a_second_request(monk
     assert integrations.deepseek_suggestion({}, CONFIG)['title'] == '具体活动'
 
 
-def test_default_ocr_limit_accepts_large_uploads_but_does_not_raise_monthly_budget(monkeypatch):
-    monkeypatch.delenv('OCR_MAX_ANALYSIS_PAGES', raising=False)
+@pytest.mark.parametrize(('page_limit', 'expected'), [(None, 12), ('500', 12), ('7', 7)])
+def test_automatic_ocr_has_a_twelve_page_ceiling_without_raising_monthly_budget(monkeypatch, page_limit, expected):
+    if page_limit is None:
+        monkeypatch.delenv('OCR_MAX_ANALYSIS_PAGES', raising=False)
+    else:
+        monkeypatch.setenv('OCR_MAX_ANALYSIS_PAGES', page_limit)
     monkeypatch.setattr(integrations, 'dotenv_values', lambda path: {})
     monkeypatch.setenv('OCR_GENERAL_MONTHLY_LIMIT', '100')
     monkeypatch.setenv('OCR_SEAL_MONTHLY_LIMIT', '100')
     configured = integrations.configuration()
-    assert configured['max_analysis_pages'] == 500
+    assert configured['max_analysis_pages'] == expected
     assert configured['general_limit'] == configured['seal_limit'] == 100

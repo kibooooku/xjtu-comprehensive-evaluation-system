@@ -65,6 +65,7 @@ class Pipeline:
         self.ai_inputs = []
         self.suggestions = []
         self.status = 'SUCCEEDED'
+        self.extra = {}
         monkeypatch.setattr(materials, 'run_ocr', self.ocr)
         monkeypatch.setattr(materials, 'run_ai', self.ai)
         monkeypatch.setattr(materials, 'apply_analysis', lambda *args, **kwargs: {})
@@ -76,6 +77,7 @@ class Pipeline:
             files = db.rows(conn, 'revision_files', revision_id=revision['id'])
             page_ids = [page['id'] for file in files for page in db.rows(conn, 'file_pages', file_id=file['file_id'])]
             result = {'status': self.status, 'input_revision_id': revision['id'],
+                      'policy_version': jobs.OCR_POLICY_VERSION,
                       'input_fingerprint': materials.revision_fingerprint(conn, revision),
                       'ocr_fingerprint': materials.ocr_input_fingerprint(conn, revision),
                       'page_ids': page_ids, 'run_ids': [], 'suggested_crops': self.suggestions,
@@ -87,7 +89,7 @@ class Pipeline:
         assert self.release.wait(10), 'test must release the blocked OCR'
         if progress:
             progress('OCR已完成', 18, 18)
-        return result
+        return {**result, **self.extra}
 
     def ai(self, application_id, user, progress=None, *, ocr_result=None):
         assert ocr_result is not None, 'AI must consume its completed OCR dependency'
@@ -217,12 +219,14 @@ def test_enqueue_after_crop_commit_reuses_atomically_advanced_ai_snapshot(queued
 
 
 @pytest.mark.parametrize('ocr_state', ['FAILED', 'STALE'])
-def test_failed_dependency_never_implicitly_retries_ocr(queued_item, monkeypatch, ocr_state):
+@pytest.mark.parametrize('old_policy', [False, True])
+def test_failed_dependency_never_implicitly_retries_ocr(queued_item, monkeypatch, ocr_state, old_policy):
     client, _, child, ocr = queued_item
     pipeline = Pipeline(monkeypatch)
     ai = bulk(client)
     with db.write() as conn:
-        db.change(conn, 'background_jobs', ocr['id'], state=ocr_state, stage='OCR未完成', finished_at=db.now())
+        db.change(conn, 'background_jobs', ocr['id'], state=ocr_state, stage='OCR未完成', finished_at=db.now(),
+                  result_json={**ocr['result_json'], 'policy_version': 'LEGACY_500_PAGES' if old_policy else jobs.OCR_POLICY_VERSION})
     jobs.process_job(ai['id'])
     failed = client.get('/api/analysis-jobs/' + ai['id']).json()
     assert failed['state'] == 'FAILED' and failed['result_json']['ocr_dependency_state'] == ocr_state
@@ -255,7 +259,7 @@ def test_startup_normalizes_existing_legacy_ocr_and_waiting_ai_without_cloud_rec
         revision = db.one(conn, 'application_revisions', ocr['input_revision_id'])
         old_content_fp = materials.revision_fingerprint(conn, revision)
         db.change(conn, 'background_jobs', ocr['id'], input_fingerprint=old_content_fp, result_json={'auto_apply': True})
-        db.change(conn, 'background_jobs', ai['id'], result_json={'auto_apply': True})
+        db.change(conn, 'background_jobs', ai['id'], result_json={'auto_apply': True, 'policy_version': jobs.OCR_POLICY_VERSION})
     pipeline.release.set()
     worker = jobs.JobWorker()
     worker.start()
@@ -263,6 +267,7 @@ def test_startup_normalizes_existing_legacy_ocr_and_waiting_ai_without_cloud_rec
         assert wait_finished(client, ai['id'])['state'] == 'SUCCEEDED'
         migrated = client.get('/api/analysis-jobs/' + ocr['id']).json()
         assert migrated['result_json']['fingerprint_kind'] == jobs.OCR_FINGERPRINT_KIND
+        assert migrated['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
         assert migrated['result_json']['legacy_content_input_fingerprint'] == old_content_fp
         assert migrated['input_fingerprint'] != old_content_fp
         assert client.get('/api/analysis-jobs/' + ai['id']).json()['wait_for_ocr_job_id'] == ocr['id']
@@ -277,7 +282,7 @@ def test_legacy_ai_without_ocr_job_gets_explicit_dependency_before_claim(queued_
     pipeline = Pipeline(monkeypatch)
     ai = bulk(client)
     with db.write() as conn:
-        db.change(conn, 'background_jobs', ai['id'], result_json={'auto_apply': False})
+        db.change(conn, 'background_jobs', ai['id'], result_json={'auto_apply': False, 'policy_version': jobs.OCR_POLICY_VERSION})
         conn.execute(delete(db.tables['background_jobs']).where(db.tables['background_jobs'].c.id == original_ocr['id']))
     pipeline.release.set()
     worker = jobs.JobWorker()
@@ -291,3 +296,132 @@ def test_legacy_ai_without_ocr_job_gets_explicit_dependency_before_claim(queued_
         assert pipeline.ocr_calls == [child['id']] and len(pipeline.ai_inputs) == 1
     finally:
         worker.stop()
+
+
+def test_manual_only_ocr_finishes_and_ai_neither_deadlocks_nor_calls_a_provider(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    pipeline = Pipeline(monkeypatch)
+    pipeline.status = 'MANUAL_REQUIRED'
+    skipped = [{'file_id': 'long-scan', 'file_name': '扫描材料.pdf', 'page_count': 56, 'max_pages': 12, 'code': 'FILE_TOO_LONG'}]
+    pipeline.extra = {'planned_tasks': 0, 'completed_tasks': 0, 'manual_required_files': skipped,
+                      'skipped_files': skipped, 'partial': True, 'message': '长扫描文件需手动填写、计分和框选'}
+    monkeypatch.setattr(materials, 'apply_ocr_evidence', lambda *args, **kwargs: pytest.fail('manual-only result must not rewrite old evidence'))
+    ai = bulk(client)
+    pipeline.release.set()
+    jobs.process_job(ocr['id'])
+    jobs.process_job(ai['id'])
+    completed = client.get('/api/analysis-jobs/' + ai['id']).json()
+    source = client.get('/api/analysis-jobs/' + ocr['id']).json()
+    assert source['state'] == completed['state'] == 'SUCCEEDED'
+    assert source['progress'] == source['total'] == 0 and source['result_json']['planned_tasks'] == 0
+    assert completed['requires_manual'] is True and completed['result_json']['status'] == 'MANUAL_REQUIRED'
+    assert completed['result_json']['automatically_applied'] is False and 'AI未调用' in completed['stage']
+    assert pipeline.ocr_calls == [child['id']] and pipeline.ai_inputs == []
+    assert bulk(client)['id'] == ai['id']  # Repeat clicks do not rescan manual material.
+
+
+def test_partial_ocr_keeps_actual_work_counts_and_carries_missing_material_to_ai(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    pipeline = Pipeline(monkeypatch)
+    skipped = [{'file_id': 'scan', 'file_name': '超长扫描.pdf', 'page_count': 20, 'max_pages': 12, 'code': 'FILE_TOO_LONG'}]
+    pipeline.extra = {'planned_tasks': 5, 'completed_tasks': 2, 'partial': True,
+                      'manual_required_files': skipped, 'skipped_files': skipped}
+    ai = bulk(client)
+    pipeline.release.set()
+    jobs.process_job(ocr['id'])
+    jobs.process_job(ai['id'])
+    source = client.get('/api/analysis-jobs/' + ocr['id']).json()
+    completed = client.get('/api/analysis-jobs/' + ai['id']).json()
+    assert source['state'] == completed['state'] == 'SUCCEEDED'
+    assert (source['progress'], source['total']) == (2, 5)
+    assert '部分' in source['stage'] and '手动补充' in completed['stage']
+    assert completed['result_json']['manual_required_files'] == skipped
+    assert completed['partial'] is True and completed['requires_manual'] is True
+    assert completed['result_json']['warnings'] == pipeline.ai_inputs[0]['warnings']
+    assert pipeline.ocr_calls == [child['id']] and len(pipeline.ai_inputs) == 1
+
+
+def test_long_native_text_result_can_reach_ai_without_any_cloud_tasks(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    # A 56-page source snapshot. The mocked material runner represents local
+    # PDF text extraction, not a cloud OCR response.
+    with db.write() as conn:
+        revision = db.one(conn, 'application_revisions', ocr['input_revision_id'])
+        attachment = db.rows(conn, 'revision_files', revision_id=revision['id'])[0]
+        template = db.rows(conn, 'file_pages', file_id=attachment['file_id'])[0]
+        for index in range(2, 57):
+            db.add(conn, 'file_pages', **{**{key: value for key, value in template.items() if key != 'id'}, 'page_index': index})
+        db.change(conn, 'background_jobs', ocr['id'], input_fingerprint=materials.ocr_input_fingerprint(conn, revision), total=1)
+    pipeline = Pipeline(monkeypatch)
+    pipeline.extra = {'planned_tasks': 0, 'completed_tasks': 0, 'native_text_page_count': 56,
+                      'processed_page_ids': ['local-text-pages'], 'run_ids': ['native-text-run']}
+    ai = bulk(client)
+    pipeline.release.set()
+    monkeypatch.setattr(materials, 'apply_ocr_evidence', lambda *args, **kwargs: {})
+    jobs.process_job(ocr['id'])
+    jobs.process_job(ai['id'])
+    assert client.get('/api/analysis-jobs/' + ai['id']).json()['state'] == 'SUCCEEDED'
+    completed_ocr = client.get('/api/analysis-jobs/' + ocr['id']).json()
+    assert completed_ocr['progress'] == completed_ocr['total'] == 0
+    assert '未调用云OCR' in completed_ocr['stage']
+    assert len(pipeline.ai_inputs) == 1
+    assert pipeline.ai_inputs[0]['native_text_page_count'] == 56
+    assert pipeline.ai_inputs[0]['run_ids'] == ['native-text-run']
+    assert len(pipeline.ai_inputs[0]['page_ids']) == 56
+
+
+def test_old_policy_success_is_history_not_a_current_cache_hit(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    old_ai = bulk(client)
+    with db.write() as conn:
+        revision = db.one(conn, 'application_revisions', ocr['input_revision_id'])
+        rule = db.rows(conn, 'score_rule_versions')[0]
+        analysis = db.add(conn, 'ai_analyses', application_id=child['id'], input_revision_id=revision['id'],
+                          input_fingerprint=materials.revision_fingerprint(conn, revision), score_rule_version_id=rule['id'],
+                          model_name='old-policy', prompt_version='test', status='SUCCEEDED',
+                          result_json={'policy_version': 'LEGACY_500_PAGES', 'suggestion': {'title': '旧建议', 'requested_score': '.3'}})
+        db.change(conn, 'application_revisions', revision['id'], ai_analysis_id=analysis['id'])
+        for old in (ocr, old_ai):
+            db.change(conn, 'background_jobs', old['id'], state='SUCCEEDED', finished_at=db.now(),
+                      result_json={**old['result_json'], 'status': 'SUCCEEDED', 'policy_version': 'LEGACY_500_PAGES'})
+    monkeypatch.setattr(materials, 'run_ocr', lambda *args: pytest.fail('enqueue must not call a cloud provider'))
+    current = bulk(client)
+    assert current['id'] != old_ai['id'] and current['wait_for_ocr_job_id'] != ocr['id']
+    assert current['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
+    assert current['result_json']['auto_apply'] is False  # Old AI-filled content remains reviewable.
+    with db.read() as conn:
+        assert db.one(conn, 'background_jobs', ocr['id'])['state'] == 'SUCCEEDED'
+        assert db.one(conn, 'background_jobs', old_ai['id'])['state'] == 'SUCCEEDED'
+        assert db.one(conn, 'application_revisions', revision['id'])['ai_analysis_id'] == analysis['id']
+
+
+def test_old_policy_waiting_ai_expires_without_rebasing_manual_content(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    pipeline = Pipeline(monkeypatch)
+    old_ai = bulk(client)
+    with db.write() as conn:
+        db.change(conn, 'background_jobs', old_ai['id'], result_json={**old_ai['result_json'], 'policy_version': 'LEGACY_500_PAGES'})
+    edited = client.put(f"/api/applications/{child['id']}", json={'title': '手填的具体活动', 'requested_score': '.88'})
+    assert edited.status_code == 200
+    jobs.process_job(old_ai['id'])
+    expired = client.get('/api/analysis-jobs/' + old_ai['id']).json()
+    assert expired['state'] == 'STALE' and expired['result_json']['policy_expired'] is True
+    assert expired['input_fingerprint'] == old_ai['input_fingerprint']
+    assert pipeline.ocr_calls == [] and pipeline.ai_inputs == []
+    current = bulk(client)
+    assert current['id'] != old_ai['id'] and current['wait_for_ocr_job_id'] == ocr['id']
+    assert current['result_json']['auto_apply'] is False
+    assert client.get(f"/api/applications/{child['id']}").json()['requested_score'] == '0.88'
+
+
+def test_explicit_policy_expiration_allows_new_click_but_real_failure_still_does_not(queued_item, monkeypatch):
+    client, _, child, ocr = queued_item
+    with db.write() as conn:
+        db.change(conn, 'background_jobs', ocr['id'], state='STALE',
+                  result_json={**ocr['result_json'], 'policy_version': 'OLD', 'policy_expired': True})
+    monkeypatch.setattr(materials, 'run_ocr', lambda *args: pytest.fail('a click only queues recognition'))
+    new_ai = bulk(client)
+    assert new_ai['wait_for_ocr_job_id'] != ocr['id']
+    with db.read() as conn:
+        source = db.one(conn, 'background_jobs', new_ai['wait_for_ocr_job_id'])
+        assert source['state'] == 'QUEUED' and source['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION

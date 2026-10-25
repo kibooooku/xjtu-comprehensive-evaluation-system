@@ -394,7 +394,9 @@ def test_v2_ocr_only_reports_progress_and_staged_items_cannot_start_recognition(
     result = materials.run_ocr(claim["id"], user, lambda stage, done, total: progress.append((stage, done, total)))
     assert result["status"] == "SUCCEEDED" and result["input_fingerprint"]
     assert calls == ["GeneralAccurateOCR", "SealOCR"]
-    assert progress[0][1:] == (0, 2) and progress[-1][1:] == (2, 2)
+    assert progress[0] == ("检查PDF已有文字层", 0, 0)
+    assert next(item for item in progress if item[0] == "OCR准备")[1:] == (0, 2)
+    assert progress[-1][1:] == (2, 2)
     assert client.get(f"/api/applications/{claim['id']}").json()["revision"]["requested_score"] == "0.00"
     with db.read() as conn:
         assert not db.rows(conn, "ai_analyses", application_id=claim["id"])
