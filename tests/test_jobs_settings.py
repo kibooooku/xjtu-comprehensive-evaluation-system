@@ -309,23 +309,33 @@ def test_policy_change_preserves_approved_history_without_reanalysis(system, mon
         assert len(db.rows(conn, 'background_jobs', application_id=app['id'])) == 1
 
 
-def test_real_long_pdf_text_layer_flows_through_queue_without_tencent(system, tmp_path, monkeypatch):
+def test_real_long_pdf_text_layer_flows_through_queue_with_endpoint_seals_only(system, tmp_path, monkeypatch):
     import pypdfium2 as pdfium
     from test_pdf_text import make_pdf
     source = make_pdf(tmp_path / 'native-one-page.pdf')
+    last_source = make_pdf(tmp_path / 'native-last-page.pdf', rotation=90)
     destination = tmp_path / 'native-thirteen-pages.pdf'
-    original, document = pdfium.PdfDocument(source), pdfium.PdfDocument.new()
+    original, last, document = pdfium.PdfDocument(source), pdfium.PdfDocument(last_source), pdfium.PdfDocument.new()
     try:
-        document.import_pages(original, pages=[0] * 13)
+        document.import_pages(original, pages=[0] * 12)
+        document.import_pages(last, pages=[0])
         document.save(destination)
     finally:
         document.close()
         original.close()
+        last.close()
     config = {'enabled': True, 'secret_id': 'not-a-real-key', 'secret_key': 'not-a-real-key',
               'deepseek_key': 'not-a-real-key', 'deepseek_model': 'test-model',
               'max_analysis_pages': 12, 'general_limit': 100, 'seal_limit': 100}
     monkeypatch.setattr(materials, 'configuration', lambda: config)
-    monkeypatch.setattr(materials, 'tencent_ocr', lambda *args: pytest.fail('long native PDF must not call Tencent'))
+    cloud_calls = []
+
+    def endpoint_seal(action, content, options):
+        assert action == 'SealOCR', 'native text must replace all General calls'
+        cloud_calls.append(action)
+        return {'RequestId': 'test-seal-' + str(len(cloud_calls)), 'SealInfos': []}
+
+    monkeypatch.setattr(materials, 'tencent_ocr', endpoint_seal)
     prompts = []
 
     def model(context, options):
@@ -346,7 +356,7 @@ def test_real_long_pdf_text_layer_flows_through_queue_without_tencent(system, tm
     source_result = system.get('/api/analysis-jobs/' + ocr['id']).json()
     assert source_result['state'] == 'SUCCEEDED', source_result
     assert source_result['result_json']['native_text_page_count'] == 13
-    assert source_result['result_json']['planned_tasks'] == source_result['total'] == source_result['progress'] == 0
+    assert source_result['result_json']['planned_tasks'] == source_result['total'] == source_result['progress'] == 2
     jobs.process_job(queued['id'])
     completed = system.get('/api/analysis-jobs/' + queued['id']).json()
     assert completed['state'] == 'SUCCEEDED', completed
@@ -355,29 +365,49 @@ def test_real_long_pdf_text_layer_flows_through_queue_without_tencent(system, tm
     assert system.get(f"/api/applications/{item['id']}").json()['title'] == 'Volunteer event'
     with db.read() as conn:
         runs = db.rows(conn, 'recognition_runs')
-        assert len(runs) == 13 and all(run['provider'] == 'LOCAL_PDF' for run in runs)
+        assert len([run for run in runs if run['provider'] == 'LOCAL_PDF']) == 13
+        clouds = [run for run in runs if run['provider'] == 'TENCENT']
+        assert len(clouds) == len(cloud_calls) == 2 and all(run['api_name'] == 'SealOCR' for run in clouds)
+        assert {db.one(conn, 'file_pages', run['page_id'])['page_index'] for run in clouds} == {1, 13}
         analysis = db.one(conn, 'ai_analyses', completed['result_json']['analysis_id'])
         assert analysis['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
 
 
-def test_lower_seven_page_limit_queues_eight_page_scan_as_zero_cloud_manual(system, tmp_path, monkeypatch):
+def test_lower_seven_page_limit_queues_eight_page_scan_for_endpoint_only_work(system, tmp_path, monkeypatch):
     import pypdfium2 as pdfium
     from test_pdf_text import make_pdf
     source = make_pdf(tmp_path / 'scan-one-page.pdf', image=True, text=False)
+    last_source = make_pdf(tmp_path / 'scan-last-page.pdf', image=True, text=False, rotation=90)
     destination = tmp_path / 'scan-eight-pages.pdf'
-    original, document = pdfium.PdfDocument(source), pdfium.PdfDocument.new()
+    original, last, document = pdfium.PdfDocument(source), pdfium.PdfDocument(last_source), pdfium.PdfDocument.new()
     try:
-        document.import_pages(original, pages=[0] * 8)
+        document.import_pages(original, pages=[0] * 7)
+        document.import_pages(last, pages=[0])
         document.save(destination)
     finally:
         document.close()
         original.close()
+        last.close()
     config = {'enabled': True, 'secret_id': 'not-a-real-key', 'secret_key': 'not-a-real-key',
               'deepseek_key': 'not-a-real-key', 'deepseek_model': 'test-model',
               'max_analysis_pages': 7, 'general_limit': 100, 'seal_limit': 100}
     monkeypatch.setattr(materials, 'configuration', lambda: config)
-    monkeypatch.setattr(materials, 'tencent_ocr', lambda *args: pytest.fail('eight-page file exceeds effective seven-page limit'))
-    monkeypatch.setattr(materials, 'deepseek_suggestion', lambda *args: pytest.fail('manual material must not call AI'))
+    cloud_calls, model_calls = [], []
+
+    def endpoint_ocr(action, content, options):
+        cloud_calls.append(action)
+        if action == 'SealOCR':
+            return {'RequestId': 'mock-seal', 'SealInfos': []}
+        assert action == 'GeneralAccurateOCR'
+        return {'RequestId': 'mock-text', 'TextDetections': [
+            {'DetectedText': '活动名称：迎新广场舞', 'Confidence': 99, 'ItemPolygon': {'X': 20, 'Y': 30, 'Width': 250, 'Height': 20}}]}
+
+    def model(context, options):
+        model_calls.append(context)
+        return {'title': '迎新广场舞', 'requested_score': '.3', 'payload_json': {}, 'explanation': '端点文字模拟建议'}
+
+    monkeypatch.setattr(materials, 'tencent_ocr', endpoint_ocr)
+    monkeypatch.setattr(materials, 'deepseek_suggestion', model)
     boot = login(system, 'student')
     parent = system.post('/api/submissions', json={'category_id': boot['categories'][0]['id']}).json()
     item = system.post(f"/api/submissions/{parent['id']}/items", json={}).json()
@@ -386,16 +416,21 @@ def test_lower_seven_page_limit_queues_eight_page_scan_as_zero_cloud_manual(syst
     confirmed = system.post(f"/api/submissions/{parent['id']}/confirm-upload", json={'item_ids': [item['id']]})
     assert confirmed.status_code == 200, confirmed.text
     queued = confirmed.json()['jobs'][0]
-    assert queued['total'] == queued['progress'] == 0
+    assert queued['total'] == 4 and queued['progress'] == 0
     ai = system.post(f"/api/applications/{item['id']}/jobs", json={'kind': 'AI'}).json()['job']
     jobs.process_job(queued['id'])
     jobs.process_job(ai['id'])
     completed = system.get('/api/analysis-jobs/' + queued['id']).json()
-    manual_ai = system.get('/api/analysis-jobs/' + ai['id']).json()
-    assert completed['state'] == manual_ai['state'] == 'SUCCEEDED'
-    assert completed['result_json']['status'] == manual_ai['result_json']['status'] == 'MANUAL_REQUIRED'
-    assert completed['total'] == completed['progress'] == completed['result_json']['planned_tasks'] == 0
+    completed_ai = system.get('/api/analysis-jobs/' + ai['id']).json()
+    assert completed['state'] == completed_ai['state'] == 'SUCCEEDED'
+    assert completed['result_json']['status'] == completed_ai['result_json']['status'] == 'SUCCEEDED'
+    assert completed['total'] == completed['progress'] == completed['result_json']['planned_tasks'] == 4
+    assert completed['partial'] is True and len(model_calls) == 1
     skipped = completed['result_json']['manual_required_files'][0]
     assert skipped['page_count'] == 8 and skipped['max_pages'] == 7
+    assert skipped['page_numbers'] == list(range(2, 8))
+    assert cloud_calls.count('GeneralAccurateOCR') == cloud_calls.count('SealOCR') == 2
     with db.read() as conn:
-        assert all(run['provider'] == 'LOCAL_PDF' for run in db.rows(conn, 'recognition_runs'))
+        clouds = [run for run in db.rows(conn, 'recognition_runs') if run['provider'] == 'TENCENT']
+        assert len(clouds) == 4
+        assert {db.one(conn, 'file_pages', run['page_id'])['page_index'] for run in clouds} == {1, 8}

@@ -55,7 +55,7 @@ VOLCENGINE_MEDIAKIT_API_KEY=在等号后填入MediaKit专用Key
 
 MediaKit 图像接口不直接接收500页 PDF。测试按原件页图逐页送入，单图不超过10MB，短边不超过2160像素、长边不超过3840像素；必要时等比例缩小并将返回坐标映射回原图。[OCR API及图片限制](https://docs.volcengine.com/docs/Intelligentprocessing/submit-image-text-recognition-ocr-task-api?lang=zh)
 
-正式系统以用户最新确认的[文字层与免费OCR策略](文字层与免费OCR策略.md)为准：腾讯继续仅用免费额度，MediaKit仅作备选且不自动回退；上传最多500页，已有文字层直接读取，无字长扫描件超过12页不调用云OCR。此处保留的8页是独立历史评估，不会因正式上传自动触发。
+正式系统以用户最新确认的[文字层与免费OCR策略](文字层与免费OCR策略.md)为准：腾讯继续仅用免费额度，MediaKit仅作备选且不自动回退；上传最多500页，已有文字层直接读取，超过12页的扫描件只在首页与末页调用文字和印章OCR，中间本人信息手工框选。此处保留的8页是独立历史评估，不会因正式上传自动触发。
 
 ## 当前状态
 

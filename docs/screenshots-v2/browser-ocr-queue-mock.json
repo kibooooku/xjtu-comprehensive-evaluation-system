@@ -1,12 +1,14 @@
 {
   "source": "Every /api request intercepted by browser fixture; no real API writes or provider calls",
   "checks": [
-    "已有运行OCR优先展示原进度3/18",
-    "点击一键分析后仍显示OCR运行，并同时注明AI等待OCR",
-    "即使存在6条更新的历史任务，任务栏仍优先保留运行OCR与排队AI两行",
-    "后续轮询继续推进同一OCR到8/18，未被排队AI覆盖",
-    "未修改的表单点击一键分析仅提交bulk，没有PUT保存、DELETE取消或任务中止请求",
-    "切换页面仍保留OCR进度和等待AI，不销毁任务显示"
+    "已有OCR用统一处理中主状态，并保留真实3/18次级进度",
+    "一键分析后OCR进度不变，独立AI列显示等待材料且明确原OCR继续",
+    "存在6条更新历史任务时，运行OCR和等待AI仍同时保留且OCR优先",
+    "轮询将同一OCR从3/18推进到8/18，不被等待AI覆盖",
+    "未修改表单的一键分析仅POST bulk，没有PUT保存或取消任务",
+    "忙提示含真实已耗时和站内切页继续，切页不销毁任务",
+    "OCR完成后AI进入独立运行阶段，刷新等待说明不会丢未保存表单",
+    "全部空闲后移除忙提示，AI完成仍待核对且审核仍草稿，人工填写保留"
   ],
   "errors": [],
   "writes": [
@@ -33,7 +35,16 @@
     "/api/activities",
     "/api/submissions",
     "/api/applications/mock-item",
-    "/api/activities"
+    "/api/activities",
+    "/api/applications/mock-item",
+    "/api/activities",
+    "/api/analysis-jobs",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item"
   ],
-  "createdAt": "2026-10-25T08:07:28.357Z"
+  "createdAt": "2026-10-25T08:48:32.497Z"
 }

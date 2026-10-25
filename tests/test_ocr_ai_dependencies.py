@@ -303,8 +303,8 @@ def test_manual_only_ocr_finishes_and_ai_neither_deadlocks_nor_calls_a_provider(
     pipeline = Pipeline(monkeypatch)
     pipeline.status = 'MANUAL_REQUIRED'
     skipped = [{'file_id': 'long-scan', 'file_name': '扫描材料.pdf', 'page_count': 56, 'max_pages': 12, 'code': 'FILE_TOO_LONG'}]
-    pipeline.extra = {'planned_tasks': 0, 'completed_tasks': 0, 'manual_required_files': skipped,
-                      'skipped_files': skipped, 'partial': True, 'message': '长扫描文件需手动填写、计分和框选'}
+    pipeline.extra = {'planned_tasks': 2, 'completed_tasks': 0, 'manual_required_files': skipped,
+                      'skipped_files': skipped, 'partial': True, 'message': '未取得文字且免费额度不足，需手动填写、计分和框选'}
     monkeypatch.setattr(materials, 'apply_ocr_evidence', lambda *args, **kwargs: pytest.fail('manual-only result must not rewrite old evidence'))
     ai = bulk(client)
     pipeline.release.set()
@@ -313,7 +313,7 @@ def test_manual_only_ocr_finishes_and_ai_neither_deadlocks_nor_calls_a_provider(
     completed = client.get('/api/analysis-jobs/' + ai['id']).json()
     source = client.get('/api/analysis-jobs/' + ocr['id']).json()
     assert source['state'] == completed['state'] == 'SUCCEEDED'
-    assert source['progress'] == source['total'] == 0 and source['result_json']['planned_tasks'] == 0
+    assert source['progress'] == 0 and source['total'] == source['result_json']['planned_tasks'] == 2
     assert completed['requires_manual'] is True and completed['result_json']['status'] == 'MANUAL_REQUIRED'
     assert completed['result_json']['automatically_applied'] is False and 'AI未调用' in completed['stage']
     assert pipeline.ocr_calls == [child['id']] and pipeline.ai_inputs == []
@@ -341,7 +341,7 @@ def test_partial_ocr_keeps_actual_work_counts_and_carries_missing_material_to_ai
     assert pipeline.ocr_calls == [child['id']] and len(pipeline.ai_inputs) == 1
 
 
-def test_long_native_text_result_can_reach_ai_without_any_cloud_tasks(queued_item, monkeypatch):
+def test_long_native_text_result_can_reach_ai_with_only_endpoint_seal_tasks(queued_item, monkeypatch):
     client, _, child, ocr = queued_item
     # A 56-page source snapshot. The mocked material runner represents local
     # PDF text extraction, not a cloud OCR response.
@@ -353,7 +353,7 @@ def test_long_native_text_result_can_reach_ai_without_any_cloud_tasks(queued_ite
             db.add(conn, 'file_pages', **{**{key: value for key, value in template.items() if key != 'id'}, 'page_index': index})
         db.change(conn, 'background_jobs', ocr['id'], input_fingerprint=materials.ocr_input_fingerprint(conn, revision), total=1)
     pipeline = Pipeline(monkeypatch)
-    pipeline.extra = {'planned_tasks': 0, 'completed_tasks': 0, 'native_text_page_count': 56,
+    pipeline.extra = {'planned_tasks': 2, 'completed_tasks': 2, 'native_text_page_count': 56,
                       'processed_page_ids': ['local-text-pages'], 'run_ids': ['native-text-run']}
     ai = bulk(client)
     pipeline.release.set()
@@ -362,8 +362,7 @@ def test_long_native_text_result_can_reach_ai_without_any_cloud_tasks(queued_ite
     jobs.process_job(ai['id'])
     assert client.get('/api/analysis-jobs/' + ai['id']).json()['state'] == 'SUCCEEDED'
     completed_ocr = client.get('/api/analysis-jobs/' + ocr['id']).json()
-    assert completed_ocr['progress'] == completed_ocr['total'] == 0
-    assert '未调用云OCR' in completed_ocr['stage']
+    assert completed_ocr['progress'] == completed_ocr['total'] == 2
     assert len(pipeline.ai_inputs) == 1
     assert pipeline.ai_inputs[0]['native_text_page_count'] == 56
     assert pipeline.ai_inputs[0]['run_ids'] == ['native-text-run']
@@ -425,3 +424,27 @@ def test_explicit_policy_expiration_allows_new_click_but_real_failure_still_does
     with db.read() as conn:
         source = db.one(conn, 'background_jobs', new_ai['wait_for_ocr_job_id'])
         assert source['state'] == 'QUEUED' and source['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
+
+
+def test_old_long_manual_success_does_not_skip_new_endpoint_policy_on_explicit_click(queued_item, monkeypatch):
+    client, _, child, old_ocr = queued_item
+    old_ai = bulk(client)
+    with db.write() as conn:
+        revision = db.one(conn, 'application_revisions', old_ocr['input_revision_id'])
+        attachment = db.rows(conn, 'revision_files', revision_id=revision['id'])[0]
+        template = db.rows(conn, 'file_pages', file_id=attachment['file_id'])[0]
+        for index in range(2, 57):
+            db.add(conn, 'file_pages', **{**{key: value for key, value in template.items() if key != 'id'}, 'page_index': index})
+        for job in (old_ocr, old_ai):
+            db.change(conn, 'background_jobs', job['id'], state='SUCCEEDED', total=0, progress=0, finished_at=db.now(),
+                      result_json={'status': 'MANUAL_REQUIRED', 'planned_tasks': 0, 'completed_tasks': 0,
+                                   'policy_version': 'TENCENT_FREE_FILE12_SEAL_ENDPOINTS_TEXTLAYER_V1'})
+        old_records = {job['id']: db.one(conn, 'background_jobs', job['id']) for job in (old_ocr, old_ai)}
+    monkeypatch.setattr(materials, 'run_ocr', lambda *args: pytest.fail('no recognition before the explicit task is processed'))
+    current = bulk(client)
+    assert current['id'] != old_ai['id'] and current['wait_for_ocr_job_id'] != old_ocr['id']
+    with db.read() as conn:
+        source = db.one(conn, 'background_jobs', current['wait_for_ocr_job_id'])
+        assert source['total'] == 4 and source['state'] == 'QUEUED'
+        assert source['result_json']['policy_version'] == jobs.OCR_POLICY_VERSION
+        assert all(db.one(conn, 'background_jobs', job_id) == record for job_id, record in old_records.items())

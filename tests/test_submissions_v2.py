@@ -293,3 +293,55 @@ def test_legacy_group_migration_preserves_round_revision_score_and_flags_duplica
     group = v2["client"].get("/api/submissions").json()[0]
     assert group["approved_total"] == "0.30"
     assert all(item["possible_duplicates"] for item in group["items"])
+
+
+def test_list_evidence_summary_tracks_current_cross_file_manual_crops_not_old_jobs(v2, monkeypatch):
+    import io
+    from PIL import Image
+    from app import materials
+    client = v2["client"]
+    client.app.include_router(materials.router)
+    monkeypatch.setattr(materials, "configuration", lambda: {"max_analysis_pages": 12})
+    monkeypatch.setattr(materials, "run_ocr", lambda *args: pytest.fail("summary must not start recognition"))
+    parent = v2["group"]()
+    created = client.post(f"/api/submissions/{parent['id']}/items", json={})
+    assert created.status_code == 200, created.text
+    item = created.json()
+    files = []
+    for name, color in (("参与和活动.png", "white"), ("补充印章.png", "lightblue")):
+        content = io.BytesIO()
+        Image.new("RGB", (400, 600), color).save(content, "PNG")
+        uploaded = client.post(f"/api/applications/{item['id']}/files", files={"file": (name, content.getvalue(), "image/png")})
+        assert uploaded.status_code == 200, uploaded.text
+        files.append(uploaded.json())
+    v2["confirm"](parent, [item])
+    with db.write() as conn:
+        old_job = db.add(conn, "background_jobs", application_id=item["id"], owner_id=v2["users"]["student"]["id"],
+                         input_revision_id=item["revision"]["id"], kind="OCR", state="SUCCEEDED",
+                         result_json={"status": "MANUAL_REQUIRED", "manual_required_files": [{"file_id": files[0]["id"]}],
+                                      "missing_validity": ["NAME", "TIME", "SEAL"]})
+
+    def summary():
+        response = client.get("/api/submissions")
+        assert response.status_code == 200, response.text
+        group = next(group for group in response.json() if group["id"] == parent["id"])
+        return next(child for child in group["items"] if child["id"] == item["id"])["evidence_summary"]
+
+    assert summary() == {"has_participation": False, "has_activity_name": False,
+                         "has_activity_time": False, "has_seal": False, "complete": False}
+    crops = []
+    for file, kind, validity in ((files[0], "PARTICIPATION", None), (files[0], "VALIDITY", "NAME"),
+                                  (files[0], "VALIDITY", "TIME"), (files[1], "VALIDITY", "SEAL")):
+        response = client.post(f"/api/applications/{item['id']}/crops", json={
+            "page_id": file["pages"][0]["id"], "evidence_type": kind,
+            "validity_kind": validity, "box": [10, 10, 200, 90]})
+        assert response.status_code == 200, response.text
+        crops.append(response.json())
+    assert summary() == {"has_participation": True, "has_activity_name": True,
+                         "has_activity_time": True, "has_seal": True, "complete": True}
+    deleted = client.delete(f"/api/applications/{item['id']}/crops/{crops[-1]['id']}")
+    assert deleted.status_code == 200, deleted.text
+    assert summary() == {"has_participation": True, "has_activity_name": True,
+                         "has_activity_time": True, "has_seal": False, "complete": False}
+    with db.read() as conn:
+        assert db.one(conn, "background_jobs", old_job["id"])["result_json"] == old_job["result_json"]

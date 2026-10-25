@@ -106,6 +106,29 @@ def _job_status(conn, application_id):
             "ocr_status": ocr["state"] if ocr else "UNANALYZED", "latest_job": job_view(latest) if latest else None}
 
 
+def _evidence_summary(conn, revision):
+    """Live booleans across attachments; never infer manual work from old jobs."""
+    from .materials import crop_view
+    summary = {"has_participation": False, "has_activity_name": False,
+               "has_activity_time": False, "has_seal": False}
+    keys = {"NAME": "has_activity_name", "TIME": "has_activity_time", "SEAL": "has_seal"}
+    for crop in db.rows(conn, "evidence_crops", revision_id=revision["id"]):
+        view = crop_view(crop, conn=conn)
+        if view.get("source") == "AI" and view.get("automatic_policy_allowed") is False:
+            continue
+        if view["evidence_type"] == "PARTICIPATION":
+            summary["has_participation"] = True
+        elif view["evidence_type"] == "VALIDITY":
+            kind = view.get("validity_kind")
+            if not kind and crop.get("recognition_region_id"):
+                region = db.one(conn, "recognition_regions", crop["recognition_region_id"])
+                kind = "SEAL" if region and region.get("kind") == "SEAL" else None
+            if kind in keys:
+                summary[keys[kind]] = True
+    summary["complete"] = all(summary.values())
+    return summary
+
+
 def _duplicate_hints(conn, entries):
     """Human hints only: names/activities cannot prove duplicate participation."""
     from .workflow import _display_revision, _norm
@@ -158,13 +181,14 @@ def _group_view(conn, context, user, detail=False, include_deleted=False, includ
             continue
         app_context = {**context, "application": application}
         entry = application_detail(conn, application, user, include_deleted=deleted) if detail else _summary(conn, application, app_context)
+        revision = _display_revision(conn, application)
         if not detail:
-            revision = _display_revision(conn, application)
             files = [db.one(conn, "file_objects", link["file_id"]) for link in
                      sorted(db.rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: r["sort_order"])]
             entry.update(file_count=len(files), primary_file_name=files[0]["original_name"] if files else "",
                          files=[{"id": f["id"], "original_name": f["original_name"]} for f in files])
         entry.update(confirmed_at=item["confirmed_at"], deleted_at=item["deleted_at"], item_id=item["id"], sort_order=item["sort_order"],
+                     evidence_summary=_evidence_summary(conn, revision),
                      **_job_status(conn, application["id"]))
         entries.append(entry)
     _duplicate_hints(conn, entries)

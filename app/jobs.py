@@ -14,6 +14,7 @@ router = APIRouter(prefix='/api', tags=['background recognition'])
 ACTIVE = {'QUEUED', 'RUNNING'}
 OCR_FINGERPRINT_KIND = 'OCR_FILES_V1'
 WAITING_FOR_OCR = '等待OCR完成（原OCR任务继续执行）'
+OCR_START_STAGE = '检查材料与PDF文字层，可能需要一点时间'
 _workers = []
 
 
@@ -39,6 +40,10 @@ def _planned_total(conn, revision):
         count = len(db.rows(conn, 'file_pages', file_id=attachment['file_id']))
         if count <= max_pages:
             total += count + min(count, 2)
+        else:
+            # Long documents keep a bounded first/last-page text + seal plan.
+            # Existing native text can reduce the real plan to seals only.
+            total += min(count, 2) * 2
     return total
 
 
@@ -378,7 +383,7 @@ def _claim_next(conn, worker_token):
             db.change(conn, 'background_jobs', job['id'], state='STALE', stage='材料或学年已变更', finished_at=db.now())
             continue
         return db.change(conn, 'background_jobs', job['id'], state='RUNNING',
-                         stage='AI准备（OCR已完成）' if job['kind'] == 'AI' and (job.get('result_json') or {}).get('wait_for_ocr_job_id') else job['stage'],
+                         stage=OCR_START_STAGE if job['kind'] == 'OCR' else ('AI准备（OCR已完成）' if (job.get('result_json') or {}).get('wait_for_ocr_job_id') else job['stage']),
                          started_at=db.now(), heartbeat_at=db.now(), worker_token=worker_token,
                          attempts=job['attempts'] + 1)
     return None
@@ -448,6 +453,7 @@ def process_job(job_id, worker_token=None):
         else:
             worker_token = worker_token or f'{os.getpid()}:direct:{db.uid()}'
             job = db.change(conn, 'background_jobs', job_id, state='RUNNING', started_at=db.now(),
+                            stage=OCR_START_STAGE if job['kind'] == 'OCR' else job['stage'],
                             heartbeat_at=db.now(), worker_token=worker_token, attempts=job['attempts'] + 1)
         ocr_result = _ocr_result_for_ai(conn, job) if job['kind'] == 'AI' else None
 
