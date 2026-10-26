@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2178px" height="1922px" viewBox="0 0 2178 1922"><style>text{font-family:Arial,"Microsoft YaHei",sans-serif}</style><rect width="100%" height="100%" fill="white"/><text x="28" y="34" font-size="24" font-weight="bold" fill="#203b50">UML：材料、证据与 OCR / AI 独立后台并行</text><text x="28" y="60" font-size="13" fill="#5c7486">当前实现的领域模型 · entity 实体 / service 模块职责 / reference 跨图引用 · 2026-10-26</text><g transform="translate(0,86)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.92 1726.32)">
+<title>CurrentDesign</title>
+<polygon fill="white" stroke="none" points="-25.92,25.92 -25.92,-1726.32 2151.95,-1726.32 2151.95,25.92 -25.92,25.92"/>
+<!-- User&#45;&gt;BackgroundJob -->
+<g id="e12" class="edge">
+<title>User&#45;&gt;BackgroundJob</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M201,-1503.87C201,-1448.26 201,-1359.93 201,-1289.35"/>
+<text xml:space="preserve" text-anchor="middle" x="230.17" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">仅所有人可查询</text>
+<text xml:space="preserve" text-anchor="middle" x="209.45" y="-1304.47" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="192.55" y="-1482.75" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- ApplicationRevision&#45;&gt;RevisionFile -->
+<g id="e0" class="edge">
+<title>ApplicationRevision&#45;&gt;RevisionFile</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1188.51,-1467.79C1237.83,-1400.03 1304.41,-1308.56 1349.37,-1246.78"/>
+<polygon fill="#7b8e9f" stroke="#7b8e9f" stroke-width="1.1" points="1188.41,-1467.93 1188.21,-1472.97 1183.47,-1474.72 1183.68,-1469.67 1188.41,-1467.93"/>
+<text xml:space="preserve" text-anchor="middle" x="1290.17" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">版本的附件集合</text>
+<text xml:space="preserve" text-anchor="middle" x="1345.54" y="-1263.41" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1186.72" y="-1452.89" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- ApplicationRevision&#45;&gt;EvidenceCrop -->
+<g id="e5" class="edge">
+<title>ApplicationRevision&#45;&gt;EvidenceCrop</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1104.88,-1466.21C1082.69,-1353.99 1048,-1178.6 1048,-1178.6 1048,-1178.6 1048,-1178.6 1048,-376.2 1048,-376.2 1089,-293.6 1089,-293.6 1089,-293.6 1144.9,-244.33 1200.47,-195.34"/>
+<polygon fill="#7b8e9f" stroke="#7b8e9f" stroke-width="1.1" points="1104.9,-1466.31 1108.47,-1469.88 1106.53,-1474.55 1102.97,-1470.97 1104.9,-1466.31"/>
+<text xml:space="preserve" text-anchor="middle" x="1081.34" y="-653.6" font-family="Arial" font-size="10.00" fill="#334c62">参与及有效性证据</text>
+<text xml:space="preserve" text-anchor="middle" x="1192.46" y="-210.67" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1094.92" y="-1456.38" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- ApplicationRevision&#45;&gt;AIAnalysis -->
+<g id="e8" class="edge">
+<title>ApplicationRevision&#45;&gt;AIAnalysis</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1131.68,-1475.41C1147.18,-1328.37 1178,-1036 1178,-1036 1178,-1036 1202.26,-1016.95 1232.86,-992.91"/>
+<text xml:space="preserve" text-anchor="middle" x="1168.5" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">分析输入快照</text>
+<text xml:space="preserve" text-anchor="middle" x="1223.82" y="-1007.76" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1125.18" y="-1453.49" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- ApplicationRevision&#45;&gt;BackgroundJob -->
+<g id="e13" class="edge">
+<title>ApplicationRevision&#45;&gt;BackgroundJob</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M988.22,-1475.41C900.76,-1421.96 803,-1362.2 803,-1362.2 803,-1362.2 565,-1319.2 565,-1319.2 565,-1319.2 486.18,-1288.76 401.9,-1256.2"/>
+<text xml:space="preserve" text-anchor="middle" x="845.06" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">精确输入版本</text>
+<text xml:space="preserve" text-anchor="middle" x="421.85" y="-1251.85" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="968.34" y="-1470.17" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- FileObject&#45;&gt;RevisionFile -->
+<g id="e1" class="edge">
+<title>FileObject&#45;&gt;RevisionFile</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1747.17,-1475.29C1666.88,-1406.87 1554.12,-1310.79 1478.92,-1246.7"/>
+<text xml:space="preserve" text-anchor="middle" x="1638.17" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">原件关联</text>
+<text xml:space="preserve" text-anchor="middle" x="1498.19" y="-1249.02" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1727.89" y="-1466.96" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- FileObject&#45;&gt;FilePage -->
+<g id="e2" class="edge">
+<title>FileObject&#45;&gt;FilePage</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1844,-1466.05C1844,-1403.54 1844,-1321.48 1844,-1261.05"/>
+<polygon fill="#7b8e9f" stroke="#7b8e9f" stroke-width="1.1" points="1844,-1466.13 1846.8,-1470.33 1844,-1474.53 1841.2,-1470.33 1844,-1466.13"/>
+<text xml:space="preserve" text-anchor="middle" x="1860.67" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">逐页渲染</text>
+<text xml:space="preserve" text-anchor="middle" x="1852.45" y="-1276.17" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1835.55" y="-1454.39" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- FileObject&#45;&gt;AnalysisInput -->
+<g id="e10" class="edge">
+<title>FileObject&#45;&gt;AnalysisInput</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1920.37,-1475.35C1984.24,-1406.39 2065,-1319.2 2065,-1319.2 2065,-1319.2 2082,-515.8 2082,-515.8 2082,-515.8 2082,-503.8 2082,-503.8 2082,-503.8 2021.9,-480.93 1953,-454.7"/>
+<text xml:space="preserve" text-anchor="middle" x="2101.02" y="-892.2" font-family="Arial" font-size="10.00" fill="#334c62">证明材料来源</text>
+<text xml:space="preserve" text-anchor="middle" x="1972.94" y="-450.25" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1926.48" y="-1453.31" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- FilePage&#45;&gt;RecognitionRun -->
+<g id="e3" class="edge">
+<title>FilePage&#45;&gt;RecognitionRun</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1786.06,-1094.32C1707.54,-982.79 1577,-797.4 1577,-797.4 1577,-797.4 1543.01,-770.4 1504.91,-740.13"/>
+<text xml:space="preserve" text-anchor="middle" x="1760.51" y="-892.2" font-family="Arial" font-size="10.00" fill="#334c62">本地文字层 / 云文字 / 印章</text>
+<text xml:space="preserve" text-anchor="middle" x="1524.36" y="-741.79" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1768.72" y="-1081.36" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- FilePage&#45;&gt;EvidenceCrop -->
+<g id="e6" class="edge">
+<title>FilePage&#45;&gt;EvidenceCrop</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1858.86,-1094.14C1892.78,-905.92 1973,-460.8 1973,-460.8 1973,-460.8 1973,-293.6 1973,-293.6 1973,-293.6 1705.86,-215.11 1510.72,-157.78"/>
+<text xml:space="preserve" text-anchor="middle" x="1998.12" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">原页、坐标与页码</text>
+<text xml:space="preserve" text-anchor="middle" x="1530.49" y="-151.78" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1853.76" y="-1071.8" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- RecognitionRun&#45;&gt;RecognitionRegion -->
+<g id="e4" class="edge">
+<title>RecognitionRun&#45;&gt;RecognitionRegion</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1366.39,-564.31C1356.33,-537.78 1347.99,-515.8 1347.99,-515.8 1347.99,-515.8 1340.85,-489.93 1332.76,-460.63"/>
+<polygon fill="#7b8e9f" stroke="#7b8e9f" stroke-width="1.1" points="1366.37,-564.28 1370.48,-567.22 1369.35,-572.14 1365.25,-569.2 1366.37,-564.28"/>
+<text xml:space="preserve" text-anchor="middle" x="1373" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">原页文字位置</text>
+<text xml:space="preserve" text-anchor="middle" x="1345.73" y="-472.85" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1355.37" y="-556.11" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- RecognitionRun&#45;&gt;AnalysisInput -->
+<g id="e11" class="edge">
+<title>RecognitionRun&#45;&gt;AnalysisInput</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1505.36,-573.12C1550.32,-537.59 1602.79,-496.13 1647.74,-460.6"/>
+<text xml:space="preserve" text-anchor="middle" x="1624.53" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">识别结果来源，可空</text>
+<text xml:space="preserve" text-anchor="middle" x="1638.76" y="-475.47" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1514.34" y="-552.25" font-family="Arial" font-size="10.00" fill="#334c62">0..1</text>
+</g>
+<!-- RecognitionRegion&#45;&gt;EvidenceCrop -->
+<g id="e7" class="edge">
+<title>RecognitionRegion&#45;&gt;EvidenceCrop</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1310,-293.72C1310,-262.74 1310,-227.25 1310,-195.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1355.84" y="-241.6" font-family="Arial" font-size="10.00" fill="#334c62">自动证据来源，手工可空</text>
+<text xml:space="preserve" text-anchor="middle" x="1318.45" y="-210.24" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1301.55" y="-272.6" font-family="Arial" font-size="10.00" fill="#334c62">0..1</text>
+</g>
+<!-- AIAnalysis&#45;&gt;AnalysisInput -->
+<g id="e9" class="edge">
+<title>AIAnalysis&#45;&gt;AnalysisInput</title>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1548.48,-793.04C1590.14,-771.14 1622,-754.4 1622,-754.4 1622,-754.4 1685.2,-571.5 1723.47,-460.76"/>
+<polygon fill="#7b8e9f" stroke="#7b8e9f" stroke-width="1.1" points="1548.33,-793.12 1545.92,-797.55 1540.9,-797.02 1543.31,-792.59 1548.33,-793.12"/>
+<text xml:space="preserve" text-anchor="middle" x="1707.84" y="-653.6" font-family="Arial" font-size="10.00" fill="#334c62">可追溯输入</text>
+<text xml:space="preserve" text-anchor="middle" x="1725.54" y="-477.65" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1552.13" y="-778.57" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
+</g>
+<!-- BackgroundJob&#45;&gt;BackgroundJob -->
+<g id="e18" class="edge">
+<title>BackgroundJob&#45;&gt;BackgroundJob</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M401.83,-1208.42C426.11,-1202.86 442,-1192.58 442,-1177.6 442,-1164.31 429.51,-1154.73 409.75,-1148.85"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="403.13,-1147.12 410.7,-1145.85 405.23,-1147.62 409.91,-1148.85 409.9,-1148.89 409.89,-1148.94 405.21,-1147.72 409.1,-1151.94 403.13,-1147.12"/>
+<text xml:space="preserve" text-anchor="middle" x="504.51" y="-1180.6" font-family="Arial" font-size="10.00" fill="#334c62">AI依赖OCR完成（JSON逻辑引</text>
+<text xml:space="preserve" text-anchor="middle" x="504.51" y="-1168.6" font-family="Arial" font-size="10.00" fill="#334c62">用）</text>
+</g>
+<!-- JobWorker&#45;&gt;BackgroundJob -->
+<g id="e14" class="edge">
+<title>JobWorker&#45;&gt;BackgroundJob</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M485.66,-1417.41C437.54,-1377.05 385.62,-1333.49 339.46,-1294.76"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="334.31,-1290.44 341.69,-1292.52 335.99,-1291.79 339.7,-1294.9 339.67,-1294.94 339.64,-1294.97 335.93,-1291.86 337.65,-1297.35 334.31,-1290.44"/>
+<text xml:space="preserve" text-anchor="middle" x="468.67" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">原子领取及所有权校验</text>
+</g>
+<!-- JobWorker&#45;&gt;MaterialService -->
+<g id="e15" class="edge">
+<title>JobWorker&#45;&gt;MaterialService</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M702.24,-1417.41C712.64,-1387.76 723.64,-1356.39 734.13,-1326.48"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="736.35,-1320.17 737,-1327.82 735.68,-1322.23 734.08,-1326.79 734.03,-1326.78 733.98,-1326.76 735.58,-1322.19 731.06,-1325.73 736.35,-1320.17"/>
+<text xml:space="preserve" text-anchor="middle" x="756.17" y="-1365.2" font-family="Arial" font-size="10.00" fill="#334c62">分别调度OCR与AI</text>
+</g>
+<!-- MaterialService&#45;&gt;RecognitionRun -->
+<g id="e16" class="edge">
+<title>MaterialService&#45;&gt;RecognitionRun</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M887.44,-1036.21C965.45,-928.24 1059.99,-797.4 1059.99,-797.4 1059.99,-797.4 1121.81,-772.05 1192.82,-742.94"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="1198.93,-740.44 1193.64,-746.01 1196.95,-741.31 1192.47,-743.14 1192.45,-743.1 1192.43,-743.05 1196.91,-741.21 1191.25,-740.18 1198.93,-740.44"/>
+<text xml:space="preserve" text-anchor="middle" x="1097.49" y="-892.2" font-family="Arial" font-size="10.00" fill="#334c62">内容缓存与用量预留</text>
+</g>
+<!-- MaterialService&#45;&gt;SystemSetting -->
+<g id="e17" class="edge">
+<title>MaterialService&#45;&gt;SystemSetting</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M780.86,-1036.15C777.7,-949.81 773.71,-841.01 770.83,-762.24"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="770.59,-755.57 773.99,-762.45 770.72,-757.72 770.89,-762.56 770.84,-762.56 770.79,-762.56 770.62,-757.73 767.69,-762.68 770.59,-755.57"/>
+<text xml:space="preserve" text-anchor="middle" x="817.8" y="-892.2" font-family="Arial" font-size="10.00" fill="#334c62">按月接口计数 + 归档</text>
+</g>
+<!-- User -->
+<g id="node1" class="node">
+<title>User</title>
+<polygon fill="none" stroke="#697d8e" points="0,-1503.6 0,-1614 402,-1614 402,-1503.6 0,-1503.6"/>
+<polygon fill="#697d8e" stroke="none" points="1,-1559 1,-1613 401,-1613 401,-1559 1,-1559"/>
+<text xml:space="preserve" text-anchor="start" x="171.65" y="-1597.1" font-family="Arial" font-size="11.00" fill="white">«reference»</text>
+<text xml:space="preserve" text-anchor="start" x="183.21" y="-1581.6" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">User</text>
+<text xml:space="preserve" text-anchor="start" x="173.91" y="-1568.3" font-family="Arial" font-size="13.00" fill="white">任务所有人</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1530.6 1,-1559 401,-1559 401,-1530.6 1,-1530.6"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1540" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#edf3f7" stroke="none" points="1,-1504.6 1,-1530.6 401,-1530.6 401,-1504.6 1,-1504.6"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1513.6" font-family="Arial" font-size="10.00" fill="#526b7d">table: users</text>
+</g>
+<!-- ApplicationRevision -->
+<g id="node2" class="node">
+<title>ApplicationRevision</title>
+<polygon fill="none" stroke="#697d8e" points="922,-1475.2 922,-1642.4 1324,-1642.4 1324,-1475.2 922,-1475.2"/>
+<polygon fill="#697d8e" stroke="none" points="923,-1587.4 923,-1641.4 1323,-1641.4 1323,-1587.4 923,-1587.4"/>
+<text xml:space="preserve" text-anchor="start" x="1093.65" y="-1625.5" font-family="Arial" font-size="11.00" fill="white">«reference»</text>
+<text xml:space="preserve" text-anchor="start" x="1046.1" y="-1610" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">ApplicationRevision</text>
+<text xml:space="preserve" text-anchor="start" x="1101.33" y="-1596.7" font-family="Arial" font-size="13.00" fill="white">输入版本</text>
+<polygon fill="#f5f8fb" stroke="none" points="923,-1559 923,-1587.4 1323,-1587.4 1323,-1559 923,-1559"/>
+<text xml:space="preserve" text-anchor="start" x="930" y="-1568.4" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="923,-1530.6 923,-1559 1323,-1559 1323,-1530.6 923,-1530.6"/>
+<text xml:space="preserve" text-anchor="start" x="930" y="-1540" font-family="Arial" font-size="12.00">− /contentFingerprint</text>
+<polygon fill="#f5f8fb" stroke="none" points="923,-1502.2 923,-1530.6 1323,-1530.6 1323,-1502.2 923,-1502.2"/>
+<text xml:space="preserve" text-anchor="start" x="930" y="-1511.6" font-family="Arial" font-size="12.00">− /filesFingerprint</text>
+<polygon fill="#edf3f7" stroke="none" points="923,-1476.2 923,-1502.2 1323,-1502.2 1323,-1476.2 923,-1476.2"/>
+<text xml:space="preserve" text-anchor="start" x="930" y="-1485.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: application_revisions</text>
+</g>
+<!-- RevisionFile -->
+<g id="node3" class="node">
+<title>RevisionFile</title>
+<polygon fill="none" stroke="#285c84" points="1198,-1108.2 1198,-1247 1600,-1247 1600,-1108.2 1198,-1108.2"/>
+<polygon fill="#285c84" stroke="none" points="1199,-1192 1199,-1246 1599,-1246 1599,-1192 1199,-1192"/>
+<text xml:space="preserve" text-anchor="start" x="1379.74" y="-1230.1" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1351.88" y="-1214.6" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">RevisionFile</text>
+<text xml:space="preserve" text-anchor="start" x="1377.33" y="-1201.3" font-family="Arial" font-size="13.00" fill="white">版本附件</text>
+<polygon fill="#f5f8fb" stroke="none" points="1199,-1163.6 1199,-1192 1599,-1192 1599,-1163.6 1199,-1163.6"/>
+<text xml:space="preserve" text-anchor="start" x="1206" y="-1173" font-family="Arial" font-size="12.00">− revisionId / fileId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1199,-1135.2 1199,-1163.6 1599,-1163.6 1599,-1135.2 1199,-1135.2"/>
+<text xml:space="preserve" text-anchor="start" x="1206" y="-1144.6" font-family="Arial" font-size="12.00">− sortOrder / addedBy</text>
+<polygon fill="#edf3f7" stroke="none" points="1199,-1109.2 1199,-1135.2 1599,-1135.2 1599,-1109.2 1199,-1109.2"/>
+<text xml:space="preserve" text-anchor="start" x="1206" y="-1118.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: revision_files</text>
+</g>
+<!-- FileObject -->
+<g id="node4" class="node">
+<title>FileObject</title>
+<polygon fill="none" stroke="#285c84" points="1643,-1475.2 1643,-1642.4 2045,-1642.4 2045,-1475.2 1643,-1475.2"/>
+<polygon fill="#285c84" stroke="none" points="1644,-1587.4 1644,-1641.4 2044,-1641.4 2044,-1587.4 1644,-1587.4"/>
+<text xml:space="preserve" text-anchor="start" x="1824.74" y="-1625.5" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1805.32" y="-1610" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">FileObject</text>
+<text xml:space="preserve" text-anchor="start" x="1822.33" y="-1596.7" font-family="Arial" font-size="13.00" fill="white">原始材料</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1559 1644,-1587.4 2044,-1587.4 2044,-1559 1644,-1559"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1568.4" font-family="Arial" font-size="12.00">− id / uploadedBy: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1530.6 1644,-1559 2044,-1559 2044,-1530.6 1644,-1530.6"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1540" font-family="Arial" font-size="12.00">− originalName / mimeType</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1502.2 1644,-1530.6 2044,-1530.6 2044,-1502.2 1644,-1502.2"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1511.6" font-family="Arial" font-size="12.00">− byteSize / sha256 / storageUri</text>
+<polygon fill="#edf3f7" stroke="none" points="1644,-1476.2 1644,-1502.2 2044,-1502.2 2044,-1476.2 1644,-1476.2"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1485.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: file_objects</text>
+</g>
+<!-- FilePage -->
+<g id="node5" class="node">
+<title>FilePage</title>
+<polygon fill="none" stroke="#285c84" points="1643,-1094 1643,-1261.2 2045,-1261.2 2045,-1094 1643,-1094"/>
+<polygon fill="#285c84" stroke="none" points="1644,-1206.2 1644,-1260.2 2044,-1260.2 2044,-1206.2 1644,-1206.2"/>
+<text xml:space="preserve" text-anchor="start" x="1824.74" y="-1244.3" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1811.1" y="-1228.8" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">FilePage</text>
+<text xml:space="preserve" text-anchor="start" x="1827.75" y="-1215.5" font-family="Arial" font-size="13.00" fill="white">原件页</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1177.8 1644,-1206.2 2044,-1206.2 2044,-1177.8 1644,-1177.8"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1187.2" font-family="Arial" font-size="12.00">− fileId / pageIndex</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1149.4 1644,-1177.8 2044,-1177.8 2044,-1149.4 1644,-1149.4"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1158.8" font-family="Arial" font-size="12.00">− renderVersion / renderSha256</text>
+<polygon fill="#f5f8fb" stroke="none" points="1644,-1121 1644,-1149.4 2044,-1149.4 2044,-1121 1644,-1121"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1130.4" font-family="Arial" font-size="12.00">− widthPx / heightPx / imageUri</text>
+<polygon fill="#edf3f7" stroke="none" points="1644,-1095 1644,-1121 2044,-1121 2044,-1095 1644,-1095"/>
+<text xml:space="preserve" text-anchor="start" x="1651" y="-1104" font-family="Arial" font-size="10.00" fill="#526b7d">table: file_pages</text>
+</g>
+<!-- RecognitionRun -->
+<g id="node6" class="node">
+<title>RecognitionRun</title>
+<polygon fill="none" stroke="#285c84" points="1200,-573 1200,-740.2 1602,-740.2 1602,-573 1200,-573"/>
+<polygon fill="#285c84" stroke="none" points="1201,-685.2 1201,-739.2 1601,-739.2 1601,-685.2 1201,-685.2"/>
+<text xml:space="preserve" text-anchor="start" x="1381.74" y="-723.3" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1339.23" y="-707.8" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">RecognitionRun</text>
+<text xml:space="preserve" text-anchor="start" x="1363.08" y="-694.5" font-family="Arial" font-size="13.00" fill="white">文字或印章识别</text>
+<polygon fill="#f5f8fb" stroke="none" points="1201,-656.8 1201,-685.2 1601,-685.2 1601,-656.8 1201,-656.8"/>
+<text xml:space="preserve" text-anchor="start" x="1208" y="-666.2" font-family="Arial" font-size="12.00">− pageId / provider / apiName</text>
+<polygon fill="#f5f8fb" stroke="none" points="1201,-628.4 1201,-656.8 1601,-656.8 1601,-628.4 1201,-628.4"/>
+<text xml:space="preserve" text-anchor="start" x="1208" y="-637.8" font-family="Arial" font-size="12.00">− parametersHash / status</text>
+<polygon fill="#f5f8fb" stroke="none" points="1201,-600 1201,-628.4 1601,-628.4 1601,-600 1201,-600"/>
+<text xml:space="preserve" text-anchor="start" x="1208" y="-609.4" font-family="Arial" font-size="12.00">− resultJson / startedAt / finishedAt</text>
+<polygon fill="#edf3f7" stroke="none" points="1201,-574 1201,-600 1601,-600 1601,-574 1201,-574"/>
+<text xml:space="preserve" text-anchor="start" x="1208" y="-583" font-family="Arial" font-size="10.00" fill="#526b7d">table: recognition_runs</text>
+</g>
+<!-- RecognitionRegion -->
+<g id="node7" class="node">
+<title>RecognitionRegion</title>
+<polygon fill="none" stroke="#285c84" points="1109,-293.6 1109,-460.8 1511,-460.8 1511,-293.6 1109,-293.6"/>
+<polygon fill="#285c84" stroke="none" points="1110,-405.8 1110,-459.8 1510,-459.8 1510,-405.8 1110,-405.8"/>
+<text xml:space="preserve" text-anchor="start" x="1290.74" y="-443.9" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1236.67" y="-428.4" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">RecognitionRegion</text>
+<text xml:space="preserve" text-anchor="start" x="1282.91" y="-415.1" font-family="Arial" font-size="13.00" fill="white">文字与位置</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-377.4 1110,-405.8 1510,-405.8 1510,-377.4 1110,-377.4"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-386.8" font-family="Arial" font-size="12.00">− runId / regionNo</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-349 1110,-377.4 1510,-377.4 1510,-349 1110,-349"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-358.4" font-family="Arial" font-size="12.00">− kind / text / confidence</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-320.6 1110,-349 1510,-349 1510,-320.6 1110,-320.6"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-330" font-family="Arial" font-size="12.00">− polygonJson / extraJson</text>
+<polygon fill="#edf3f7" stroke="none" points="1110,-294.6 1110,-320.6 1510,-320.6 1510,-294.6 1110,-294.6"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-303.6" font-family="Arial" font-size="10.00" fill="#526b7d">table: recognition_regions</text>
+</g>
+<!-- EvidenceCrop -->
+<g id="node8" class="node">
+<title>EvidenceCrop</title>
+<polygon fill="none" stroke="#285c84" points="1109,0 1109,-195.6 1511,-195.6 1511,0 1109,0"/>
+<polygon fill="#285c84" stroke="none" points="1110,-140.6 1110,-194.6 1510,-194.6 1510,-140.6 1110,-140.6"/>
+<text xml:space="preserve" text-anchor="start" x="1290.74" y="-178.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1256.21" y="-163.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">EvidenceCrop</text>
+<text xml:space="preserve" text-anchor="start" x="1288.33" y="-149.9" font-family="Arial" font-size="13.00" fill="white">证据截图</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-112.2 1110,-140.6 1510,-140.6 1510,-112.2 1110,-112.2"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-121.6" font-family="Arial" font-size="12.00">− revisionId / pageId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-83.8 1110,-112.2 1510,-112.2 1510,-83.8 1110,-83.8"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-93.2" font-family="Arial" font-size="12.00">− evidenceType / source</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-55.4 1110,-83.8 1510,-83.8 1510,-55.4 1110,-55.4"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-64.8" font-family="Arial" font-size="12.00">− polygonJson / masksJson</text>
+<polygon fill="#f5f8fb" stroke="none" points="1110,-27 1110,-55.4 1510,-55.4 1510,-27 1110,-27"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-36.4" font-family="Arial" font-size="12.00">− privateAsset / publicAssetStatus</text>
+<polygon fill="#edf3f7" stroke="none" points="1110,-1 1110,-27 1510,-27 1510,-1 1110,-1"/>
+<text xml:space="preserve" text-anchor="start" x="1117" y="-10" font-family="Arial" font-size="10.00" fill="#526b7d">table: evidence_crops</text>
+</g>
+<!-- AIAnalysis -->
+<g id="node9" class="node">
+<title>AIAnalysis</title>
+<polygon fill="none" stroke="#285c84" points="1155,-797.4 1155,-993 1557,-993 1557,-797.4 1155,-797.4"/>
+<polygon fill="#285c84" stroke="none" points="1156,-938 1156,-992 1556,-992 1556,-938 1156,-938"/>
+<text xml:space="preserve" text-anchor="start" x="1336.74" y="-976.1" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1315.09" y="-960.6" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">AIAnalysis</text>
+<text xml:space="preserve" text-anchor="start" x="1318.08" y="-947.3" font-family="Arial" font-size="13.00" fill="white">活动与政策建议</text>
+<polygon fill="#f5f8fb" stroke="none" points="1156,-909.6 1156,-938 1556,-938 1556,-909.6 1156,-909.6"/>
+<text xml:space="preserve" text-anchor="start" x="1163" y="-919" font-family="Arial" font-size="12.00">− applicationId / inputRevisionId</text>
+<polygon fill="#f5f8fb" stroke="none" points="1156,-881.2 1156,-909.6 1556,-909.6 1556,-881.2 1156,-881.2"/>
+<text xml:space="preserve" text-anchor="start" x="1163" y="-890.6" font-family="Arial" font-size="12.00">− inputFingerprint / status</text>
+<polygon fill="#f5f8fb" stroke="none" points="1156,-852.8 1156,-881.2 1556,-881.2 1556,-852.8 1156,-852.8"/>
+<text xml:space="preserve" text-anchor="start" x="1163" y="-862.2" font-family="Arial" font-size="12.00">− suggestedTitle / suggestedScore</text>
+<polygon fill="#f5f8fb" stroke="none" points="1156,-824.4 1156,-852.8 1556,-852.8 1556,-824.4 1156,-824.4"/>
+<text xml:space="preserve" text-anchor="start" x="1163" y="-833.8" font-family="Arial" font-size="12.00">− suggestedActivityId / resultJson</text>
+<polygon fill="#edf3f7" stroke="none" points="1156,-798.4 1156,-824.4 1556,-824.4 1556,-798.4 1156,-798.4"/>
+<text xml:space="preserve" text-anchor="start" x="1163" y="-807.4" font-family="Arial" font-size="10.00" fill="#526b7d">table: ai_analyses</text>
+</g>
+<!-- AnalysisInput -->
+<g id="node10" class="node">
+<title>AnalysisInput</title>
+<polygon fill="none" stroke="#285c84" points="1551,-293.6 1551,-460.8 1953,-460.8 1953,-293.6 1551,-293.6"/>
+<polygon fill="#285c84" stroke="none" points="1552,-405.8 1552,-459.8 1952,-459.8 1952,-405.8 1552,-405.8"/>
+<text xml:space="preserve" text-anchor="start" x="1732.74" y="-443.9" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1699.55" y="-428.4" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">AnalysisInput</text>
+<text xml:space="preserve" text-anchor="start" x="1730.33" y="-415.1" font-family="Arial" font-size="13.00" fill="white">分析来源</text>
+<polygon fill="#f5f8fb" stroke="none" points="1552,-377.4 1552,-405.8 1952,-405.8 1952,-377.4 1552,-377.4"/>
+<text xml:space="preserve" text-anchor="start" x="1559" y="-386.8" font-family="Arial" font-size="12.00">− analysisId / fileId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1552,-349 1552,-377.4 1952,-377.4 1952,-349 1552,-349"/>
+<text xml:space="preserve" text-anchor="start" x="1559" y="-358.4" font-family="Arial" font-size="12.00">− pageId / recognitionRunId: UUID?</text>
+<polygon fill="#f5f8fb" stroke="none" points="1552,-320.6 1552,-349 1952,-349 1952,-320.6 1552,-320.6"/>
+<text xml:space="preserve" text-anchor="start" x="1559" y="-330" font-family="Arial" font-size="12.00">− inputKind / inputHash / sortOrder</text>
+<polygon fill="#edf3f7" stroke="none" points="1552,-294.6 1552,-320.6 1952,-320.6 1952,-294.6 1552,-294.6"/>
+<text xml:space="preserve" text-anchor="start" x="1559" y="-303.6" font-family="Arial" font-size="10.00" fill="#526b7d">table: analysis_inputs</text>
+</g>
+<!-- BackgroundJob -->
+<g id="node11" class="node">
+<title>BackgroundJob</title>
+<polygon fill="none" stroke="#285c84" points="0,-1065.6 0,-1289.6 402,-1289.6 402,-1065.6 0,-1065.6"/>
+<polygon fill="#285c84" stroke="none" points="1,-1234.6 1,-1288.6 401,-1288.6 401,-1234.6 1,-1234.6"/>
+<text xml:space="preserve" text-anchor="start" x="181.74" y="-1272.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="140.11" y="-1257.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">BackgroundJob</text>
+<text xml:space="preserve" text-anchor="start" x="168.49" y="-1243.9" font-family="Arial" font-size="13.00" fill="white">持久后台任务</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1206.2 1,-1234.6 401,-1234.6 401,-1206.2 1,-1206.2"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1215.6" font-family="Arial" font-size="12.00">− ownerId / applicationId / kind</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1177.8 1,-1206.2 401,-1206.2 401,-1177.8 1,-1177.8"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1187.2" font-family="Arial" font-size="12.00">− inputRevisionId / inputFingerprint</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1149.4 1,-1177.8 401,-1177.8 401,-1149.4 1,-1149.4"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1158.8" font-family="Arial" font-size="12.00">− state / stage / progress / total</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1121 1,-1149.4 401,-1149.4 401,-1121 1,-1121"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1130.4" font-family="Arial" font-size="12.00">− workerToken / heartbeatAt / resultJson</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-1092.6 1,-1121 401,-1121 401,-1092.6 1,-1092.6"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1102" font-family="Arial" font-size="12.00">− state: QUEUED | RUNNING | PAUSED | terminal</text>
+<polygon fill="#edf3f7" stroke="none" points="1,-1066.6 1,-1092.6 401,-1092.6 401,-1066.6 1,-1066.6"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-1075.6" font-family="Arial" font-size="10.00" fill="#526b7d">table: background_jobs</text>
+</g>
+<!-- JobWorker -->
+<g id="node12" class="node">
+<title>JobWorker</title>
+<polygon fill="#725096" stroke="#725096" points="452,-1560.2 452,-1560.2 854,-1560.2 854,-1560.2 452,-1560.2"/>
+<polygon fill="none" stroke="#725096" points="452,-1417.2 452,-1700.4 854,-1700.4 854,-1417.2 452,-1417.2"/>
+<polygon fill="#725096" stroke="none" points="453,-1645.4 453,-1699.4 853,-1699.4 853,-1645.4 453,-1645.4"/>
+<text xml:space="preserve" text-anchor="start" x="629.47" y="-1683.5" font-family="Arial" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="611.21" y="-1668" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">JobWorker</text>
+<text xml:space="preserve" text-anchor="start" x="620.49" y="-1654.7" font-family="Arial" font-size="13.00" fill="white">独立队列调度</text>
+<polygon fill="#f5f8fb" stroke="none" points="453,-1617 453,-1645.4 853,-1645.4 853,-1617 453,-1617"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1626.4" font-family="Arial" font-size="12.00">− ownerConcurrency: OCR=3 / AI=3</text>
+<polygon fill="#f5f8fb" stroke="none" points="453,-1588.6 453,-1617 853,-1617 853,-1588.6 453,-1588.6"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1598" font-family="Arial" font-size="12.00">− globalPools: OCR=12 / AI=12</text>
+<polygon fill="#f5f8fb" stroke="none" points="453,-1560.2 453,-1588.6 853,-1588.6 853,-1560.2 453,-1560.2"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1569.6" font-family="Arial" font-size="12.00">− workerToken / stopEvent</text>
+<polygon fill="#f1edf7" stroke="none" points="453,-1531.8 453,-1560.2 853,-1560.2 853,-1531.8 453,-1531.8"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1541.2" font-family="Arial" font-size="12.00">+ start() / run() / stop()</text>
+<polygon fill="#f1edf7" stroke="none" points="453,-1503.4 453,-1531.8 853,-1531.8 853,-1503.4 453,-1503.4"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1512.8" font-family="Arial" font-size="12.00">+ _claim_next(kind)</text>
+<polygon fill="#f1edf7" stroke="none" points="453,-1475 453,-1503.4 853,-1503.4 853,-1475 453,-1475"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1484.4" font-family="Arial" font-size="12.00">+ process_job(job, worker_token)</text>
+<polygon fill="#f1edf7" stroke="none" points="453,-1446.6 453,-1475 853,-1475 853,-1446.6 453,-1446.6"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1456" font-family="Arial" font-size="12.00">+ pause_owner() / resume_owner()</text>
+<polygon fill="#f1edf7" stroke="none" points="453,-1418.2 453,-1446.6 853,-1446.6 853,-1418.2 453,-1418.2"/>
+<text xml:space="preserve" text-anchor="start" x="460" y="-1427.6" font-family="Arial" font-size="12.00">+ presence() / leave()</text>
+</g>
+<!-- MaterialService -->
+<g id="node13" class="node">
+<title>MaterialService</title>
+<polygon fill="#725096" stroke="#725096" points="585,-1179 585,-1179 987,-1179 987,-1179 585,-1179"/>
+<polygon fill="none" stroke="#725096" points="585,-1036 585,-1319.2 987,-1319.2 987,-1036 585,-1036"/>
+<polygon fill="#725096" stroke="none" points="586,-1264.2 586,-1318.2 986,-1318.2 986,-1264.2 586,-1264.2"/>
+<text xml:space="preserve" text-anchor="start" x="762.47" y="-1302.3" font-family="Arial" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="727.3" y="-1286.8" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">MaterialService</text>
+<text xml:space="preserve" text-anchor="start" x="758.91" y="-1273.5" font-family="Arial" font-size="13.00" fill="white">识别与应用</text>
+<polygon fill="#f5f8fb" stroke="none" points="586,-1235.8 586,-1264.2 986,-1264.2 986,-1235.8 586,-1235.8"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1245.2" font-family="Arial" font-size="12.00">− PDF文字层 / 腾讯云OCR</text>
+<polygon fill="#f5f8fb" stroke="none" points="586,-1207.4 586,-1235.8 986,-1235.8 986,-1207.4 586,-1207.4"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1216.8" font-family="Arial" font-size="12.00">− sealPages: 首页与末页</text>
+<polygon fill="#f5f8fb" stroke="none" points="586,-1179 586,-1207.4 986,-1207.4 986,-1179 586,-1179"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1188.4" font-family="Arial" font-size="12.00">− fileLeaseLimitPerOwner: 3</text>
+<polygon fill="#f1edf7" stroke="none" points="586,-1150.6 586,-1179 986,-1179 986,-1150.6 586,-1150.6"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1160" font-family="Arial" font-size="12.00">+ run_ocr() / run_ai(ocr_result)</text>
+<polygon fill="#f1edf7" stroke="none" points="586,-1122.2 586,-1150.6 986,-1150.6 986,-1122.2 586,-1122.2"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1131.6" font-family="Arial" font-size="12.00">+ apply_ocr_evidence()</text>
+<polygon fill="#f1edf7" stroke="none" points="586,-1093.8 586,-1122.2 986,-1122.2 986,-1093.8 586,-1093.8"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1103.2" font-family="Arial" font-size="12.00">+ apply_analysis()</text>
+<polygon fill="#f1edf7" stroke="none" points="586,-1065.4 586,-1093.8 986,-1093.8 986,-1065.4 586,-1065.4"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1074.8" font-family="Arial" font-size="12.00">+ prepare_ocr_image()</text>
+<polygon fill="#f1edf7" stroke="none" points="586,-1037 586,-1065.4 986,-1065.4 986,-1037 586,-1037"/>
+<text xml:space="preserve" text-anchor="start" x="593" y="-1046.4" font-family="Arial" font-size="12.00">+ tencent_ocr() / _original_ocr_coordinates()</text>
+</g>
+<!-- SystemSetting -->
+<g id="node14" class="node">
+<title>SystemSetting</title>
+<polygon fill="none" stroke="#697d8e" points="566,-558.8 566,-754.4 968,-754.4 968,-558.8 566,-558.8"/>
+<polygon fill="#697d8e" stroke="none" points="567,-699.4 567,-753.4 967,-753.4 967,-699.4 567,-699.4"/>
+<text xml:space="preserve" text-anchor="start" x="737.65" y="-737.5" font-family="Arial" font-size="11.00" fill="white">«reference»</text>
+<text xml:space="preserve" text-anchor="start" x="711.43" y="-722" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">SystemSetting</text>
+<text xml:space="preserve" text-anchor="start" x="729.08" y="-708.7" font-family="Arial" font-size="13.00" fill="white">设置与用量归档</text>
+<polygon fill="#f5f8fb" stroke="none" points="567,-671 567,-699.4 967,-699.4 967,-671 567,-671"/>
+<text xml:space="preserve" text-anchor="start" x="574" y="-680.4" font-family="Arial" font-size="12.00">− id: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="567,-642.6 567,-671 967,-671 967,-642.6 567,-642.6"/>
+<text xml:space="preserve" text-anchor="start" x="574" y="-652" font-family="Arial" font-size="12.00">− valueJson: JSON</text>
+<polygon fill="#f5f8fb" stroke="none" points="567,-614.2 567,-642.6 967,-642.6 967,-614.2 567,-614.2"/>
+<text xml:space="preserve" text-anchor="start" x="574" y="-623.6" font-family="Arial" font-size="12.00">− changedBy / updatedAt</text>
+<polygon fill="#f5f8fb" stroke="none" points="567,-585.8 567,-614.2 967,-614.2 967,-585.8 567,-585.8"/>
+<text xml:space="preserve" text-anchor="start" x="574" y="-595.2" font-family="Arial" font-size="12.00">− task_control: owner pause + live tabs JSON</text>
+<polygon fill="#edf3f7" stroke="none" points="567,-559.8 567,-585.8 967,-585.8 967,-559.8 567,-559.8"/>
+<text xml:space="preserve" text-anchor="start" x="574" y="-568.8" font-family="Arial" font-size="10.00" fill="#526b7d">table: system_settings</text>
+</g>
+</g>
+</g><text x="28" y="1897" font-size="12" fill="#62798a">确认上传才启动。PDF先读取可用文字层；扫描件≤12页识别全页，长扫描件只识别首页末页正文，个人信息可手动定位。每份文件仅首末页查章，多章取最后一个。</text></svg>

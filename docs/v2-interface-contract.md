@@ -32,7 +32,7 @@
 
 - POST /applications/{id}/jobs {kind:'OCR'|'AI',force?:false} → {job,...}。
 - POST /analysis-jobs/bulk {submission_id?:id, application_ids?:[],kind:'AI'} → {jobs,skipped}，不传ids默认当前学生当前学年全部confirmed可编辑未分析项。
-- GET /analysis-jobs?active_only=false → {jobs:[...]}，仅本人；GET /analysis-jobs/{id} → job。结果/状态全在SQLite，服务端处理，刷新/换页面/关浏览器不中止。按用户独立限制OCR文件级并发最多3、AI小项级并发最多3，两个队列独立，超出排队。AI先等待或复用该项已有OCR；不占用AI分析槽位干等OCR，也不取消未完成OCR。
+- GET /analysis-jobs?active_only=false → {jobs:[...]}，仅本人；GET /analysis-jobs/{id} → job。结果/状态全在SQLite，服务端处理，站内切页及普通刷新继续；退出登录/关闭最后一个本站标签暂停，失联45秒兜底。按用户独立限制OCR文件级并发最多3、AI小项级并发最多3，两个队列独立，超出排队。AI先等待或复用该项已有OCR；不占用AI分析槽位干等OCR，也不取消未完成OCR。
 - 确认上传后自动排材料处理，OCR/本地文字层处理完成后自动衔接该小项AI；学生无需再点击一键分析才开始。已有手工稿只提供建议，空白新稿仍按指纹与状态检查决定是否自动填表。
 - 后台调用 `run_ocr(application_id,user,progress=None)` 与 `run_ai(application_id,user,progress=None)`；progress(stage,done,total)。返回dict(status SUCCEEDED|MANUAL_REQUIRED,...)；run_ai复用 `_analyze` 逻辑。
 - AI成功后比对revision_fingerprint与input_revision_id及当前状态：完全未变且初始空白新稿（未人工编辑）才调用 `materials.apply_analysis(...)` 自动应用；force/人工稿仅保存建议。旧年/删项/改稿→STALE不覆盖。点击一键分析不停止正在进行的OCR，AI等待或复用已有结果。
@@ -82,3 +82,11 @@ category详情为表格，行按小项状态/分值/文件/具体名/证据/操�
 六份浏览器JSON报告共83项（简化表单19、单项提交6、稳定性14、统一对照12、OCR队列13、真实隔离链路19），错误均为0。真实隔离链路使用独立HTTP服务、SQLite和原生调度，确认每用户OCR文件、AI小项并发峰值各3、每项OCR与AI自动各排一次、AI满额时OCR独立运行，未发送手动分析POST。文字OCR、印章及模型各9次均为离线替身，外网请求、真实云调用和真实业务写入均为0。
 
 后台任务及材料相关回归82项全部通过，包含 `tests/test_job_concurrency.py` 13项事件同步并发验证；另有 `tests/test_ai_activity_matching.py` 23项分析到应用验证。完整报告入口见[V2验收](v2/acceptance.md)；完整回归命令为 `python -m pytest -q`，全量结果以CI运行记录为准。
+
+## 暂停、在线状态及管理员删除
+
+- GET /analysis-control：本人暂停状态；POST同一路径 `{action:pause|resume}`。任务新增PAUSED状态，在途请求用pause_requested并保留返回结果。
+- POST /analysis-control/presence：tab_id、document_id与在线租约；POST /analysis-control/leave：最后标签离开暂停，均受登录/CSRF与本人范围保护。45秒失联兜底，重登录不自动继续。普通刷新仅可恢复同页短时PAGE_CLOSED，不能覆盖手动或LOGOUT暂停。
+- DELETE /admin/users/{id}：仅管理员删除学生；先持久暂停，有在途任务返回409等待。删除前一致性备份，同事务归档OCR用量、清理本人业务、保留共享资格和他人审计；必要时使用匿名DELETED历史占位，管理员列表不再显示。
+
+本轮根因与验证见[写锁与任务控制修复](识别锁竞争与任务控制修复.md)。

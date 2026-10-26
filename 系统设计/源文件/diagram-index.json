@@ -1,290 +1,140 @@
 [
   {
     "id": "01-rbac-organization",
-    "name": "RBAC与班级组织领域类图",
+    "name": "UML：RBAC 与班级学年组织",
     "kind": "class",
-    "nodes": 12,
-    "edges": 16,
-    "width": 2322,
-    "height": 1111,
+    "nodes": 13,
+    "edges": 18,
+    "width": 2664,
+    "height": 1189,
     "notes": [
-      "User的基础身份互斥；班长、审查员是可叠加的RoleAssignment，不采用学生子类继承表达。",
-      "权限判定=角色操作授权∩该条授权的数据范围∩强制业务策略；只在完整授权之间求并集。",
-      "班长和审查员授权绑定classId；辅导员范围来自CounselorClassAssignment，学生本人及本班范围来自Enrollment。",
-      "每班一名现任班长、至少两名不同的学生审查员；管理员不读取证明、不参与业务审核。",
-      "Enrollment记录学生所选学年的班级归属；ClassYear同时作为公示和正式提交的并发边界。",
-      "ClassYear./publicityState是读模型派生属性；唯一持久化当前公示状态在ClassPublicity.isOpen。",
-      "RolePermission.dataScope为资源操作最大范围OWN/CLASS/LED_CLASSES/CLASS_PUBLIC/SYSTEM_METADATA；与Role.scopeKind和RoleAssignment实际范围相交后，再执行对象强制策略。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      },
-      {
-        "message": "Warning: no value for width of non-ASCII character 194. Falling back to width of space character",
-        "level": "warning"
-      }
+      "User.baseIdentity 为 STUDENT / COUNSELOR / ADMIN，互斥身份用属性表达；班长、审查员采用可叠加角色授权，不画身份继承树。",
+      "数据域为 OWN / CLASS / LED_CLASSES / CLASS_PUBLIC / SYSTEM_METADATA。每条角色操作授权先与其范围、实际班级关系和对象规则求交，再合并合法授权。",
+      "每个启用班级须有一名班长和至少两名不同学生审查员；禁止自审；管理员不读取学生证明或处理业务审批。",
+      "管理员指定当前统计学年；Enrollment 保留各学年的班级归属，学生填报页不自行选择学年。",
+      "角色有效期及带班关系在每次对象访问时复核；公示权限还需通过具体班级学年的开放状态检查。",
+      "删除前备份；有外部审核引用的用户保留匿名DELETED占位，原用户名和学号可重建；班长/审查员须先交接。"
     ]
   },
   {
     "id": "02-application-evidence-review",
-    "name": "申请版本、证据与审核领域类图",
+    "name": "UML：大类申报、小项、内容版本与审核",
     "kind": "class",
     "nodes": 12,
-    "edges": 17,
-    "width": 1176,
-    "height": 2533,
+    "edges": 13,
+    "width": 1533,
+    "height": 2125,
     "notes": [
-      "Application保持稳定标识；ApplicationRevision保存内容；SubmissionRound拥有各次提审状态，三者不能合成一条可覆盖记录。",
-      "工作稿修改形成新修订；正式提交冻结修订并创建新轮次。ReviewDecision、StateEvent和AwardSupersession绑定轮次及修订。",
-      "每次正式提交至少一个附件；同文件内多次活动合成一个条目。有效性与参与证明可有多张、跨页截图。",
-      "系统替代驳回与恢复写StateEvent(actorType=SYSTEM)，不伪装为学生审查员或辅导员的ReviewDecision。",
-      "新高优先级申请正式提交立即替代旧项；失败只恢复该替代造成的旧轮次状态，不覆盖后续独立人工决定。",
-      "多人共享待审队列，一轮仅一次有效审核决定；公示开启、正式提交和奖项替代共用ClassYear并发保护。",
-      "RecognitionTask是recognition_runs与ai_analyses的聚合投影，不是新增表；OCR绑定确切页面，AI基线由修订引用。",
-      "申请大类属于Application；ReviewDecision的revisionId必须等于round.revisionId。StateEvent的actorType和替代两端revisionId为派生属性。",
-      "AwardSupersession存替代前oldLockVersion；恢复以supersededEventId与当前lastEventId等因果一致性作守卫，不虚设替代后版本字段。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+      "大类申报是聚合容器，审核和计分以小项当前轮次为单位；每个主文件默认一个小项，补充附件仍归当前小项。",
+      "草稿没有当前提审轮次。轮次状态为 PENDING_PEER、PENDING_COUNSELOR、APPROVED、REJECTED、WITHDRAWN；已通过项锁定，大类仍可新增。",
+      "单项和批量直接提交当前填写分值（包括0）；未保存改动先保存。逐项乐观版本与重复点击保护，批量允许部分成功并保留失败项。",
+      "科研、文体竞赛、任职三类：有效认定可复用；未知资格交辅导员；无效匹配须更正。其余四类不以隐藏的旧活动ID阻塞。",
+      "竞赛重复由审查员对照同类小项判断；当前流程不自动关联、替代、拒绝或恢复其它申请。绿色批准直接完成，驳回填写理由。",
+      "CategoryItem与Application为当前业务成对映射；物理唯一FK仅保证Application对应0..1个CategoryItem。",
+      "组合线表示版本/轮次归属；workingRevisionId与currentRoundId分别为当前指针，不代表组成集合多重性。"
     ]
   },
   {
     "id": "03-activity-scoring-publicity",
-    "name": "活动资格、计分与公示领域类图",
+    "name": "UML：活动认定、政策计分、公示与导出",
     "kind": "class",
-    "nodes": 12,
-    "edges": 15,
-    "width": 2979,
-    "height": 1096,
-    "notes": [
-      "规范活动名称与别名用于资格复用；CompetitionProject区分具体届次、赛道／组别、作品，不能用活动大类名称直接去重。",
-      "ActivityQualification的活动资格与个人申请审核分离：个人材料不足不能把整个活动加入无效库。",
-      "人工申报分可编辑且无需理由；ScoreSummary只由当前已通过轮次派生，执行70基准、分类封顶、取最高及两位小数。",
-      "公示开启前没有当前待审正式轮次，草稿不阻挡；开启期间禁止提交、重提和奖项替代，允许保存草稿。",
-      "公示是实时已通过清单，不冻结分数；辅导员仍可驳回已通过项，普通同学只看脱敏截图。",
-      "活动资格变更不自动撤销历史通过项，列出影响供人工复核；公示时长提示三工作日但由辅导员掌握。",
-      "ActivityQualification对应按活动+类别+范围版本化的activity_eligibility_versions；决策包括VALID、INVALID、REMOVED，移除不等于无效。",
-      "ClassPublicity唯一保存当前开关；publicity_events追加开关历史，不另建具有独立状态的PublicityCycle表。",
-      "ScoreRule是绑定ScoreRuleVersion内的类别策略投影；ClassYear.scoreRuleVersionId决定本班学年规则版本。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "04_dfd_context",
-    "name": "数据流图：上下文图",
-    "kind": "dfd",
-    "nodes": 6,
-    "edges": 10,
-    "width": 2051,
-    "height": 412,
-    "notes": [
-      "P0 是唯一系统进程；本图不展示内部数据存储。",
-      "E1 是学生用户；班长和学生审查员是其可叠加职责，特有资料在流名称中注明。",
-      "OCR 和 DeepSeek 是外部服务；请求数据不包含 API 密钥。免费额度耗尽或服务失败可转人工补填。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "05_dfd_level1",
-    "name": "数据流图：一级分解",
-    "kind": "dfd",
-    "nodes": 19,
-    "edges": 73,
-    "width": 6231,
-    "height": 797,
-    "notes": [
-      "本图完整保留上下文图五个外部实体，并将 P0 分解为 P1—P7；五个实体、七个进程、七个逻辑存储共19节点，不为减少节点而隐去边界数据流。",
-      "D1—D7 是逻辑数据分区，不与物理数据库单表一一对应。D3 汇集 applications、application_revisions、submission_rounds；D6 保存审核、替代与恢复履历。",
-      "D2 是由既定评价办法初始化的参考数据；不表示已新增评分规则管理功能。",
-      "D7 按班级＋学年保存公示状态；P3 读取该数据核验正式提交，P7 读取当前待审轮次后办理公示设置。",
-      "成绩按当前可计分轮次实时计算；P4 驳回事实传给 P3 处理替代恢复，不使用触发重算等控制流。",
-      "管理员仅连接 P1；普通学生的同学申请只经 P7 取得脱敏公示，P6 原件查询严格受 D1 的身份和班级范围限制。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "06_dfd_p2_level2",
-    "name": "数据流图：P2 材料识别与人工确认",
-    "kind": "dfd",
     "nodes": 14,
-    "edges": 23,
-    "width": 2118,
-    "height": 1371,
+    "edges": 16,
+    "width": 2644,
+    "height": 1836,
     "notes": [
-      "本图只分解 P2；跨边界实体、存储与一级图 P2 的边界完全一致。",
-      "一条申请可有多个原件；同一文件内多次活动合并一个条目。大类来自学生选择。",
-      "OCR／DeepSeek 失败或 OCR 免费额度耗尽时，P2.4 仍能接收手填内容、分值和手动截图；不自动使用收费方案。",
-      "P2.5 只保存工作草稿及修订，不形成正式待审轮次；正式提交由 P3 受理。API 密钥不属于图中的业务数据流。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+      "活动匹配支持全库名称及别名搜索，显示有效、无效、待认定；AI仅从检索到的合法候选匹配，用户可更改或清除。",
+      "资格统一按活动、大类、学年判定；通用认定与历史具体范围冲突，或只有旧限定认定时为UNKNOWN，由辅导员确认。",
+      "科研与文体已通过小项SUM后按大类封顶；任职MAX，志愿年度子项封顶1；七类上限为3/3/4/10/6/4/5，总分以70为基准。",
+      "AI按本人关联事实与政策生成建议，学生申报分经人工审核后进入汇总。成绩是查询派生结果，未新增可编辑成绩表。",
+      "公示开启前所有正式小项须审结；公示中暂停正式提交。公示只提供可靠脱敏投影；导出含无申请成员的70分，顶部可查阅原校PDF。"
     ]
   },
   {
-    "id": "07_dfd_p3_level2",
-    "name": "数据流图：P3 正式申报与奖项替代恢复",
-    "kind": "dfd",
+    "id": "04-materials-background-jobs",
+    "name": "UML：材料、证据与 OCR / AI 独立后台并行",
+    "kind": "class",
     "nodes": 14,
-    "edges": 27,
-    "width": 2230,
-    "height": 985,
+    "edges": 19,
+    "width": 2178,
+    "height": 1922,
     "notes": [
-      "P4 是父图中的相邻进程，以 boundary 表示，不能误作系统外部实体；本图跨边界流与一级图 P3 完全一致。",
-      "正式提交首先读取 D7 的同班同学年公示状态；公示期间拒绝正式提交、重提和奖项替代，允许 P2 保存草稿。",
-      "同项目优先比较可得分，同分比较奖项层级；更低或同级重复提交被拦截。明确同项目可自动关联，有歧义时接收学生关联确认。",
-      "高优先级申请正式提交即替代旧轮次，旧项停止计分；新项审核通过才计分，失败或撤回恢复因本次替代影响的旧轮次。",
-      "恢复对象是旧 submission_rounds 的状态和计分资格，不是当前 applications 工作草稿；后续独立人工决定不得被恢复覆盖。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "05a_dfd_level1_external",
-    "name": "一级图审阅切片：外部实体及进程间数据流",
-    "kind": "dfd",
-    "nodes": 12,
-    "edges": 33,
-    "width": 5073,
-    "height": 628,
-    "notes": [
-      "本图是完整05一级图的审阅切片，不能单独视为完整且平衡的一级DFD。",
-      "05a与05b联合、互斥覆盖源文件dfd.json中05_dfd_level1的全部原始数据流；完整原图仍保留。",
-      "所有from、to、label逐字保留；flowId仅为原图数据流的稳定序号L1-F01等，不新增业务逻辑。",
-      "本切片仅展示外部实体与进程、以及进程间的数据流；存储流见05b。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "05b_dfd_level1_storage",
-    "name": "一级图审阅切片：逻辑存储读写数据流",
-    "kind": "dfd",
-    "nodes": 14,
-    "edges": 40,
-    "width": 7451,
-    "height": 496,
-    "notes": [
-      "本图是完整05一级图的审阅切片，不能单独视为完整且平衡的一级DFD。",
-      "05a与05b联合、互斥覆盖源文件dfd.json中05_dfd_level1的全部原始数据流；完整原图仍保留。",
-      "所有from、to、label逐字保留；flowId仅为原图数据流的稳定序号L1-F01等，不新增业务逻辑。",
-      "本切片仅展示进程与逻辑存储之间的读写流；外部及跨进程流见05a。"
-    ],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+      "确认上传才启动。PDF先读取可用文字层；扫描件≤12页识别全页，长扫描件只识别首页末页正文，个人信息可手动定位。每份文件仅首末页查章，多章取最后一个。",
+      "有可用文字的OCR完成后自动幂等排AI。每用户最多同时识别3个文件、分析3个小项，两类独立；等待OCR的AI不占分析运行名额，跨页面/刷新继续。",
+      "相同页内容及接口复用缓存；腾讯调用预留与本地月计数原子更新。只用免费额度，达到保护或资源停止条件即保留结果；归档次数不会因清理材料而清零。",
+      "输入指纹、内容版本及workerToken共同保护。空白新稿可自动填写，人工稿仅保留建议；改稿/冻结的迟到结果不覆盖。重启只恢复已失去进程的任务，不抢占活进程。",
+      "参与证据包含身份及本人奖次/考评：能同框则1张，否则最多2张，原页整宽且1/4页高；有效性仅活动名称1处、时间、印章。公示脱敏未就绪不放出原图。",
+      "暂停/继续同时控制上传、OCR和AI；站内切页继续，登出/最后一个本站标签离开暂停，45秒失联兜底。普通刷新仅对同页短时离开恢复，手动/登出暂停须明确继续。",
+      "已发请求返回后保存检查点；暂停后不启动后续页/文件/模型请求。完成结果和私有响应缓存供恢复复用。",
+      "所有腾讯文字/印章请求统一生成受限JPEG副本并将返回坐标映射原页；原件不改。证据计算、裁图、AI整理在短写事务之外，落库时重核指纹和人工修改。",
+      "JobWorker框同时表达实际执行类与同模块队列控制函数的职责分组；task_control与页面租约使用现有SystemSetting JSON，不新增实体表。"
     ]
   },
   {
     "id": "08-er-overview",
-    "name": "数据库 ER 总览：33 张逻辑表",
+    "name": "数据库 ER 总览 · 37 张实际表",
     "kind": "erd",
-    "nodes": 33,
-    "edges": 42,
-    "width": 2659,
-    "height": 1040,
-    "notes": [],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+    "nodes": 37,
+    "edges": 49,
+    "width": 2431,
+    "height": 1341,
+    "notes": [
+      "总览展示 49 条主干外键；四张分图完整展示全部 84 条物理外键。",
+      "灰色表为历史兼容：旧竞赛项目与替代记录保留，当前不运行自动替代。",
+      "当前学年、OCR用量归档、AI依赖及文件租约存于JSON，属于逻辑引用，不增加物理外键。"
     ]
   },
   {
     "id": "09-er-rbac",
-    "name": "数据库 ER：账号、组织与 RBAC",
+    "name": "数据库 ER · 组织与RBAC",
     "kind": "erd",
     "nodes": 12,
-    "edges": 13,
-    "width": 1535,
-    "height": 1594,
-    "notes": [],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
-    ]
-  },
-  {
-    "id": "10-er-evidence",
-    "name": "数据库 ER：文件、识别与证据",
-    "kind": "erd",
-    "nodes": 11,
-    "edges": 11,
-    "width": 2350,
-    "height": 1053,
-    "notes": [],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+    "edges": 17,
+    "width": 1649,
+    "height": 1728,
+    "notes": [
+      "本图按外键所在子表分组，展示 17 条实际外键；跨组父表只显示主键。",
+      "PK 主键；FK 外键；UK 单列唯一；UQ 联合唯一；? 可空。乌鸦脚表示0..*，单线加圆圈表示0..1。"
     ]
   },
   {
     "id": "11-er-workflow",
-    "name": "数据库 ER：版本、审核与奖项替代",
+    "name": "数据库 ER · 大类申报与逐项审核",
     "kind": "erd",
-    "nodes": 12,
-    "edges": 13,
-    "width": 2443,
-    "height": 1134,
-    "notes": [],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+    "nodes": 16,
+    "edges": 29,
+    "width": 3473,
+    "height": 1482,
+    "notes": [
+      "本图按外键所在子表分组，展示 29 条实际外键；跨组父表只显示主键。",
+      "PK 主键；FK 外键；UK 单列唯一；UQ 联合唯一；? 可空。乌鸦脚表示0..*，单线加圆圈表示0..1。",
+      "灰色历史替代表及旧项目字段保留兼容，当前竞赛重复由审查员判断。"
+    ]
+  },
+  {
+    "id": "10-er-evidence",
+    "name": "数据库 ER · 材料、识别与后台任务",
+    "kind": "erd",
+    "nodes": 14,
+    "edges": 21,
+    "width": 3382,
+    "height": 2098,
+    "notes": [
+      "本图按外键所在子表分组，展示 21 条实际外键；跨组父表只显示主键。",
+      "PK 主键；FK 外键；UK 单列唯一；UQ 联合唯一；? 可空。乌鸦脚表示0..*，单线加圆圈表示0..1。"
     ]
   },
   {
     "id": "12-er-catalog",
-    "name": "数据库 ER：活动资格、计分规则与公示",
+    "name": "数据库 ER · 活动、计分、公示与设置",
     "kind": "erd",
-    "nodes": 9,
-    "edges": 5,
-    "width": 1494,
-    "height": 1663,
-    "notes": [],
-    "warnings": [
-      {
-        "message": "Warning: no hard-coded metrics for 'Microsoft YaHei'.  Falling back to 'Times' metrics",
-        "level": "warning"
-      }
+    "nodes": 13,
+    "edges": 17,
+    "width": 1675,
+    "height": 2101,
+    "notes": [
+      "本图按外键所在子表分组，展示 17 条实际外键；跨组父表只显示主键。",
+      "PK 主键；FK 外键；UK 单列唯一；UQ 联合唯一；? 可空。乌鸦脚表示0..*，单线加圆圈表示0..1。"
     ]
   }
 ]

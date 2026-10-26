@@ -1,0 +1,56 @@
+[
+  {
+    "id": "01-rbac-organization",
+    "width": 3597,
+    "height": 1606,
+    "bytes": 250011
+  },
+  {
+    "id": "02-application-evidence-review",
+    "width": 2070,
+    "height": 2869,
+    "bytes": 241883
+  },
+  {
+    "id": "03-activity-scoring-publicity",
+    "width": 3570,
+    "height": 2479,
+    "bytes": 317618
+  },
+  {
+    "id": "04-materials-background-jobs",
+    "width": 2941,
+    "height": 2595,
+    "bytes": 371098
+  },
+  {
+    "id": "08-er-overview",
+    "width": 3282,
+    "height": 1811,
+    "bytes": 338590
+  },
+  {
+    "id": "09-er-rbac",
+    "width": 2227,
+    "height": 2333,
+    "bytes": 318929
+  },
+  {
+    "id": "10-er-evidence",
+    "width": 4566,
+    "height": 2833,
+    "bytes": 484260
+  },
+  {
+    "id": "11-er-workflow",
+    "width": 4689,
+    "height": 2001,
+    "bytes": 504556
+  },
+  {
+    "id": "12-er-catalog",
+    "width": 2262,
+    "height": 2837,
+    "bytes": 381023
+  }
+]

@@ -1,0 +1,101 @@
+@startuml
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+hide empty members
+title UML：活动认定、政策计分、公示与导出
+class "Activity 已认定活动" as Activity <<entity>> {
+  - id: UUID
+  - canonicalName / normalizedName
+  - status / maintainedBy
+}
+class "ActivityAlias 活动别名" as ActivityAlias <<entity>> {
+  - activityId: UUID
+  - alias / normalizedAlias
+  - status: AliasStatus
+}
+class "ActivityEligibilityVersion 资格版本" as ActivityEligibilityVersion <<entity>> {
+  - activityId / categoryId: UUID
+  - academicYearId: UUID?
+  - decision / versionNo
+  - scopeKey / effectiveAt
+}
+class "ScoreCategory 加分类别" as ScoreCategory <<entity>> {
+  - id / code: String
+  - defaultCap: Decimal(6,2)
+  - aggregationKind: SUM | MAX
+  - requiresEligibilityReview: Boolean
+}
+class "ScoreRuleVersion 评分规则" as ScoreRuleVersion <<entity>> {
+  - id / versionLabel
+  - baselineScore: Decimal(6,2)
+  - roundingMode / rulesJson
+  - sourceDocument / publishedAt
+}
+class "ClassYear 班级学年" as ClassYear <<reference>> {
+  - id / scoreRuleVersionId: UUID
+  - lockVersion: Integer
+}
+class "SubmissionRound 当前审核轮次" as SubmissionRound <<reference>> {
+  - revisionId: UUID
+  - state: APPROVED 或其它
+  - eligibilityVersionId: UUID?
+}
+class "ApplicationRevision 冻结内容" as ApplicationRevision <<reference>> {
+  - title / requestedScore
+  - activityId: UUID?
+  - payloadJson / contentFrozenAt
+}
+class "ClassPublicity 公示当前状态" as ClassPublicity <<entity>> {
+  - classYearId: UUID
+  - isOpen: Boolean
+  - lockVersion: Integer
+  - openedAt / closedAt
+}
+class "PublicityEvent 公示历史" as PublicityEvent <<entity>> {
+  - publicityId / eventNo
+  - action / actorId
+  - pendingCountChecked / occurredAt
+}
+class "ActivityMatchService 活动检索" as ActivityMatchService <<service>> {
+  - fullCatalog / aliases
+  - EXACT_NAME / EXACT_ALIAS / RELATED
+  + search_activities(query, year, category)
+  + retrieve_activity_candidates(texts)
+}
+class "ActivityEligibilityService 资格判定" as ActivityEligibilityService <<service>> {
+  - activity / category / year
+  - decision: VALID | INVALID | UNKNOWN
+  + simplified_eligibility(versions)
+  + activity_eligibility(...)
+  + _set_eligibility(...)
+}
+class "ScoreService 计分与公示服务" as ScoreService <<service>> {
+  - derivedTotals / categoryCaps
+  - baseline: 70
+  + normalize_policy_suggestion(...)
+  + class_scores / build_scores
+  + set_publicity(...)
+}
+class "ExportService Excel与标准文件" as ExportService <<service>> {
+  - schoolStandard: protected PDF
+  - workbookColumns: 15
+  + export_scores / export_workbook
+  + scoring_standard()
+}
+Activity "1" *-- "0..*" ActivityAlias : 名称别名
+Activity "1" -- "0..*" ActivityEligibilityVersion : 不可变认定版本
+ScoreCategory "1" -- "0..*" ActivityEligibilityVersion : 适用类别
+Activity "0..1" -- "0..*" ApplicationRevision : 可选匹配
+ActivityEligibilityVersion "0..1" -- "0..*" SubmissionRound : 认定版本快照
+ScoreRuleVersion "1" -- "0..*" ClassYear : 班级学年规则
+ClassYear "1" -- "0..1" ClassPublicity : 独立公示开关
+ClassPublicity "1" *-- "0..*" PublicityEvent : 开关历史
+ActivityMatchService "" ..> "" ActivityAlias : 全库按名称及别名检索
+ActivityMatchService "" ..> "" ActivityEligibilityService : 搜索与审批使用同一口径
+ActivityEligibilityService "" ..> "" ActivityEligibilityVersion : 最新适用认定 / 冲突待人工
+ScoreService "" ..> "" SubmissionRound : 仅当前已通过小项
+ScoreService "" ..> "" ScoreCategory : 封顶及汇总方式
+ScoreService "" ..> "" ScoreRuleVersion : 本人事实与确定规则
+ScoreService "" ..> "" ClassPublicity : 全部审结才可开启
+ExportService "" ..> "" ScoreService : 共用分值查询结果
+@enduml

@@ -1,86 +1,56 @@
 [
   {
     "id": "01-rbac-organization",
-    "width": 3003,
-    "height": 1434,
-    "bytes": 253386
+    "width": 3597,
+    "height": 1606,
+    "bytes": 250011
   },
   {
     "id": "02-application-evidence-review",
-    "width": 1514,
-    "height": 3283,
-    "bytes": 302111
+    "width": 2070,
+    "height": 2869,
+    "bytes": 241883
   },
   {
     "id": "03-activity-scoring-publicity",
-    "width": 3858,
-    "height": 1415,
-    "bytes": 280018
+    "width": 3570,
+    "height": 2479,
+    "bytes": 317618
   },
   {
-    "id": "04_dfd_context",
-    "width": 2650,
-    "height": 526,
-    "bytes": 86138
-  },
-  {
-    "id": "05_dfd_level1",
-    "width": 8084,
-    "height": 1026,
-    "bytes": 834938
-  },
-  {
-    "id": "06_dfd_p2_level2",
-    "width": 2737,
-    "height": 1772,
-    "bytes": 300505
-  },
-  {
-    "id": "07_dfd_p3_level2",
-    "width": 2883,
-    "height": 1271,
-    "bytes": 315534
-  },
-  {
-    "id": "05a_dfd_level1_external",
-    "width": 6578,
-    "height": 806,
-    "bytes": 386323
-  },
-  {
-    "id": "05b_dfd_level1_storage",
-    "width": 9670,
-    "height": 635,
-    "bytes": 421503
+    "id": "04-materials-background-jobs",
+    "width": 2941,
+    "height": 2595,
+    "bytes": 371098
   },
   {
     "id": "08-er-overview",
-    "width": 3440,
-    "height": 1343,
-    "bytes": 336514
+    "width": 3282,
+    "height": 1811,
+    "bytes": 338590
   },
   {
     "id": "09-er-rbac",
-    "width": 1979,
-    "height": 2064,
-    "bytes": 212272
+    "width": 2227,
+    "height": 2333,
+    "bytes": 318929
   },
   {
     "id": "10-er-evidence",
-    "width": 3040,
-    "height": 1359,
-    "bytes": 215344
+    "width": 4566,
+    "height": 2833,
+    "bytes": 484260
   },
   {
     "id": "11-er-workflow",
-    "width": 3159,
-    "height": 1466,
-    "bytes": 230296
+    "width": 4689,
+    "height": 2001,
+    "bytes": 504556
   },
   {
     "id": "12-er-catalog",
-    "width": 1926,
-    "height": 2152,
-    "bytes": 183065
+    "width": 2262,
+    "height": 2837,
+    "bytes": 381023
   }
 ]

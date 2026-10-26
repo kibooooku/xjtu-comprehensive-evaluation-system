@@ -1,8 +1,10 @@
 {
-  "authoring": "Shared semantic JSON to independent Graphviz SVG, no VP image transformation",
+  "authoring": "Current UML/ER metadata to original Graphviz SVG; native editable model independently authored by Visual Paradigm OpenAPI",
   "tool": "@viz-js/viz",
   "packageVersion": "3.31.0",
-  "graphvizVersion": "16.1.0",
-  "generatedAt": "2026-10-24",
-  "diagrams": 14
+  "implementation_baseline": "2e3abc3",
+  "diagrams": 9,
+  "tables": 37,
+  "physical_foreign_keys": 84,
+  "no_dfd_in_current_delivery": true
 }

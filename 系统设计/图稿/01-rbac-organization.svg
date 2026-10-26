@@ -1,412 +1,369 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2310px" height="1103px" viewBox="0 0 2310 1103"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">RBAC与班级组织领域类图</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">UML 类图 · 权限、领域对象及多重性 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 979)">
-<title>Design</title>
-<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-979 2280.8,-979 2280.8,28.8 -28.8,28.8"/>
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2664px" height="1189px" viewBox="0 0 2664 1189"><style>text{font-family:Arial,"Microsoft YaHei",sans-serif}</style><rect width="100%" height="100%" fill="white"/><text x="28" y="34" font-size="24" font-weight="bold" fill="#203b50">UML：RBAC 与班级学年组织</text><text x="28" y="60" font-size="13" fill="#5c7486">当前实现的领域模型 · entity 实体 / service 模块职责 / reference 跨图引用 · 2026-10-26</text><g transform="translate(0,86)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.92 993.52)">
+<title>CurrentDesign</title>
+<polygon fill="white" stroke="none" points="-25.92,25.92 -25.92,-993.52 2637.92,-993.52 2637.92,25.92 -25.92,25.92"/>
 <!-- User&#45;&gt;StudentProfile -->
 <g id="e0" class="edge">
 <title>User&#45;&gt;StudentProfile</title>
-<path fill="none" stroke="#6e8599" d="M376.13,-721.12C367.3,-715.67 362,-712.4 362,-712.4 362,-712.4 166,-672.4 166,-672.4 166,-672.4 166,-660.4 166,-660.4 166,-660.4 166.83,-629.98 167.81,-593.86"/>
-<polygon fill="#6e8599" stroke="#6e8599" points="376.13,-721.12 380.82,-720.96 382.77,-725.22 378.09,-725.39 376.13,-721.12"/>
-<text xml:space="preserve" text-anchor="middle" x="211" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">基础身份为学生时具有档案</text>
-<text xml:space="preserve" text-anchor="middle" x="174.97" y="-607.38" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..1</text>
-<text xml:space="preserve" text-anchor="middle" x="365.66" y="-720.6" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M442,-567.67C429.61,-562.17 422,-558.8 422,-558.8 422,-558.8 195.99,-515.8 195.99,-515.8 195.99,-515.8 195.99,-503.8 195.99,-503.8 195.99,-503.8 196.96,-476.8 198.04,-446.53"/>
+<text xml:space="preserve" text-anchor="middle" x="221" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">学生专属档案</text>
+<text xml:space="preserve" text-anchor="middle" x="205.84" y="-461.95" font-family="Arial" font-size="10.00" fill="#334c62">0..1</text>
+<text xml:space="preserve" text-anchor="middle" x="422.01" y="-565.05" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- User&#45;&gt;RoleAssignment -->
-<g id="e1" class="edge">
+<g id="e5" class="edge">
 <title>User&#45;&gt;RoleAssignment</title>
-<path fill="none" stroke="#6e8599" d="M722.46,-725.7C735.66,-717.55 744,-712.4 744,-712.4 744,-712.4 857.5,-660.4 857.5,-660.4 857.5,-660.4 1126,-620.4 1126,-620.4 1126,-620.4 1133.73,-614.56 1146.08,-605.23"/>
-<text xml:space="preserve" text-anchor="middle" x="891.25" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">拥有生效或历史角色</text>
-<text xml:space="preserve" text-anchor="middle" x="1137.65" y="-618.13" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1..*</text>
-<text xml:space="preserve" text-anchor="middle" x="732.35" y="-707.65" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M844,-567.67C856.39,-562.17 864,-558.8 864,-558.8 864,-558.8 1041.66,-503.8 1041.66,-503.8 1041.66,-503.8 1306,-460.8 1306,-460.8 1306,-460.8 1313.61,-457.47 1326,-452.04"/>
+<text xml:space="preserve" text-anchor="middle" x="1058.33" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">获得授权</text>
+<text xml:space="preserve" text-anchor="middle" x="1312.79" y="-464.05" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="857.14" y="-549.6" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- User&#45;&gt;CounselorClassAssignment -->
-<g id="e6" class="edge">
+<g id="e10" class="edge">
 <title>User&#45;&gt;CounselorClassAssignment</title>
-<path fill="none" stroke="#6e8599" d="M641.43,-725.6C670.96,-690.64 696.5,-660.4 696.5,-660.4 696.5,-660.4 735.86,-629.98 782.6,-593.86"/>
-<text xml:space="preserve" text-anchor="middle" x="730.25" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">基础身份须为辅导员</text>
-<text xml:space="preserve" text-anchor="middle" x="774.35" y="-606.86" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="646.14" y="-705.23" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M788.95,-560.11C844.52,-523.3 907.28,-481.73 960.66,-446.37"/>
+<text xml:space="preserve" text-anchor="middle" x="884.84" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">辅导员带班</text>
+<text xml:space="preserve" text-anchor="middle" x="950.22" y="-460.42" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="799.4" y="-540.06" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- StudentProfile&#45;&gt;Enrollment -->
-<g id="e10" class="edge">
+<g id="e1" class="edge">
 <title>StudentProfile&#45;&gt;Enrollment</title>
-<path fill="none" stroke="#6e8599" d="M297.94,-356.4C339.08,-318.25 384.71,-275.95 425.86,-237.79"/>
-<text xml:space="preserve" text-anchor="middle" x="399.7" y="-280.8" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">按所选学年归属</text>
-<text xml:space="preserve" text-anchor="middle" x="419.07" y="-251.46" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="304.73" y="-336.73" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M332.42,-279.52C389.04,-243.99 455.1,-202.53 511.71,-167"/>
+<text xml:space="preserve" text-anchor="middle" x="456.09" y="-213.2" font-family="Arial" font-size="10.00" fill="#334c62">按学年归属</text>
+<text xml:space="preserve" text-anchor="middle" x="500.85" y="-180.79" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="343.28" y="-259.73" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- TeachingClass&#45;&gt;ClassYear -->
-<g id="e8" class="edge">
+<g id="e3" class="edge">
 <title>TeachingClass&#45;&gt;ClassYear</title>
-<path fill="none" stroke="#6e8599" d="M779.5,-734.31C758.5,-721.35 744,-712.4 744,-712.4 744,-712.4 624.5,-672.4 624.5,-672.4 624.5,-672.4 611.12,-635.66 595.93,-593.97"/>
-<polygon fill="#6e8599" stroke="#6e8599" points="779.46,-734.29 784.14,-734.12 786.1,-738.39 781.41,-738.55 779.46,-734.29"/>
-<text xml:space="preserve" text-anchor="middle" x="650.75" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">各学年组织边界</text>
-<text xml:space="preserve" text-anchor="middle" x="608.66" y="-603.7" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="768.99" y="-733.76" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M899.02,-574.33C878.03,-565.02 864,-558.8 864,-558.8 864,-558.8 757.33,-515.8 757.33,-515.8 757.33,-515.8 738.28,-490.51 715.73,-460.57"/>
+<text xml:space="preserve" text-anchor="middle" x="778.16" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">每学年一条</text>
+<text xml:space="preserve" text-anchor="middle" x="733.38" y="-466.96" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="879.02" y="-571.71" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- TeachingClass&#45;&gt;RoleAssignment -->
-<g id="e5" class="edge">
+<g id="e7" class="edge">
 <title>TeachingClass&#45;&gt;RoleAssignment</title>
-<path fill="none" stroke="#6e8599" d="M1020.28,-738.88C1057.8,-698.67 1093.5,-660.4 1093.5,-660.4 1093.5,-660.4 1115.74,-642.06 1146.18,-616.96"/>
-<text xml:space="preserve" text-anchor="middle" x="1127.25" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">班长／审查员作用域</text>
-<text xml:space="preserve" text-anchor="middle" x="1138.44" y="-630.2" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="1025.85" y="-718.77" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1184.98,-574.25C1228.75,-538.12 1270.32,-503.8 1270.32,-503.8 1270.32,-503.8 1305.3,-484.75 1349.43,-460.71"/>
+<text xml:space="preserve" text-anchor="middle" x="1303.66" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">班长 / 审查员范围</text>
+<text xml:space="preserve" text-anchor="middle" x="1337.55" y="-473.81" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1193.58" y="-553.2" font-family="Arial" font-size="10.00" fill="#334c62">0..1</text>
 </g>
 <!-- TeachingClass&#45;&gt;CounselorClassAssignment -->
-<g id="e7" class="edge">
+<g id="e11" class="edge">
 <title>TeachingClass&#45;&gt;CounselorClassAssignment</title>
-<path fill="none" stroke="#6e8599" d="M935,-739.08C935,-694.81 935,-641.09 935,-593.77"/>
-<text xml:space="preserve" text-anchor="middle" x="968.75" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">现任与历史带班关系</text>
-<text xml:space="preserve" text-anchor="middle" x="942.61" y="-607.08" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="927.39" y="-719.77" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1085,-574.46C1085,-534.46 1085,-486.5 1085,-446.48"/>
+<text xml:space="preserve" text-anchor="middle" x="1101.67" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">所带班级</text>
+<text xml:space="preserve" text-anchor="middle" x="1093.45" y="-461.61" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1076.55" y="-553.33" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- AcademicYear&#45;&gt;ClassYear -->
-<g id="e9" class="edge">
+<g id="e4" class="edge">
 <title>AcademicYear&#45;&gt;ClassYear</title>
-<path fill="none" stroke="#6e8599" d="M269.37,-739.08C317.12,-694.81 375.06,-641.09 426.1,-593.77"/>
-<text xml:space="preserve" text-anchor="middle" x="365.55" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">属于学年</text>
-<text xml:space="preserve" text-anchor="middle" x="419.31" y="-607.44" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="276.16" y="-719.41" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M325.59,-574.26C378.95,-538.92 441.64,-497.39 497.15,-460.62"/>
+<text xml:space="preserve" text-anchor="middle" x="438.67" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">组织学年</text>
+<text xml:space="preserve" text-anchor="middle" x="486.7" y="-474.68" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="336.04" y="-554.21" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- ClassYear&#45;&gt;Enrollment -->
-<g id="e11" class="edge">
+<g id="e2" class="edge">
 <title>ClassYear&#45;&gt;Enrollment</title>
-<path fill="none" stroke="#6e8599" d="M553,-348.06C553,-312.11 553,-273.08 553,-237.64"/>
-<polygon fill="#6e8599" stroke="#6e8599" points="553,-347.95 555.6,-351.85 553,-355.75 550.4,-351.85 553,-347.95"/>
-<text xml:space="preserve" text-anchor="middle" x="568" y="-280.8" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">学生名册</text>
-<text xml:space="preserve" text-anchor="middle" x="560.61" y="-250.95" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="545.39" y="-337.33" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M643,-265.37C643,-233.31 643,-197.95 643,-167.06"/>
+<text xml:space="preserve" text-anchor="middle" x="659.67" y="-213.2" font-family="Arial" font-size="10.00" fill="#334c62">班级成员</text>
+<text xml:space="preserve" text-anchor="middle" x="651.45" y="-182.19" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="634.55" y="-244.24" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- Role&#45;&gt;RolePermission -->
-<g id="e3" class="edge">
+<g id="e8" class="edge">
 <title>Role&#45;&gt;RolePermission</title>
-<path fill="none" stroke="#6e8599" d="M1453.04,-706.85C1475.16,-686.77 1491,-672.4 1491,-672.4 1491,-672.4 1522.11,-643.04 1560.26,-607.03"/>
-<polygon fill="#6e8599" stroke="#6e8599" points="1453.09,-706.81 1451.95,-711.35 1447.31,-712.05 1448.45,-707.5 1453.09,-706.81"/>
-<text xml:space="preserve" text-anchor="middle" x="1524.59" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">配置权限矩阵</text>
-<text xml:space="preserve" text-anchor="middle" x="1553.62" y="-620.76" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="1453.61" y="-693.06" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1651.59,-574.26C1711.97,-534.27 1784.3,-486.36 1844.65,-446.38"/>
+<text xml:space="preserve" text-anchor="middle" x="1764.67" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">矩阵配置</text>
+<text xml:space="preserve" text-anchor="middle" x="1834.2" y="-460.43" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1662.04" y="-554.21" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- Role&#45;&gt;RoleAssignment -->
-<g id="e2" class="edge">
+<g id="e6" class="edge">
 <title>Role&#45;&gt;RoleAssignment</title>
-<path fill="none" stroke="#6e8599" d="M1317,-712.85C1317,-683.25 1317,-651.13 1317,-620.38"/>
-<text xml:space="preserve" text-anchor="middle" x="1328.25" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">被赋予</text>
-<text xml:space="preserve" text-anchor="middle" x="1324.61" y="-633.69" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="1309.39" y="-693.53" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M1527,-574.46C1527,-539.11 1527,-497.55 1527,-460.74"/>
+<text xml:space="preserve" text-anchor="middle" x="1543.67" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">授权角色</text>
+<text xml:space="preserve" text-anchor="middle" x="1535.45" y="-475.87" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="1518.55" y="-553.33" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- Permission&#45;&gt;RolePermission -->
-<g id="e4" class="edge">
+<g id="e9" class="edge">
 <title>Permission&#45;&gt;RolePermission</title>
-<path fill="none" stroke="#6e8599" d="M1982.63,-739.08C1939.3,-698.91 1887.58,-650.95 1840.24,-607.06"/>
-<text xml:space="preserve" text-anchor="middle" x="1920.2" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">被角色授权</text>
-<text xml:space="preserve" text-anchor="middle" x="1857.38" y="-609.58" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">0..*</text>
-<text xml:space="preserve" text-anchor="middle" x="1965.49" y="-730.57" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">1</text>
+<path fill="none" stroke="#7b8e9f" stroke-width="1.1" d="M2307.93,-588.52C2243.9,-546.11 2161.2,-491.32 2093.51,-446.48"/>
+<text xml:space="preserve" text-anchor="middle" x="2212.23" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">资源 × 操作</text>
+<text xml:space="preserve" text-anchor="middle" x="2113.29" y="-446.45" font-family="Arial" font-size="10.00" fill="#334c62">0..*</text>
+<text xml:space="preserve" text-anchor="middle" x="2288.15" y="-582.56" font-family="Arial" font-size="10.00" fill="#334c62">1</text>
 </g>
 <!-- AuthorizationService&#45;&gt;Enrollment -->
 <g id="e14" class="edge">
 <title>AuthorizationService&#45;&gt;Enrollment</title>
-<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1848.8,-725.64C1890.69,-696.37 1925,-672.4 1925,-672.4 1925,-672.4 1925,-660.4 1925,-660.4 1925,-660.4 1890,-329.8 1890,-329.8 1890,-329.8 1095.11,-205.01 731.14,-147.87"/>
-<polygon fill="#8c79a2" stroke="#8c79a2" points="724.89,-146.89 731.77,-145 726.9,-147.2 731.32,-147.89 731.32,-147.89 731.32,-147.89 726.9,-147.2 730.86,-150.78 724.89,-146.89"/>
-<text xml:space="preserve" text-anchor="middle" x="1946.83" y="-472.1" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">本人／本班范围</text>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M2146.8,-558.87C2190.48,-534.81 2225,-515.8 2225,-515.8 2225,-515.8 2225,-503.8 2225,-503.8 2225,-503.8 2190,-265.2 2190,-265.2 2190,-265.2 1273.98,-158.26 851.69,-108.96"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="844.99,-108.18 852.31,-105.86 847.14,-108.38 851.95,-108.94 851.94,-108.99 851.94,-109.04 847.13,-108.48 851.58,-112.12 844.99,-108.18"/>
+<text xml:space="preserve" text-anchor="middle" x="2247.57" y="-360" font-family="Arial" font-size="10.00" fill="#334c62">本人及本班范围</text>
 </g>
 <!-- AuthorizationService&#45;&gt;RolePermission -->
 <g id="e13" class="edge">
 <title>AuthorizationService&#45;&gt;RolePermission</title>
-<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1699,-725.94C1699,-691.03 1699,-651.55 1699,-614.46"/>
-<polygon fill="#8c79a2" stroke="#8c79a2" points="1699,-608.29 1701.93,-614.79 1699,-610.32 1699,-614.79 1699,-614.79 1699,-614.79 1699,-610.32 1696.08,-614.79 1699,-608.29"/>
-<text xml:space="preserve" text-anchor="middle" x="1724" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">校验资源×操作</text>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M1969,-558.89C1969,-525.18 1969,-487.59 1969,-454.49"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="1969,-447.52 1972.15,-454.52 1969.05,-449.68 1969.05,-454.52 1969,-454.52 1968.95,-454.52 1968.95,-449.68 1965.85,-454.52 1969,-447.52"/>
+<text xml:space="preserve" text-anchor="middle" x="1998.17" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">逐条求交后合并</text>
 </g>
 <!-- AuthorizationService&#45;&gt;RoleAssignment -->
 <g id="e12" class="edge">
 <title>AuthorizationService&#45;&gt;RoleAssignment</title>
-<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1529.54,-725.7C1516.34,-717.55 1508,-712.4 1508,-712.4 1508,-712.4 1413.5,-672.4 1413.5,-672.4 1413.5,-672.4 1404.14,-653.35 1391.24,-627.13"/>
-<polygon fill="#8c79a2" stroke="#8c79a2" points="1388.43,-621.4 1393.92,-625.95 1389.33,-623.23 1391.3,-627.24 1391.3,-627.24 1391.3,-627.24 1389.33,-623.23 1388.67,-628.53 1388.43,-621.4"/>
-<text xml:space="preserve" text-anchor="middle" x="1447.25" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">解析角色与班级范围</text>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M1785.41,-558.87C1740.3,-534.81 1704.66,-515.8 1704.66,-515.8 1704.66,-515.8 1678.55,-493.49 1646.35,-465.98"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="1641.29,-461.65 1648.66,-463.81 1642.96,-463.02 1646.64,-466.16 1646.61,-466.2 1646.58,-466.24 1642.9,-463.09 1644.56,-468.59 1641.29,-461.65"/>
+<text xml:space="preserve" text-anchor="middle" x="1721.33" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">有效授权</text>
 </g>
 <!-- AuthorizationService&#45;&gt;CounselorClassAssignment -->
 <g id="e15" class="edge">
 <title>AuthorizationService&#45;&gt;CounselorClassAssignment</title>
-<path fill="none" stroke="#8c79a2" stroke-dasharray="5,2" d="M1529.54,-725.7C1516.34,-717.55 1508,-712.4 1508,-712.4 1508,-712.4 1262,-672.4 1262,-672.4 1262,-672.4 1126,-620.4 1126,-620.4 1126,-620.4 1114.47,-611.69 1097.08,-598.55"/>
-<polygon fill="#8c79a2" stroke="#8c79a2" points="1091.94,-594.67 1098.89,-596.25 1093.56,-595.89 1097.13,-598.59 1097.13,-598.59 1097.13,-598.59 1093.56,-595.89 1095.36,-600.92 1091.94,-594.67"/>
-<text xml:space="preserve" text-anchor="middle" x="1284.5" y="-663.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">所带班级范围</text>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M1768,-567.67C1755.61,-562.17 1748,-558.8 1748,-558.8 1748,-558.8 1458.66,-515.8 1458.66,-515.8 1458.66,-515.8 1306,-460.8 1306,-460.8 1306,-460.8 1296.25,-456.53 1280.85,-449.78"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="1274.62,-447.05 1282.29,-446.98 1276.62,-447.88 1281.05,-449.82 1281.03,-449.86 1281.01,-449.91 1276.58,-447.97 1279.77,-452.75 1274.62,-447.05"/>
+<text xml:space="preserve" text-anchor="middle" x="1487.83" y="-506.8" font-family="Arial" font-size="10.00" fill="#334c62">辅导员带班范围</text>
+</g>
+<!-- UserAdministrationService&#45;&gt;User -->
+<g id="e16" class="edge">
+<title>UserAdministrationService&#45;&gt;User</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M1146.43,-854.82C1019.82,-810.88 864,-756.8 864,-756.8 864,-756.8 859.36,-754.74 851.41,-751.22"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="845.22,-748.47 852.9,-748.43 847.22,-749.3 851.64,-751.27 851.62,-751.31 851.6,-751.36 847.18,-749.39 850.35,-754.19 845.22,-748.47"/>
+<text xml:space="preserve" text-anchor="middle" x="1057.09" y="-802.8" font-family="Arial" font-size="10.00" fill="#334c62">管理员管理学生账号</text>
+</g>
+<!-- UserAdministrationService&#45;&gt;AuthorizationService -->
+<g id="e17" class="edge">
+<title>UserAdministrationService&#45;&gt;AuthorizationService</title>
+<path fill="none" stroke="#927ba8" stroke-width="1.1" stroke-dasharray="5,2" d="M1465.57,-854.82C1592.18,-810.88 1748,-756.8 1748,-756.8 1748,-756.8 1752.64,-754.74 1760.59,-751.22"/>
+<polygon fill="#927ba8" stroke="#927ba8" stroke-width="1.1" points="1766.78,-748.47 1761.65,-754.19 1764.82,-749.39 1760.4,-751.36 1760.38,-751.31 1760.36,-751.27 1764.78,-749.3 1759.1,-748.43 1766.78,-748.47"/>
+<text xml:space="preserve" text-anchor="middle" x="1654.9" y="-802.8" font-family="Arial" font-size="10.00" fill="#334c62">权限与班级职务约束</text>
 </g>
 <!-- User -->
 <g id="node1" class="node">
 <title>User</title>
-<polygon fill="#285d87" stroke="#285d87" points="382,-753 382,-753 724,-753 724,-753 382,-753"/>
-<polygon fill="none" stroke="#285d87" points="382,-725.6 382,-937 724,-937 724,-725.6 382,-725.6"/>
-<polygon fill="#285d87" stroke="none" points="383,-885 383,-936 723,-936 723,-885 383,-885"/>
-<text xml:space="preserve" text-anchor="start" x="534.97" y="-921.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="538.01" y="-906.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">User</text>
-<text xml:space="preserve" text-anchor="start" x="543.25" y="-893.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">用户</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-858.6 383,-885 723,-885 723,-858.6 383,-858.6"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-867" font-family="Microsoft YaHei" font-size="12.00">− userId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-832.2 383,-858.6 723,-858.6 723,-832.2 383,-832.2"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-840.6" font-family="Microsoft YaHei" font-size="12.00">− username: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-805.8 383,-832.2 723,-832.2 723,-805.8 383,-805.8"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-814.2" font-family="Microsoft YaHei" font-size="12.00">− passwordHash: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-779.4 383,-805.8 723,-805.8 723,-779.4 383,-779.4"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-787.8" font-family="Microsoft YaHei" font-size="12.00">− baseIdentity: IdentityKind</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-753 383,-779.4 723,-779.4 723,-753 383,-753"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-761.4" font-family="Microsoft YaHei" font-size="12.00">− status: AccountStatus</text>
-<polygon fill="#f3f0f8" stroke="none" points="383,-726.6 383,-753 723,-753 723,-726.6 383,-726.6"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-735" font-family="Microsoft YaHei" font-size="12.00">+ isStudent(): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="442,-560 442,-755.6 844,-755.6 844,-560 442,-560"/>
+<polygon fill="#285c84" stroke="none" points="443,-700.6 443,-754.6 843,-754.6 843,-700.6 443,-700.6"/>
+<text xml:space="preserve" text-anchor="start" x="623.74" y="-738.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="625.21" y="-723.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">User</text>
+<text xml:space="preserve" text-anchor="start" x="632.16" y="-709.9" font-family="Arial" font-size="13.00" fill="white">用户</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-672.2 443,-700.6 843,-700.6 843,-672.2 443,-672.2"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-681.6" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-643.8 443,-672.2 843,-672.2 843,-643.8 443,-643.8"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-653.2" font-family="Arial" font-size="12.00">− username / displayName: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-615.4 443,-643.8 843,-643.8 843,-615.4 443,-615.4"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-624.8" font-family="Arial" font-size="12.00">− baseIdentity: IdentityKind</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-587 443,-615.4 843,-615.4 843,-587 443,-587"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-596.4" font-family="Arial" font-size="12.00">− status: ACTIVE | DISABLED | DELETED</text>
+<polygon fill="#edf3f7" stroke="none" points="443,-561 443,-587 843,-587 843,-561 443,-561"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-570" font-family="Arial" font-size="10.00" fill="#526b7d">table: users</text>
 </g>
 <!-- StudentProfile -->
 <g id="node2" class="node">
 <title>StudentProfile</title>
-<polygon fill="#285d87" stroke="#285d87" points="0,-383.6 0,-383.6 342,-383.6 342,-383.6 0,-383.6"/>
-<polygon fill="none" stroke="#285d87" points="0,-356.2 0,-594 342,-594 342,-356.2 0,-356.2"/>
-<polygon fill="#285d87" stroke="none" points="1,-542 1,-593 341,-593 341,-542 1,-542"/>
-<text xml:space="preserve" text-anchor="start" x="152.97" y="-578.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="124.34" y="-563.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">StudentProfile</text>
-<text xml:space="preserve" text-anchor="start" x="151.5" y="-550.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">学生档案</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-515.6 1,-542 341,-542 341,-515.6 1,-515.6"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-524" font-family="Microsoft YaHei" font-size="12.00">− studentId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-489.2 1,-515.6 341,-515.6 341,-489.2 1,-489.2"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-497.6" font-family="Microsoft YaHei" font-size="12.00">− userId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-462.8 1,-489.2 341,-489.2 341,-462.8 1,-462.8"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-471.2" font-family="Microsoft YaHei" font-size="12.00">− studentNumber: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-436.4 1,-462.8 341,-462.8 341,-436.4 1,-436.4"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-444.8" font-family="Microsoft YaHei" font-size="12.00">− /displayName: from User</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-410 1,-436.4 341,-436.4 341,-410 1,-410"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-418.4" font-family="Microsoft YaHei" font-size="12.00">− profileStatus: ProfileStatus</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-383.6 1,-410 341,-410 341,-383.6 1,-383.6"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-392" font-family="Microsoft YaHei" font-size="12.00">− admissionYear: Integer?</text>
-<polygon fill="#f3f0f8" stroke="none" points="1,-357.2 1,-383.6 341,-383.6 341,-357.2 1,-357.2"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-365.6" font-family="Microsoft YaHei" font-size="12.00">+ maskedStudentNo(): String</text>
+<polygon fill="none" stroke="#285c84" points="0,-279.4 0,-446.6 402,-446.6 402,-279.4 0,-279.4"/>
+<polygon fill="#285c84" stroke="none" points="1,-391.6 1,-445.6 401,-445.6 401,-391.6 1,-391.6"/>
+<text xml:space="preserve" text-anchor="start" x="181.74" y="-429.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="146.33" y="-414.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">StudentProfile</text>
+<text xml:space="preserve" text-anchor="start" x="179.33" y="-400.9" font-family="Arial" font-size="13.00" fill="white">学生档案</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-363.2 1,-391.6 401,-391.6 401,-363.2 1,-363.2"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-372.6" font-family="Arial" font-size="12.00">− id / userId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-334.8 1,-363.2 401,-363.2 401,-334.8 1,-334.8"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-344.2" font-family="Arial" font-size="12.00">− studentNumber: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-306.4 1,-334.8 401,-334.8 401,-306.4 1,-306.4"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-315.8" font-family="Arial" font-size="12.00">− profileStatus: ProfileStatus</text>
+<polygon fill="#edf3f7" stroke="none" points="1,-280.4 1,-306.4 401,-306.4 401,-280.4 1,-280.4"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-289.4" font-family="Arial" font-size="10.00" fill="#526b7d">table: student_profiles</text>
 </g>
 <!-- TeachingClass -->
 <g id="node3" class="node">
 <title>TeachingClass</title>
-<polygon fill="#285d87" stroke="#285d87" points="764,-766.2 764,-766.2 1106,-766.2 1106,-766.2 764,-766.2"/>
-<polygon fill="none" stroke="#285d87" points="764,-738.8 764,-923.8 1106,-923.8 1106,-738.8 764,-738.8"/>
-<polygon fill="#285d87" stroke="none" points="765,-871.8 765,-922.8 1105,-922.8 1105,-871.8 765,-871.8"/>
-<text xml:space="preserve" text-anchor="start" x="916.97" y="-907.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="888.33" y="-893.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">TeachingClass</text>
-<text xml:space="preserve" text-anchor="start" x="920.38" y="-880.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">教学班</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-845.4 765,-871.8 1105,-871.8 1105,-845.4 765,-845.4"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-853.8" font-family="Microsoft YaHei" font-size="12.00">− classId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-819 765,-845.4 1105,-845.4 1105,-819 765,-819"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-827.4" font-family="Microsoft YaHei" font-size="12.00">− classCode: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-792.6 765,-819 1105,-819 1105,-792.6 765,-792.6"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-801" font-family="Microsoft YaHei" font-size="12.00">− className: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-766.2 765,-792.6 1105,-792.6 1105,-766.2 765,-766.2"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-774.6" font-family="Microsoft YaHei" font-size="12.00">− status: ClassStatus</text>
-<polygon fill="#f3f0f8" stroke="none" points="765,-739.8 765,-766.2 1105,-766.2 1105,-739.8 765,-739.8"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-748.2" font-family="Microsoft YaHei" font-size="12.00">+ activeReviewerCount(): Integer</text>
+<polygon fill="none" stroke="#285c84" points="884,-574.2 884,-741.4 1286,-741.4 1286,-574.2 884,-574.2"/>
+<polygon fill="#285c84" stroke="none" points="885,-686.4 885,-740.4 1285,-740.4 1285,-686.4 885,-686.4"/>
+<text xml:space="preserve" text-anchor="start" x="1065.74" y="-724.5" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1028.54" y="-709" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">TeachingClass</text>
+<text xml:space="preserve" text-anchor="start" x="1068.75" y="-695.7" font-family="Arial" font-size="13.00" fill="white">教学班</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-658 885,-686.4 1285,-686.4 1285,-658 885,-658"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-667.4" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-629.6 885,-658 1285,-658 1285,-629.6 885,-629.6"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-639" font-family="Arial" font-size="12.00">− code / name: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-601.2 885,-629.6 1285,-629.6 1285,-601.2 885,-601.2"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-610.6" font-family="Arial" font-size="12.00">− status: ACTIVE | SETUP</text>
+<polygon fill="#edf3f7" stroke="none" points="885,-575.2 885,-601.2 1285,-601.2 1285,-575.2 885,-575.2"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-584.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: classes</text>
 </g>
 <!-- AcademicYear -->
 <g id="node4" class="node">
 <title>AcademicYear</title>
-<polygon fill="#285d87" stroke="#285d87" points="0,-766.2 0,-766.2 342,-766.2 342,-766.2 0,-766.2"/>
-<polygon fill="none" stroke="#285d87" points="0,-738.8 0,-923.8 342,-923.8 342,-738.8 0,-738.8"/>
-<polygon fill="#285d87" stroke="none" points="1,-871.8 1,-922.8 341,-922.8 341,-871.8 1,-871.8"/>
-<text xml:space="preserve" text-anchor="start" x="152.97" y="-907.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="123.52" y="-893.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">AcademicYear</text>
-<text xml:space="preserve" text-anchor="start" x="161.25" y="-880.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">学年</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-845.4 1,-871.8 341,-871.8 341,-845.4 1,-845.4"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-853.8" font-family="Microsoft YaHei" font-size="12.00">− academicYearId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-819 1,-845.4 341,-845.4 341,-819 1,-819"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-827.4" font-family="Microsoft YaHei" font-size="12.00">− yearLabel: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-792.6 1,-819 341,-819 341,-792.6 1,-792.6"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-801" font-family="Microsoft YaHei" font-size="12.00">− displayOrder: Integer</text>
-<polygon fill="#f6f9fc" stroke="none" points="1,-766.2 1,-792.6 341,-792.6 341,-766.2 1,-766.2"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-774.6" font-family="Microsoft YaHei" font-size="12.00">− enabled: Boolean</text>
-<polygon fill="#f3f0f8" stroke="none" points="1,-739.8 1,-766.2 341,-766.2 341,-739.8 1,-739.8"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-748.2" font-family="Microsoft YaHei" font-size="12.00">+ availableForSelection(): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="0,-574.2 0,-741.4 402,-741.4 402,-574.2 0,-574.2"/>
+<polygon fill="#285c84" stroke="none" points="1,-686.4 1,-740.4 401,-740.4 401,-686.4 1,-686.4"/>
+<text xml:space="preserve" text-anchor="start" x="181.74" y="-724.5" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="145.86" y="-709" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">AcademicYear</text>
+<text xml:space="preserve" text-anchor="start" x="190.16" y="-695.7" font-family="Arial" font-size="13.00" fill="white">学年</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-658 1,-686.4 401,-686.4 401,-658 1,-658"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-667.4" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-629.6 1,-658 401,-658 401,-629.6 1,-629.6"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-639" font-family="Arial" font-size="12.00">− code / name: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="1,-601.2 1,-629.6 401,-629.6 401,-601.2 1,-601.2"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-610.6" font-family="Arial" font-size="12.00">− isSelectable: Boolean</text>
+<polygon fill="#edf3f7" stroke="none" points="1,-575.2 1,-601.2 401,-601.2 401,-575.2 1,-575.2"/>
+<text xml:space="preserve" text-anchor="start" x="8" y="-584.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: academic_years</text>
 </g>
 <!-- ClassYear -->
 <g id="node5" class="node">
 <title>ClassYear</title>
-<polygon fill="#285d87" stroke="#285d87" points="382,-383.6 382,-383.6 724,-383.6 724,-383.6 382,-383.6"/>
-<polygon fill="none" stroke="#285d87" points="382,-356.2 382,-594 724,-594 724,-356.2 382,-356.2"/>
-<polygon fill="#285d87" stroke="none" points="383,-542 383,-593 723,-593 723,-542 383,-542"/>
-<text xml:space="preserve" text-anchor="start" x="534.97" y="-578.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="520.09" y="-563.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">ClassYear</text>
-<text xml:space="preserve" text-anchor="start" x="533.5" y="-550.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">班级学年</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-515.6 383,-542 723,-542 723,-515.6 383,-515.6"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-524" font-family="Microsoft YaHei" font-size="12.00">− classYearId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-489.2 383,-515.6 723,-515.6 723,-489.2 383,-489.2"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-497.6" font-family="Microsoft YaHei" font-size="12.00">− classId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-462.8 383,-489.2 723,-489.2 723,-462.8 383,-462.8"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-471.2" font-family="Microsoft YaHei" font-size="12.00">− academicYearId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-436.4 383,-462.8 723,-462.8 723,-436.4 383,-436.4"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-444.8" font-family="Microsoft YaHei" font-size="12.00">− scoreRuleVersionId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-410 383,-436.4 723,-436.4 723,-410 383,-410"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-418.4" font-family="Microsoft YaHei" font-size="12.00">− lockVersion: Integer</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-383.6 383,-410 723,-410 723,-383.6 383,-383.6"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-392" font-family="Microsoft YaHei" font-size="12.00">− /publicityState: from ClassPublicity</text>
-<polygon fill="#f3f0f8" stroke="none" points="383,-357.2 383,-383.6 723,-383.6 723,-357.2 383,-357.2"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-365.6" font-family="Microsoft YaHei" font-size="12.00">+ isPublic(): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="442,-265.2 442,-460.8 844,-460.8 844,-265.2 442,-265.2"/>
+<polygon fill="#285c84" stroke="none" points="443,-405.8 443,-459.8 843,-459.8 843,-405.8 443,-405.8"/>
+<text xml:space="preserve" text-anchor="start" x="623.74" y="-443.9" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="604.3" y="-428.4" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">ClassYear</text>
+<text xml:space="preserve" text-anchor="start" x="621.33" y="-415.1" font-family="Arial" font-size="13.00" fill="white">班级学年</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-377.4 443,-405.8 843,-405.8 843,-377.4 443,-377.4"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-386.8" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-349 443,-377.4 843,-377.4 843,-349 443,-349"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-358.4" font-family="Arial" font-size="12.00">− classId / academicYearId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-320.6 443,-349 843,-349 843,-320.6 443,-320.6"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-330" font-family="Arial" font-size="12.00">− scoreRuleVersionId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-292.2 443,-320.6 843,-320.6 843,-292.2 443,-292.2"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-301.6" font-family="Arial" font-size="12.00">− lockVersion: Integer</text>
+<polygon fill="#edf3f7" stroke="none" points="443,-266.2 443,-292.2 843,-292.2 843,-266.2 443,-266.2"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-275.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: class_years</text>
 </g>
 <!-- Enrollment -->
 <g id="node6" class="node">
 <title>Enrollment</title>
-<polygon fill="#285d87" stroke="#285d87" points="382,-27.4 382,-27.4 724,-27.4 724,-27.4 382,-27.4"/>
-<polygon fill="none" stroke="#285d87" points="382,0 382,-237.8 724,-237.8 724,0 382,0"/>
-<polygon fill="#285d87" stroke="none" points="383,-185.8 383,-236.8 723,-236.8 723,-185.8 383,-185.8"/>
-<text xml:space="preserve" text-anchor="start" x="534.97" y="-221.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="516.33" y="-207.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">Enrollment</text>
-<text xml:space="preserve" text-anchor="start" x="523.75" y="-194.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">学年班级归属</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-159.4 383,-185.8 723,-185.8 723,-159.4 383,-159.4"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-167.8" font-family="Microsoft YaHei" font-size="12.00">− enrollmentId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-133 383,-159.4 723,-159.4 723,-133 383,-133"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-141.4" font-family="Microsoft YaHei" font-size="12.00">− studentId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-106.6 383,-133 723,-133 723,-106.6 383,-106.6"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-115" font-family="Microsoft YaHei" font-size="12.00">− classYearId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-80.2 383,-106.6 723,-106.6 723,-80.2 383,-80.2"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-88.6" font-family="Microsoft YaHei" font-size="12.00">− status: EnrollmentStatus</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-53.8 383,-80.2 723,-80.2 723,-53.8 383,-53.8"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-62.2" font-family="Microsoft YaHei" font-size="12.00">− recordedAt: DateTime?</text>
-<polygon fill="#f6f9fc" stroke="none" points="383,-27.4 383,-53.8 723,-53.8 723,-27.4 383,-27.4"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-35.8" font-family="Microsoft YaHei" font-size="12.00">− endedAt: DateTime?</text>
-<polygon fill="#f3f0f8" stroke="none" points="383,-1 383,-27.4 723,-27.4 723,-1 383,-1"/>
-<text xml:space="preserve" text-anchor="start" x="389" y="-9.4" font-family="Microsoft YaHei" font-size="12.00">+ belongsTo(classYear): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="442,0 442,-167.2 844,-167.2 844,0 442,0"/>
+<polygon fill="#285c84" stroke="none" points="443,-112.2 443,-166.2 843,-166.2 843,-112.2 443,-112.2"/>
+<text xml:space="preserve" text-anchor="start" x="623.74" y="-150.3" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="601.22" y="-134.8" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">Enrollment</text>
+<text xml:space="preserve" text-anchor="start" x="610.49" y="-121.5" font-family="Arial" font-size="13.00" fill="white">学生学年归属</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-83.8 443,-112.2 843,-112.2 843,-83.8 443,-83.8"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-93.2" font-family="Arial" font-size="12.00">− id: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-55.4 443,-83.8 843,-83.8 843,-55.4 443,-55.4"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-64.8" font-family="Arial" font-size="12.00">− studentId / classYearId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="443,-27 443,-55.4 843,-55.4 843,-27 443,-27"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-36.4" font-family="Arial" font-size="12.00">− status / recordedAt</text>
+<polygon fill="#edf3f7" stroke="none" points="443,-1 443,-27 843,-27 843,-1 443,-1"/>
+<text xml:space="preserve" text-anchor="start" x="450" y="-10" font-family="Arial" font-size="10.00" fill="#526b7d">table: enrollments</text>
 </g>
 <!-- Role -->
 <g id="node7" class="node">
 <title>Role</title>
-<polygon fill="#285d87" stroke="#285d87" points="1146,-739.8 1146,-739.8 1488,-739.8 1488,-739.8 1146,-739.8"/>
-<polygon fill="none" stroke="#285d87" points="1146,-712.4 1146,-950.2 1488,-950.2 1488,-712.4 1146,-712.4"/>
-<polygon fill="#285d87" stroke="none" points="1147,-898.2 1147,-949.2 1487,-949.2 1487,-898.2 1147,-898.2"/>
-<text xml:space="preserve" text-anchor="start" x="1298.97" y="-934.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="1302.42" y="-919.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">Role</text>
-<text xml:space="preserve" text-anchor="start" x="1307.25" y="-906.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">角色</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-871.8 1147,-898.2 1487,-898.2 1487,-871.8 1147,-871.8"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-880.2" font-family="Microsoft YaHei" font-size="12.00">− roleId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-845.4 1147,-871.8 1487,-871.8 1487,-845.4 1147,-845.4"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-853.8" font-family="Microsoft YaHei" font-size="12.00">− roleCode: RoleCode</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-819 1147,-845.4 1487,-845.4 1487,-819 1147,-819"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-827.4" font-family="Microsoft YaHei" font-size="12.00">− roleName: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-792.6 1147,-819 1487,-819 1487,-792.6 1147,-792.6"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-801" font-family="Microsoft YaHei" font-size="12.00">− allowedIdentity: IdentityKind</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-766.2 1147,-792.6 1487,-792.6 1487,-766.2 1147,-766.2"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-774.6" font-family="Microsoft YaHei" font-size="12.00">− scopeKind: GLOBAL|CLASS</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-739.8 1147,-766.2 1487,-766.2 1487,-739.8 1147,-739.8"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-748.2" font-family="Microsoft YaHei" font-size="12.00">− isSystem: Boolean</text>
-<polygon fill="#f3f0f8" stroke="none" points="1147,-713.4 1147,-739.8 1487,-739.8 1487,-713.4 1147,-713.4"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-721.8" font-family="Microsoft YaHei" font-size="12.00">+ accepts(user): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="1326,-574.2 1326,-741.4 1728,-741.4 1728,-574.2 1326,-574.2"/>
+<polygon fill="#285c84" stroke="none" points="1327,-686.4 1327,-740.4 1727,-740.4 1727,-686.4 1327,-686.4"/>
+<text xml:space="preserve" text-anchor="start" x="1507.74" y="-724.5" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1509.66" y="-709" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">Role</text>
+<text xml:space="preserve" text-anchor="start" x="1516.16" y="-695.7" font-family="Arial" font-size="13.00" fill="white">角色</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-658 1327,-686.4 1727,-686.4 1727,-658 1327,-658"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-667.4" font-family="Arial" font-size="12.00">− id / code: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-629.6 1327,-658 1727,-658 1727,-629.6 1327,-629.6"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-639" font-family="Arial" font-size="12.00">− allowedIdentity: IdentityKind</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-601.2 1327,-629.6 1727,-629.6 1727,-601.2 1327,-601.2"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-610.6" font-family="Arial" font-size="12.00">− scopeKind: GLOBAL | CLASS</text>
+<polygon fill="#edf3f7" stroke="none" points="1327,-575.2 1327,-601.2 1727,-601.2 1727,-575.2 1327,-575.2"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-584.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: roles</text>
 </g>
 <!-- Permission -->
 <g id="node8" class="node">
 <title>Permission</title>
-<polygon fill="#285d87" stroke="#285d87" points="1910,-766.2 1910,-766.2 2252,-766.2 2252,-766.2 1910,-766.2"/>
-<polygon fill="none" stroke="#285d87" points="1910,-738.8 1910,-923.8 2252,-923.8 2252,-738.8 1910,-738.8"/>
-<polygon fill="#285d87" stroke="none" points="1911,-871.8 1911,-922.8 2251,-922.8 2251,-871.8 1911,-871.8"/>
-<text xml:space="preserve" text-anchor="start" x="2062.97" y="-907.9" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="2045.59" y="-893.3" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">Permission</text>
-<text xml:space="preserve" text-anchor="start" x="2061.5" y="-880.1" font-family="Microsoft YaHei" font-size="13.00" fill="white">资源操作</text>
-<polygon fill="#f6f9fc" stroke="none" points="1911,-845.4 1911,-871.8 2251,-871.8 2251,-845.4 1911,-845.4"/>
-<text xml:space="preserve" text-anchor="start" x="1917" y="-853.8" font-family="Microsoft YaHei" font-size="12.00">− permissionId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1911,-819 1911,-845.4 2251,-845.4 2251,-819 1911,-819"/>
-<text xml:space="preserve" text-anchor="start" x="1917" y="-827.4" font-family="Microsoft YaHei" font-size="12.00">− resourceCode: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="1911,-792.6 1911,-819 2251,-819 2251,-792.6 1911,-792.6"/>
-<text xml:space="preserve" text-anchor="start" x="1917" y="-801" font-family="Microsoft YaHei" font-size="12.00">− actionCode: String</text>
-<polygon fill="#f6f9fc" stroke="none" points="1911,-766.2 1911,-792.6 2251,-792.6 2251,-766.2 1911,-766.2"/>
-<text xml:space="preserve" text-anchor="start" x="1917" y="-774.6" font-family="Microsoft YaHei" font-size="12.00">− description: String</text>
-<polygon fill="#f3f0f8" stroke="none" points="1911,-739.8 1911,-766.2 2251,-766.2 2251,-739.8 1911,-739.8"/>
-<text xml:space="preserve" text-anchor="start" x="1917" y="-748.2" font-family="Microsoft YaHei" font-size="12.00">+ matches(resource, action): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="2210,-588.4 2210,-727.2 2612,-727.2 2612,-588.4 2210,-588.4"/>
+<polygon fill="#285c84" stroke="none" points="2211,-672.2 2211,-726.2 2611,-726.2 2611,-672.2 2211,-672.2"/>
+<text xml:space="preserve" text-anchor="start" x="2391.74" y="-710.3" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="2367.87" y="-694.8" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">Permission</text>
+<text xml:space="preserve" text-anchor="start" x="2389.33" y="-681.5" font-family="Arial" font-size="13.00" fill="white">资源操作</text>
+<polygon fill="#f5f8fb" stroke="none" points="2211,-643.8 2211,-672.2 2611,-672.2 2611,-643.8 2211,-643.8"/>
+<text xml:space="preserve" text-anchor="start" x="2218" y="-653.2" font-family="Arial" font-size="12.00">− id / code: String</text>
+<polygon fill="#f5f8fb" stroke="none" points="2211,-615.4 2211,-643.8 2611,-643.8 2611,-615.4 2211,-615.4"/>
+<text xml:space="preserve" text-anchor="start" x="2218" y="-624.8" font-family="Arial" font-size="12.00">− module / action: String</text>
+<polygon fill="#edf3f7" stroke="none" points="2211,-589.4 2211,-615.4 2611,-615.4 2611,-589.4 2211,-589.4"/>
+<text xml:space="preserve" text-anchor="start" x="2218" y="-598.4" font-family="Arial" font-size="10.00" fill="#526b7d">table: permissions</text>
 </g>
 <!-- RolePermission -->
 <g id="node9" class="node">
 <title>RolePermission</title>
-<polygon fill="#285d87" stroke="#285d87" points="1528,-370.4 1528,-370.4 1870,-370.4 1870,-370.4 1528,-370.4"/>
-<polygon fill="none" stroke="#285d87" points="1528,-343 1528,-607.2 1870,-607.2 1870,-343 1528,-343"/>
-<polygon fill="#285d87" stroke="none" points="1529,-555.2 1529,-606.2 1869,-606.2 1869,-555.2 1529,-555.2"/>
-<text xml:space="preserve" text-anchor="start" x="1680.97" y="-591.3" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="1649.01" y="-576.7" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">RolePermission</text>
-<text xml:space="preserve" text-anchor="start" x="1674.62" y="-563.5" font-family="Microsoft YaHei" font-size="13.00" fill="white">权限矩阵项</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-528.8 1529,-555.2 1869,-555.2 1869,-528.8 1529,-528.8"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-537.2" font-family="Microsoft YaHei" font-size="12.00">− rolePermissionId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-502.4 1529,-528.8 1869,-528.8 1869,-502.4 1529,-502.4"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-510.8" font-family="Microsoft YaHei" font-size="12.00">− roleId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-476 1529,-502.4 1869,-502.4 1869,-476 1529,-476"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-484.4" font-family="Microsoft YaHei" font-size="12.00">− permissionId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-449.6 1529,-476 1869,-476 1869,-449.6 1529,-449.6"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-458" font-family="Microsoft YaHei" font-size="12.00">− dataScope: PermissionScope</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-423.2 1529,-449.6 1869,-449.6 1869,-423.2 1529,-423.2"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-431.6" font-family="Microsoft YaHei" font-size="12.00">− isAllowed: Boolean</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-396.8 1529,-423.2 1869,-423.2 1869,-396.8 1529,-396.8"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-405.2" font-family="Microsoft YaHei" font-size="12.00">− changedBy / changedAt</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-370.4 1529,-396.8 1869,-396.8 1869,-370.4 1529,-370.4"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-378.8" font-family="Microsoft YaHei" font-size="12.00">− note: String?</text>
-<polygon fill="#f3f0f8" stroke="none" points="1529,-344 1529,-370.4 1869,-370.4 1869,-344 1529,-344"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-352.4" font-family="Microsoft YaHei" font-size="12.00">+ permits(action): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="1768,-279.4 1768,-446.6 2170,-446.6 2170,-279.4 1768,-279.4"/>
+<polygon fill="#285c84" stroke="none" points="1769,-391.6 1769,-445.6 2169,-445.6 2169,-391.6 1769,-391.6"/>
+<text xml:space="preserve" text-anchor="start" x="1949.74" y="-429.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1908.54" y="-414.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">RolePermission</text>
+<text xml:space="preserve" text-anchor="start" x="1947.33" y="-400.9" font-family="Arial" font-size="13.00" fill="white">权限矩阵</text>
+<polygon fill="#f5f8fb" stroke="none" points="1769,-363.2 1769,-391.6 2169,-391.6 2169,-363.2 1769,-363.2"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-372.6" font-family="Arial" font-size="12.00">− roleId / permissionId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1769,-334.8 1769,-363.2 2169,-363.2 2169,-334.8 1769,-334.8"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-344.2" font-family="Arial" font-size="12.00">− isAllowed: Boolean</text>
+<polygon fill="#f5f8fb" stroke="none" points="1769,-306.4 1769,-334.8 2169,-334.8 2169,-306.4 1769,-306.4"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-315.8" font-family="Arial" font-size="12.00">− dataScope: DataScope</text>
+<polygon fill="#edf3f7" stroke="none" points="1769,-280.4 1769,-306.4 2169,-306.4 2169,-280.4 1769,-280.4"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-289.4" font-family="Arial" font-size="10.00" fill="#526b7d">table: role_permissions</text>
 </g>
 <!-- RoleAssignment -->
 <g id="node10" class="node">
 <title>RoleAssignment</title>
-<polygon fill="#285d87" stroke="#285d87" points="1146,-357.2 1146,-357.2 1488,-357.2 1488,-357.2 1146,-357.2"/>
-<polygon fill="none" stroke="#285d87" points="1146,-329.8 1146,-620.4 1488,-620.4 1488,-329.8 1146,-329.8"/>
-<polygon fill="#285d87" stroke="none" points="1147,-568.4 1147,-619.4 1487,-619.4 1487,-568.4 1147,-568.4"/>
-<text xml:space="preserve" text-anchor="start" x="1298.97" y="-604.5" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="1264.92" y="-589.9" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">RoleAssignment</text>
-<text xml:space="preserve" text-anchor="start" x="1297.5" y="-576.7" font-family="Microsoft YaHei" font-size="13.00" fill="white">角色赋予</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-542 1147,-568.4 1487,-568.4 1487,-542 1147,-542"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-550.4" font-family="Microsoft YaHei" font-size="12.00">− assignmentId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-515.6 1147,-542 1487,-542 1487,-515.6 1147,-515.6"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-524" font-family="Microsoft YaHei" font-size="12.00">− userId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-489.2 1147,-515.6 1487,-515.6 1487,-489.2 1147,-489.2"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-497.6" font-family="Microsoft YaHei" font-size="12.00">− roleId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-462.8 1147,-489.2 1487,-489.2 1487,-462.8 1147,-462.8"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-471.2" font-family="Microsoft YaHei" font-size="12.00">− classId: UUID?</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-436.4 1147,-462.8 1487,-462.8 1487,-436.4 1147,-436.4"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-444.8" font-family="Microsoft YaHei" font-size="12.00">− validFrom: DateTime?</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-410 1147,-436.4 1487,-436.4 1487,-410 1147,-410"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-418.4" font-family="Microsoft YaHei" font-size="12.00">− validTo: DateTime?</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-383.6 1147,-410 1487,-410 1487,-383.6 1147,-383.6"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-392" font-family="Microsoft YaHei" font-size="12.00">− grantedBy: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="1147,-357.2 1147,-383.6 1487,-383.6 1487,-357.2 1147,-357.2"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-365.6" font-family="Microsoft YaHei" font-size="12.00">− revokedAt: DateTime?</text>
-<polygon fill="#f3f0f8" stroke="none" points="1147,-330.8 1147,-357.2 1487,-357.2 1487,-330.8 1147,-330.8"/>
-<text xml:space="preserve" text-anchor="start" x="1153" y="-339.2" font-family="Microsoft YaHei" font-size="12.00">+ isActive(now): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="1326,-265.2 1326,-460.8 1728,-460.8 1728,-265.2 1326,-265.2"/>
+<polygon fill="#285c84" stroke="none" points="1327,-405.8 1327,-459.8 1727,-459.8 1727,-405.8 1327,-405.8"/>
+<text xml:space="preserve" text-anchor="start" x="1507.74" y="-443.9" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="1463.88" y="-428.4" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">RoleAssignment</text>
+<text xml:space="preserve" text-anchor="start" x="1505.33" y="-415.1" font-family="Arial" font-size="13.00" fill="white">角色授权</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-377.4 1327,-405.8 1727,-405.8 1727,-377.4 1327,-377.4"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-386.8" font-family="Arial" font-size="12.00">− userId / roleId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-349 1327,-377.4 1727,-377.4 1727,-349 1327,-349"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-358.4" font-family="Arial" font-size="12.00">− classId: UUID?</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-320.6 1327,-349 1727,-349 1727,-320.6 1327,-320.6"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-330" font-family="Arial" font-size="12.00">− validFrom / validTo</text>
+<polygon fill="#f5f8fb" stroke="none" points="1327,-292.2 1327,-320.6 1727,-320.6 1727,-292.2 1327,-292.2"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-301.6" font-family="Arial" font-size="12.00">− status: GrantStatus</text>
+<polygon fill="#edf3f7" stroke="none" points="1327,-266.2 1327,-292.2 1727,-292.2 1727,-266.2 1327,-266.2"/>
+<text xml:space="preserve" text-anchor="start" x="1334" y="-275.2" font-family="Arial" font-size="10.00" fill="#526b7d">table: role_assignments</text>
 </g>
 <!-- CounselorClassAssignment -->
 <g id="node11" class="node">
 <title>CounselorClassAssignment</title>
-<polygon fill="#285d87" stroke="#285d87" points="764,-383.6 764,-383.6 1106,-383.6 1106,-383.6 764,-383.6"/>
-<polygon fill="none" stroke="#285d87" points="764,-356.2 764,-594 1106,-594 1106,-356.2 764,-356.2"/>
-<polygon fill="#285d87" stroke="none" points="765,-542 765,-593 1105,-593 1105,-542 765,-542"/>
-<text xml:space="preserve" text-anchor="start" x="916.97" y="-578.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«entity»</text>
-<text xml:space="preserve" text-anchor="start" x="847.49" y="-563.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">CounselorClassAssignment</text>
-<text xml:space="preserve" text-anchor="start" x="915.5" y="-550.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">带班关系</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-515.6 765,-542 1105,-542 1105,-515.6 765,-515.6"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-524" font-family="Microsoft YaHei" font-size="12.00">− assignmentId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-489.2 765,-515.6 1105,-515.6 1105,-489.2 765,-489.2"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-497.6" font-family="Microsoft YaHei" font-size="12.00">− counselorUserId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-462.8 765,-489.2 1105,-489.2 1105,-462.8 765,-462.8"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-471.2" font-family="Microsoft YaHei" font-size="12.00">− classId: UUID</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-436.4 765,-462.8 1105,-462.8 1105,-436.4 765,-436.4"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-444.8" font-family="Microsoft YaHei" font-size="12.00">− validFrom: DateTime?</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-410 765,-436.4 1105,-436.4 1105,-410 765,-410"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-418.4" font-family="Microsoft YaHei" font-size="12.00">− validTo: DateTime?</text>
-<polygon fill="#f6f9fc" stroke="none" points="765,-383.6 765,-410 1105,-410 1105,-383.6 765,-383.6"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-392" font-family="Microsoft YaHei" font-size="12.00">− assignedBy: UUID</text>
-<polygon fill="#f3f0f8" stroke="none" points="765,-357.2 765,-383.6 1105,-383.6 1105,-357.2 765,-357.2"/>
-<text xml:space="preserve" text-anchor="start" x="771" y="-365.6" font-family="Microsoft YaHei" font-size="12.00">+ isActive(now): Boolean</text>
+<polygon fill="none" stroke="#285c84" points="884,-279.4 884,-446.6 1286,-446.6 1286,-279.4 884,-279.4"/>
+<polygon fill="#285c84" stroke="none" points="885,-391.6 885,-445.6 1285,-445.6 1285,-391.6 885,-391.6"/>
+<text xml:space="preserve" text-anchor="start" x="1065.74" y="-429.7" font-family="Arial" font-size="11.00" fill="white">«entity»</text>
+<text xml:space="preserve" text-anchor="start" x="978.31" y="-414.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">CounselorClassAssignment</text>
+<text xml:space="preserve" text-anchor="start" x="1063.33" y="-400.9" font-family="Arial" font-size="13.00" fill="white">带班关系</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-363.2 885,-391.6 1285,-391.6 1285,-363.2 885,-363.2"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-372.6" font-family="Arial" font-size="12.00">− counselorId / classId: UUID</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-334.8 885,-363.2 1285,-363.2 1285,-334.8 885,-334.8"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-344.2" font-family="Arial" font-size="12.00">− validFrom / validTo</text>
+<polygon fill="#f5f8fb" stroke="none" points="885,-306.4 885,-334.8 1285,-334.8 1285,-306.4 885,-306.4"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-315.8" font-family="Arial" font-size="12.00">− status: GrantStatus</text>
+<polygon fill="#edf3f7" stroke="none" points="885,-280.4 885,-306.4 1285,-306.4 1285,-280.4 885,-280.4"/>
+<text xml:space="preserve" text-anchor="start" x="892" y="-289.4" font-family="Arial" font-size="10.00" fill="#526b7d">table: counselor_classes</text>
 </g>
 <!-- AuthorizationService -->
 <g id="node12" class="node">
 <title>AuthorizationService</title>
-<polygon fill="#69508d" stroke="#69508d" points="1528,-779.4 1528,-779.4 1870,-779.4 1870,-779.4 1528,-779.4"/>
-<polygon fill="none" stroke="#69508d" points="1528,-725.6 1528,-937 1870,-937 1870,-725.6 1528,-725.6"/>
-<polygon fill="#69508d" stroke="none" points="1529,-885 1529,-936 1869,-936 1869,-885 1529,-885"/>
-<text xml:space="preserve" text-anchor="start" x="1677.93" y="-921.1" font-family="Microsoft YaHei" font-size="11.00" fill="white">«service»</text>
-<text xml:space="preserve" text-anchor="start" x="1630.68" y="-906.5" font-family="Microsoft YaHei" font-weight="bold" font-size="15.00" fill="white">AuthorizationService</text>
-<text xml:space="preserve" text-anchor="start" x="1679.5" y="-893.3" font-family="Microsoft YaHei" font-size="13.00" fill="white">授权服务</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-858.6 1529,-885 1869,-885 1869,-858.6 1529,-858.6"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-867" font-family="Microsoft YaHei" font-size="12.00">− roleRepository: RoleRepository</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-832.2 1529,-858.6 1869,-858.6 1869,-832.2 1529,-832.2"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-840.6" font-family="Microsoft YaHei" font-size="12.00">− scopeResolver: ScopeResolver</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-805.8 1529,-832.2 1869,-832.2 1869,-805.8 1529,-805.8"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-814.2" font-family="Microsoft YaHei" font-size="12.00">− mandatoryPolicy: BusinessPolicy</text>
-<polygon fill="#f6f9fc" stroke="none" points="1529,-779.4 1529,-805.8 1869,-805.8 1869,-779.4 1529,-779.4"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-787.8" font-family="Microsoft YaHei" font-size="12.00">− auditSink: AuditSink</text>
-<polygon fill="#f3f0f8" stroke="none" points="1529,-753 1529,-779.4 1869,-779.4 1869,-753 1529,-753"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-761.4" font-family="Microsoft YaHei" font-size="12.00">+ authorize(subject, action, object)</text>
-<polygon fill="#f3f0f8" stroke="none" points="1529,-726.6 1529,-753 1869,-753 1869,-726.6 1529,-726.6"/>
-<text xml:space="preserve" text-anchor="start" x="1535" y="-735" font-family="Microsoft YaHei" font-size="12.00">+ resolveVisibleScope(subject, action)</text>
+<polygon fill="#725096" stroke="#725096" points="1768,-645 1768,-645 2170,-645 2170,-645 1768,-645"/>
+<polygon fill="none" stroke="#725096" points="1768,-558.8 1768,-756.8 2170,-756.8 2170,-558.8 1768,-558.8"/>
+<polygon fill="#725096" stroke="none" points="1769,-701.8 1769,-755.8 2169,-755.8 2169,-701.8 1769,-701.8"/>
+<text xml:space="preserve" text-anchor="start" x="1945.47" y="-739.9" font-family="Arial" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="1888.98" y="-724.4" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">AuthorizationService</text>
+<text xml:space="preserve" text-anchor="start" x="1947.33" y="-711.1" font-family="Arial" font-size="13.00" fill="white">授权服务</text>
+<polygon fill="#f5f8fb" stroke="none" points="1769,-673.4 1769,-701.8 2169,-701.8 2169,-673.4 1769,-673.4"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-682.8" font-family="Arial" font-size="12.00">− mandatoryIdentityRules</text>
+<polygon fill="#f5f8fb" stroke="none" points="1769,-645 1769,-673.4 2169,-673.4 2169,-645 1769,-645"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-654.4" font-family="Arial" font-size="12.00">− scopeIntersectionRules</text>
+<polygon fill="#f1edf7" stroke="none" points="1769,-616.6 1769,-645 2169,-645 2169,-616.6 1769,-616.6"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-626" font-family="Arial" font-size="12.00">+ active_grants(user)</text>
+<polygon fill="#f1edf7" stroke="none" points="1769,-588.2 1769,-616.6 2169,-616.6 2169,-588.2 1769,-588.2"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-597.6" font-family="Arial" font-size="12.00">+ allowed(permission, class, owner)</text>
+<polygon fill="#f1edf7" stroke="none" points="1769,-559.8 1769,-588.2 2169,-588.2 2169,-559.8 1769,-559.8"/>
+<text xml:space="preserve" text-anchor="start" x="1776" y="-569.2" font-family="Arial" font-size="12.00">+ require(permission, class, owner)</text>
+</g>
+<!-- UserAdministrationService -->
+<g id="node13" class="node">
+<title>UserAdministrationService</title>
+<polygon fill="#725096" stroke="#725096" points="1105,-912.6 1105,-912.6 1507,-912.6 1507,-912.6 1105,-912.6"/>
+<polygon fill="none" stroke="#725096" points="1105,-854.8 1105,-967.6 1507,-967.6 1507,-854.8 1105,-854.8"/>
+<polygon fill="#725096" stroke="none" points="1106,-912.6 1106,-966.6 1506,-966.6 1506,-912.6 1106,-912.6"/>
+<text xml:space="preserve" text-anchor="start" x="1282.47" y="-950.7" font-family="Arial" font-size="11.00" fill="white">«service»</text>
+<text xml:space="preserve" text-anchor="start" x="1203.3" y="-935.2" font-family="Arial" font-weight="bold" font-size="16.00" fill="white">UserAdministrationService</text>
+<text xml:space="preserve" text-anchor="start" x="1273.49" y="-921.9" font-family="Arial" font-size="13.00" fill="white">学生账号管理</text>
+<polygon fill="#f1edf7" stroke="none" points="1106,-884.2 1106,-912.6 1506,-912.6 1506,-884.2 1106,-884.2"/>
+<text xml:space="preserve" text-anchor="start" x="1113" y="-893.6" font-family="Arial" font-size="12.00">+ delete_student_account(target_id, actor)</text>
+<polygon fill="#f1edf7" stroke="none" points="1106,-855.8 1106,-884.2 1506,-884.2 1506,-855.8 1106,-855.8"/>
+<text xml:space="preserve" text-anchor="start" x="1113" y="-865.2" font-family="Arial" font-size="12.00">+ backup / archive_usage / preserve_audit</text>
 </g>
 </g>
-</g></svg>
+</g><text x="28" y="1164" font-size="12" fill="#62798a">User.baseIdentity 为 STUDENT / COUNSELOR / ADMIN，互斥身份用属性表达；班长、审查员采用可叠加角色授权，不画身份继承树。</text></svg>

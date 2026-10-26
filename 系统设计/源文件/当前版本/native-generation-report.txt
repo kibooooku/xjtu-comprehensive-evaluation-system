@@ -1,0 +1,9 @@
+01-rbac-organization | 01-rbac-organization UML：RBAC 与班级学年组织 | elements=32
+02-application-evidence-review | 02-application-evidence-review UML：大类申报、小项、内容版本与审核 | elements=26
+03-activity-scoring-publicity | 03-activity-scoring-publicity UML：活动认定、政策计分、公示与导出 | elements=31
+04-materials-background-jobs | 04-materials-background-jobs UML：材料、证据与 OCR / AI 独立后台并行 | elements=34
+08-er-overview | 08-er-overview 数据库 ER 总览 · 37 张实际表 | elements=87
+09-er-rbac | 09-er-rbac 数据库 ER · 组织与RBAC | elements=30
+11-er-workflow | 11-er-workflow 数据库 ER · 大类申报与逐项审核 | elements=46
+10-er-evidence | 10-er-evidence 数据库 ER · 材料、识别与后台任务 | elements=36
+12-er-catalog | 12-er-catalog 数据库 ER · 活动、计分、公示与设置 | elements=31

@@ -1,0 +1,1315 @@
+{
+  "version": "current-2026-10-26",
+  "baseline_commit": "2e3abc3",
+  "source_kind": "current-implementation-domain-and-module-class-view",
+  "modeling_note": "entity为SQLAlchemy Core表的领域类视图；service为当前模块/函数责任分组，JobWorker为实际Python类；reference为跨图重用。同名服务不是新增ORM类或新业务功能。",
+  "sources": [
+    "app/db.py",
+    "app/schema.json",
+    "app/security.py",
+    "app/organization.py",
+    "app/submissions.py",
+    "app/workflow.py",
+    "app/jobs.py",
+    "app/materials.py",
+    "app/activity_matching.py",
+    "app/activity_eligibility.py",
+    "app/policy_suggestions.py",
+    "app/score_resolution.py",
+    "app/pdf_text.py",
+    "app/integrations.py",
+    "docs/申报简化与活动匹配.md"
+  ],
+  "legacy_note": "competition_projects、award_supersessions和旧competition_group_key等仍保留历史结构，当前不触发自动同竞赛关联、替代、恢复或项目取最高；完整ER展示这些历史兼容表。",
+  "diagrams": [
+    {
+      "id": "01-rbac-organization",
+      "title": "UML：RBAC 与班级学年组织",
+      "classes": [
+        {
+          "id": "User",
+          "name": "User 用户",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "username / displayName: String",
+            "baseIdentity: IdentityKind",
+            "status: ACTIVE | DISABLED | DELETED"
+          ],
+          "operations": [],
+          "table": "users"
+        },
+        {
+          "id": "StudentProfile",
+          "name": "StudentProfile 学生档案",
+          "kind": "entity",
+          "attributes": [
+            "id / userId: UUID",
+            "studentNumber: String",
+            "profileStatus: ProfileStatus"
+          ],
+          "operations": [],
+          "table": "student_profiles"
+        },
+        {
+          "id": "TeachingClass",
+          "name": "TeachingClass 教学班",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "code / name: String",
+            "status: ACTIVE | SETUP"
+          ],
+          "operations": [],
+          "table": "classes"
+        },
+        {
+          "id": "AcademicYear",
+          "name": "AcademicYear 学年",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "code / name: String",
+            "isSelectable: Boolean"
+          ],
+          "operations": [],
+          "table": "academic_years"
+        },
+        {
+          "id": "ClassYear",
+          "name": "ClassYear 班级学年",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "classId / academicYearId: UUID",
+            "scoreRuleVersionId: UUID",
+            "lockVersion: Integer"
+          ],
+          "operations": [],
+          "table": "class_years"
+        },
+        {
+          "id": "Enrollment",
+          "name": "Enrollment 学生学年归属",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "studentId / classYearId: UUID",
+            "status / recordedAt"
+          ],
+          "operations": [],
+          "table": "enrollments"
+        },
+        {
+          "id": "Role",
+          "name": "Role 角色",
+          "kind": "entity",
+          "attributes": [
+            "id / code: String",
+            "allowedIdentity: IdentityKind",
+            "scopeKind: GLOBAL | CLASS"
+          ],
+          "operations": [],
+          "table": "roles"
+        },
+        {
+          "id": "Permission",
+          "name": "Permission 资源操作",
+          "kind": "entity",
+          "attributes": [
+            "id / code: String",
+            "module / action: String"
+          ],
+          "operations": [],
+          "table": "permissions"
+        },
+        {
+          "id": "RolePermission",
+          "name": "RolePermission 权限矩阵",
+          "kind": "entity",
+          "attributes": [
+            "roleId / permissionId: UUID",
+            "isAllowed: Boolean",
+            "dataScope: DataScope"
+          ],
+          "operations": [],
+          "table": "role_permissions"
+        },
+        {
+          "id": "RoleAssignment",
+          "name": "RoleAssignment 角色授权",
+          "kind": "entity",
+          "attributes": [
+            "userId / roleId: UUID",
+            "classId: UUID?",
+            "validFrom / validTo",
+            "status: GrantStatus"
+          ],
+          "operations": [],
+          "table": "role_assignments"
+        },
+        {
+          "id": "CounselorClassAssignment",
+          "name": "CounselorClassAssignment 带班关系",
+          "kind": "entity",
+          "attributes": [
+            "counselorId / classId: UUID",
+            "validFrom / validTo",
+            "status: GrantStatus"
+          ],
+          "operations": [],
+          "table": "counselor_classes"
+        },
+        {
+          "id": "AuthorizationService",
+          "name": "AuthorizationService 授权服务",
+          "kind": "service",
+          "attributes": [
+            "mandatoryIdentityRules",
+            "scopeIntersectionRules"
+          ],
+          "operations": [
+            "active_grants(user)",
+            "allowed(permission, class, owner)",
+            "require(permission, class, owner)"
+          ],
+          "implementation": "app/security.py:active_grants, allowed, require"
+        },
+        {
+          "id": "UserAdministrationService",
+          "name": "UserAdministrationService 学生账号管理",
+          "kind": "service",
+          "attributes": [],
+          "operations": [
+            "delete_student_account(target_id, actor)",
+            "backup / archive_usage / preserve_audit"
+          ],
+          "sources": [
+            "app/admin_account_deletion.py",
+            "app/organization.py"
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source": "User",
+          "target": "StudentProfile",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..1",
+          "label": "学生专属档案"
+        },
+        {
+          "source": "StudentProfile",
+          "target": "Enrollment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "按学年归属"
+        },
+        {
+          "source": "ClassYear",
+          "target": "Enrollment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "班级成员"
+        },
+        {
+          "source": "TeachingClass",
+          "target": "ClassYear",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "每学年一条"
+        },
+        {
+          "source": "AcademicYear",
+          "target": "ClassYear",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "组织学年"
+        },
+        {
+          "source": "User",
+          "target": "RoleAssignment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "获得授权"
+        },
+        {
+          "source": "Role",
+          "target": "RoleAssignment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "授权角色"
+        },
+        {
+          "source": "TeachingClass",
+          "target": "RoleAssignment",
+          "kind": "association",
+          "source_cardinality": "0..1",
+          "target_cardinality": "0..*",
+          "label": "班长 / 审查员范围"
+        },
+        {
+          "source": "Role",
+          "target": "RolePermission",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "矩阵配置"
+        },
+        {
+          "source": "Permission",
+          "target": "RolePermission",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "资源 × 操作"
+        },
+        {
+          "source": "User",
+          "target": "CounselorClassAssignment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "辅导员带班"
+        },
+        {
+          "source": "TeachingClass",
+          "target": "CounselorClassAssignment",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "所带班级"
+        },
+        {
+          "source": "AuthorizationService",
+          "target": "RoleAssignment",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "有效授权"
+        },
+        {
+          "source": "AuthorizationService",
+          "target": "RolePermission",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "逐条求交后合并"
+        },
+        {
+          "source": "AuthorizationService",
+          "target": "Enrollment",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "本人及本班范围"
+        },
+        {
+          "source": "AuthorizationService",
+          "target": "CounselorClassAssignment",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "辅导员带班范围"
+        },
+        {
+          "source": "UserAdministrationService",
+          "target": "User",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "管理员管理学生账号"
+        },
+        {
+          "source": "UserAdministrationService",
+          "target": "AuthorizationService",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "权限与班级职务约束"
+        }
+      ],
+      "notes": [
+        "User.baseIdentity 为 STUDENT / COUNSELOR / ADMIN，互斥身份用属性表达；班长、审查员采用可叠加角色授权，不画身份继承树。",
+        "数据域为 OWN / CLASS / LED_CLASSES / CLASS_PUBLIC / SYSTEM_METADATA。每条角色操作授权先与其范围、实际班级关系和对象规则求交，再合并合法授权。",
+        "每个启用班级须有一名班长和至少两名不同学生审查员；禁止自审；管理员不读取学生证明或处理业务审批。",
+        "管理员指定当前统计学年；Enrollment 保留各学年的班级归属，学生填报页不自行选择学年。",
+        "角色有效期及带班关系在每次对象访问时复核；公示权限还需通过具体班级学年的开放状态检查。",
+        "删除前备份；有外部审核引用的用户保留匿名DELETED占位，原用户名和学号可重建；班长/审查员须先交接。"
+      ]
+    },
+    {
+      "id": "02-application-evidence-review",
+      "title": "UML：大类申报、小项、内容版本与审核",
+      "classes": [
+        {
+          "id": "Enrollment",
+          "name": "Enrollment 学年归属",
+          "kind": "reference",
+          "attributes": [
+            "id: UUID",
+            "studentId / classYearId: UUID"
+          ],
+          "operations": [],
+          "table": "enrollments"
+        },
+        {
+          "id": "ScoreCategory",
+          "name": "ScoreCategory 加分类别",
+          "kind": "reference",
+          "attributes": [
+            "id / code: String",
+            "defaultCap: Decimal"
+          ],
+          "operations": [],
+          "table": "score_categories"
+        },
+        {
+          "id": "CategorySubmission",
+          "name": "CategorySubmission 大类申报",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "enrollmentId / categoryId: UUID",
+            "createdAt / updatedAt"
+          ],
+          "operations": [],
+          "table": "category_submissions",
+          "notes": [
+            "UNIQUE(enrollment_id, category_id)；只聚合小项，不持有审批状态。"
+          ]
+        },
+        {
+          "id": "CategoryItem",
+          "name": "CategoryItem 加分小项映射",
+          "kind": "entity",
+          "attributes": [
+            "submissionId / applicationId: UUID",
+            "sortOrder: Integer",
+            "confirmedAt / deletedAt: DateTime?"
+          ],
+          "operations": [],
+          "table": "category_items",
+          "notes": [
+            "UNIQUE(application_id)；确认上传后可见，删除按业务软归档。"
+          ]
+        },
+        {
+          "id": "Application",
+          "name": "Application 小项稳定身份",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "workingRevisionId: UUID?",
+            "currentRoundId: UUID?",
+            "lockVersion: Integer"
+          ],
+          "operations": [],
+          "table": "applications"
+        },
+        {
+          "id": "ApplicationRevision",
+          "name": "ApplicationRevision 内容版本",
+          "kind": "entity",
+          "attributes": [
+            "id / revisionNo",
+            "title: String",
+            "requestedScore: Decimal(6,2)",
+            "payloadJson: JSON",
+            "contentFrozenAt: DateTime?"
+          ],
+          "operations": [],
+          "table": "application_revisions",
+          "notes": [
+            "payloadJson 保存 note；科研/文体/任职另有 result_label。隐藏历史事实合并保留。"
+          ]
+        },
+        {
+          "id": "SubmissionRound",
+          "name": "SubmissionRound 提审轮次",
+          "kind": "entity",
+          "attributes": [
+            "applicationId / revisionId: UUID",
+            "roundNo / lockVersion: Integer",
+            "state: RoundState",
+            "eligibilityVersionId: UUID?"
+          ],
+          "operations": [],
+          "table": "submission_rounds"
+        },
+        {
+          "id": "ReviewDecision",
+          "name": "ReviewDecision 人工决定",
+          "kind": "entity",
+          "attributes": [
+            "roundId / revisionId: UUID",
+            "actorId / roleAssignmentId",
+            "stage / action",
+            "idempotencyKey / decidedAt"
+          ],
+          "operations": [],
+          "table": "review_decisions"
+        },
+        {
+          "id": "ApplicationEvent",
+          "name": "ApplicationEvent 操作历史",
+          "kind": "entity",
+          "attributes": [
+            "applicationId / eventNo",
+            "roundId / revisionId: UUID?",
+            "eventType / fromState / toState",
+            "actorId / detailJson / occurredAt"
+          ],
+          "operations": [],
+          "table": "application_events"
+        },
+        {
+          "id": "User",
+          "name": "User 操作人",
+          "kind": "reference",
+          "attributes": [
+            "id: UUID",
+            "baseIdentity: IdentityKind"
+          ],
+          "operations": [],
+          "table": "users"
+        },
+        {
+          "id": "WorkflowService",
+          "name": "WorkflowService 小项工作流",
+          "kind": "service",
+          "attributes": [
+            "expectedVersionGuard",
+            "publicity / classReadyGuard"
+          ],
+          "operations": [
+            "update_application(expected_version)",
+            "submit_application / submit_items",
+            "review_application / withdraw_application"
+          ],
+          "implementation": "app/workflow.py; app/submissions.py:submit_items"
+        },
+        {
+          "id": "ActivityEligibilityService",
+          "name": "ActivityEligibilityService 活动资格",
+          "kind": "reference",
+          "attributes": [
+            "activity / category / year"
+          ],
+          "operations": [
+            "activity_eligibility(...)"
+          ],
+          "implementation": "app/workflow.py:activity_eligibility; app/activity_eligibility.py:simplified_eligibility"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Enrollment",
+          "target": "CategorySubmission",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "每学年、每大类一份"
+        },
+        {
+          "source": "ScoreCategory",
+          "target": "CategorySubmission",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "按类别归组"
+        },
+        {
+          "source": "CategorySubmission",
+          "target": "CategoryItem",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "包含小项"
+        },
+        {
+          "source": "CategoryItem",
+          "target": "Application",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "1",
+          "label": "一一对应"
+        },
+        {
+          "source": "Application",
+          "target": "ApplicationRevision",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "1..*",
+          "label": "修订与冻结版本"
+        },
+        {
+          "source": "Application",
+          "target": "SubmissionRound",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "各次提审"
+        },
+        {
+          "source": "ApplicationRevision",
+          "target": "SubmissionRound",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "绑定确切内容版本"
+        },
+        {
+          "source": "SubmissionRound",
+          "target": "ReviewDecision",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "学生初审 / 辅导员审查"
+        },
+        {
+          "source": "Application",
+          "target": "ApplicationEvent",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "完整业务历史"
+        },
+        {
+          "source": "User",
+          "target": "ReviewDecision",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "经办人与角色快照"
+        },
+        {
+          "source": "WorkflowService",
+          "target": "Application",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "版本校验与直接提交"
+        },
+        {
+          "source": "WorkflowService",
+          "target": "SubmissionRound",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "状态推进 / 通过锁定"
+        },
+        {
+          "source": "WorkflowService",
+          "target": "ActivityEligibilityService",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "仅三类需要资格"
+        }
+      ],
+      "notes": [
+        "大类申报是聚合容器，审核和计分以小项当前轮次为单位；每个主文件默认一个小项，补充附件仍归当前小项。",
+        "草稿没有当前提审轮次。轮次状态为 PENDING_PEER、PENDING_COUNSELOR、APPROVED、REJECTED、WITHDRAWN；已通过项锁定，大类仍可新增。",
+        "单项和批量直接提交当前填写分值（包括0）；未保存改动先保存。逐项乐观版本与重复点击保护，批量允许部分成功并保留失败项。",
+        "科研、文体竞赛、任职三类：有效认定可复用；未知资格交辅导员；无效匹配须更正。其余四类不以隐藏的旧活动ID阻塞。",
+        "竞赛重复由审查员对照同类小项判断；当前流程不自动关联、替代、拒绝或恢复其它申请。绿色批准直接完成，驳回填写理由。",
+        "CategoryItem与Application为当前业务成对映射；物理唯一FK仅保证Application对应0..1个CategoryItem。",
+        "组合线表示版本/轮次归属；workingRevisionId与currentRoundId分别为当前指针，不代表组成集合多重性。"
+      ]
+    },
+    {
+      "id": "03-activity-scoring-publicity",
+      "title": "UML：活动认定、政策计分、公示与导出",
+      "classes": [
+        {
+          "id": "Activity",
+          "name": "Activity 已认定活动",
+          "kind": "entity",
+          "attributes": [
+            "id: UUID",
+            "canonicalName / normalizedName",
+            "status / maintainedBy"
+          ],
+          "operations": [],
+          "table": "activities"
+        },
+        {
+          "id": "ActivityAlias",
+          "name": "ActivityAlias 活动别名",
+          "kind": "entity",
+          "attributes": [
+            "activityId: UUID",
+            "alias / normalizedAlias",
+            "status: AliasStatus"
+          ],
+          "operations": [],
+          "table": "activity_aliases"
+        },
+        {
+          "id": "ActivityEligibilityVersion",
+          "name": "ActivityEligibilityVersion 资格版本",
+          "kind": "entity",
+          "attributes": [
+            "activityId / categoryId: UUID",
+            "academicYearId: UUID?",
+            "decision / versionNo",
+            "scopeKey / effectiveAt"
+          ],
+          "operations": [],
+          "table": "activity_eligibility_versions",
+          "notes": [
+            "保留旧届次/赛道/组别范围历史；新审批按活动、大类、学年写认定。"
+          ]
+        },
+        {
+          "id": "ScoreCategory",
+          "name": "ScoreCategory 加分类别",
+          "kind": "entity",
+          "attributes": [
+            "id / code: String",
+            "defaultCap: Decimal(6,2)",
+            "aggregationKind: SUM | MAX",
+            "requiresEligibilityReview: Boolean"
+          ],
+          "operations": [],
+          "table": "score_categories"
+        },
+        {
+          "id": "ScoreRuleVersion",
+          "name": "ScoreRuleVersion 评分规则",
+          "kind": "entity",
+          "attributes": [
+            "id / versionLabel",
+            "baselineScore: Decimal(6,2)",
+            "roundingMode / rulesJson",
+            "sourceDocument / publishedAt"
+          ],
+          "operations": [],
+          "table": "score_rule_versions"
+        },
+        {
+          "id": "ClassYear",
+          "name": "ClassYear 班级学年",
+          "kind": "reference",
+          "attributes": [
+            "id / scoreRuleVersionId: UUID",
+            "lockVersion: Integer"
+          ],
+          "operations": [],
+          "table": "class_years"
+        },
+        {
+          "id": "SubmissionRound",
+          "name": "SubmissionRound 当前审核轮次",
+          "kind": "reference",
+          "attributes": [
+            "revisionId: UUID",
+            "state: APPROVED 或其它",
+            "eligibilityVersionId: UUID?"
+          ],
+          "operations": [],
+          "table": "submission_rounds"
+        },
+        {
+          "id": "ApplicationRevision",
+          "name": "ApplicationRevision 冻结内容",
+          "kind": "reference",
+          "attributes": [
+            "title / requestedScore",
+            "activityId: UUID?",
+            "payloadJson / contentFrozenAt"
+          ],
+          "operations": [],
+          "table": "application_revisions"
+        },
+        {
+          "id": "ClassPublicity",
+          "name": "ClassPublicity 公示当前状态",
+          "kind": "entity",
+          "attributes": [
+            "classYearId: UUID",
+            "isOpen: Boolean",
+            "lockVersion: Integer",
+            "openedAt / closedAt"
+          ],
+          "operations": [],
+          "table": "class_publicity"
+        },
+        {
+          "id": "PublicityEvent",
+          "name": "PublicityEvent 公示历史",
+          "kind": "entity",
+          "attributes": [
+            "publicityId / eventNo",
+            "action / actorId",
+            "pendingCountChecked / occurredAt"
+          ],
+          "operations": [],
+          "table": "publicity_events"
+        },
+        {
+          "id": "ActivityMatchService",
+          "name": "ActivityMatchService 活动检索",
+          "kind": "service",
+          "attributes": [
+            "fullCatalog / aliases",
+            "EXACT_NAME / EXACT_ALIAS / RELATED"
+          ],
+          "operations": [
+            "search_activities(query, year, category)",
+            "retrieve_activity_candidates(texts)"
+          ],
+          "implementation": "app/activity_matching.py"
+        },
+        {
+          "id": "ActivityEligibilityService",
+          "name": "ActivityEligibilityService 资格判定",
+          "kind": "service",
+          "attributes": [
+            "activity / category / year",
+            "decision: VALID | INVALID | UNKNOWN"
+          ],
+          "operations": [
+            "simplified_eligibility(versions)",
+            "activity_eligibility(...)",
+            "_set_eligibility(...)"
+          ],
+          "implementation": "app/activity_eligibility.py; app/workflow.py"
+        },
+        {
+          "id": "ScoreService",
+          "name": "ScoreService 计分与公示服务",
+          "kind": "service",
+          "attributes": [
+            "derivedTotals / categoryCaps",
+            "baseline: 70"
+          ],
+          "operations": [
+            "normalize_policy_suggestion(...)",
+            "class_scores / build_scores",
+            "set_publicity(...)"
+          ],
+          "implementation": "app/policy_suggestions.py; app/workflow.py:class_scores, build_scores, set_publicity"
+        },
+        {
+          "id": "ExportService",
+          "name": "ExportService Excel与标准文件",
+          "kind": "service",
+          "attributes": [
+            "schoolStandard: protected PDF",
+            "workbookColumns: 15"
+          ],
+          "operations": [
+            "export_scores / export_workbook",
+            "scoring_standard()"
+          ],
+          "implementation": "app/materials.py:export_scores, export_workbook, scoring_standard"
+        }
+      ],
+      "relationships": [
+        {
+          "source": "Activity",
+          "target": "ActivityAlias",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "名称别名"
+        },
+        {
+          "source": "Activity",
+          "target": "ActivityEligibilityVersion",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "不可变认定版本"
+        },
+        {
+          "source": "ScoreCategory",
+          "target": "ActivityEligibilityVersion",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "适用类别"
+        },
+        {
+          "source": "Activity",
+          "target": "ApplicationRevision",
+          "kind": "association",
+          "source_cardinality": "0..1",
+          "target_cardinality": "0..*",
+          "label": "可选匹配"
+        },
+        {
+          "source": "ActivityEligibilityVersion",
+          "target": "SubmissionRound",
+          "kind": "association",
+          "source_cardinality": "0..1",
+          "target_cardinality": "0..*",
+          "label": "认定版本快照"
+        },
+        {
+          "source": "ScoreRuleVersion",
+          "target": "ClassYear",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "班级学年规则"
+        },
+        {
+          "source": "ClassYear",
+          "target": "ClassPublicity",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..1",
+          "label": "独立公示开关"
+        },
+        {
+          "source": "ClassPublicity",
+          "target": "PublicityEvent",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "开关历史"
+        },
+        {
+          "source": "ActivityMatchService",
+          "target": "ActivityAlias",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "全库按名称及别名检索"
+        },
+        {
+          "source": "ActivityMatchService",
+          "target": "ActivityEligibilityService",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "搜索与审批使用同一口径"
+        },
+        {
+          "source": "ActivityEligibilityService",
+          "target": "ActivityEligibilityVersion",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "最新适用认定 / 冲突待人工"
+        },
+        {
+          "source": "ScoreService",
+          "target": "SubmissionRound",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "仅当前已通过小项"
+        },
+        {
+          "source": "ScoreService",
+          "target": "ScoreCategory",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "封顶及汇总方式"
+        },
+        {
+          "source": "ScoreService",
+          "target": "ScoreRuleVersion",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "本人事实与确定规则"
+        },
+        {
+          "source": "ScoreService",
+          "target": "ClassPublicity",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "全部审结才可开启"
+        },
+        {
+          "source": "ExportService",
+          "target": "ScoreService",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "共用分值查询结果"
+        }
+      ],
+      "notes": [
+        "活动匹配支持全库名称及别名搜索，显示有效、无效、待认定；AI仅从检索到的合法候选匹配，用户可更改或清除。",
+        "资格统一按活动、大类、学年判定；通用认定与历史具体范围冲突，或只有旧限定认定时为UNKNOWN，由辅导员确认。",
+        "科研与文体已通过小项SUM后按大类封顶；任职MAX，志愿年度子项封顶1；七类上限为3/3/4/10/6/4/5，总分以70为基准。",
+        "AI按本人关联事实与政策生成建议，学生申报分经人工审核后进入汇总。成绩是查询派生结果，未新增可编辑成绩表。",
+        "公示开启前所有正式小项须审结；公示中暂停正式提交。公示只提供可靠脱敏投影；导出含无申请成员的70分，顶部可查阅原校PDF。"
+      ]
+    },
+    {
+      "id": "04-materials-background-jobs",
+      "title": "UML：材料、证据与 OCR / AI 独立后台并行",
+      "classes": [
+        {
+          "id": "User",
+          "name": "User 任务所有人",
+          "kind": "reference",
+          "attributes": [
+            "id: UUID"
+          ],
+          "operations": [],
+          "table": "users"
+        },
+        {
+          "id": "ApplicationRevision",
+          "name": "ApplicationRevision 输入版本",
+          "kind": "reference",
+          "attributes": [
+            "id: UUID",
+            "/contentFingerprint",
+            "/filesFingerprint"
+          ],
+          "operations": [],
+          "table": "application_revisions"
+        },
+        {
+          "id": "RevisionFile",
+          "name": "RevisionFile 版本附件",
+          "kind": "entity",
+          "attributes": [
+            "revisionId / fileId: UUID",
+            "sortOrder / addedBy"
+          ],
+          "operations": [],
+          "table": "revision_files"
+        },
+        {
+          "id": "FileObject",
+          "name": "FileObject 原始材料",
+          "kind": "entity",
+          "attributes": [
+            "id / uploadedBy: UUID",
+            "originalName / mimeType",
+            "byteSize / sha256 / storageUri"
+          ],
+          "operations": [],
+          "table": "file_objects"
+        },
+        {
+          "id": "FilePage",
+          "name": "FilePage 原件页",
+          "kind": "entity",
+          "attributes": [
+            "fileId / pageIndex",
+            "renderVersion / renderSha256",
+            "widthPx / heightPx / imageUri"
+          ],
+          "operations": [],
+          "table": "file_pages"
+        },
+        {
+          "id": "RecognitionRun",
+          "name": "RecognitionRun 文字或印章识别",
+          "kind": "entity",
+          "attributes": [
+            "pageId / provider / apiName",
+            "parametersHash / status",
+            "resultJson / startedAt / finishedAt"
+          ],
+          "operations": [],
+          "table": "recognition_runs"
+        },
+        {
+          "id": "RecognitionRegion",
+          "name": "RecognitionRegion 文字与位置",
+          "kind": "entity",
+          "attributes": [
+            "runId / regionNo",
+            "kind / text / confidence",
+            "polygonJson / extraJson"
+          ],
+          "operations": [],
+          "table": "recognition_regions"
+        },
+        {
+          "id": "EvidenceCrop",
+          "name": "EvidenceCrop 证据截图",
+          "kind": "entity",
+          "attributes": [
+            "revisionId / pageId: UUID",
+            "evidenceType / source",
+            "polygonJson / masksJson",
+            "privateAsset / publicAssetStatus"
+          ],
+          "operations": [],
+          "table": "evidence_crops"
+        },
+        {
+          "id": "AIAnalysis",
+          "name": "AIAnalysis 活动与政策建议",
+          "kind": "entity",
+          "attributes": [
+            "applicationId / inputRevisionId",
+            "inputFingerprint / status",
+            "suggestedTitle / suggestedScore",
+            "suggestedActivityId / resultJson"
+          ],
+          "operations": [],
+          "table": "ai_analyses"
+        },
+        {
+          "id": "AnalysisInput",
+          "name": "AnalysisInput 分析来源",
+          "kind": "entity",
+          "attributes": [
+            "analysisId / fileId: UUID",
+            "pageId / recognitionRunId: UUID?",
+            "inputKind / inputHash / sortOrder"
+          ],
+          "operations": [],
+          "table": "analysis_inputs"
+        },
+        {
+          "id": "BackgroundJob",
+          "name": "BackgroundJob 持久后台任务",
+          "kind": "entity",
+          "attributes": [
+            "ownerId / applicationId / kind",
+            "inputRevisionId / inputFingerprint",
+            "state / stage / progress / total",
+            "workerToken / heartbeatAt / resultJson",
+            "state: QUEUED | RUNNING | PAUSED | terminal"
+          ],
+          "operations": [],
+          "table": "background_jobs",
+          "notes": [
+            "AI依赖OCR、文件租约 active_file_ids 保存在resultJson，均非新物理外键。"
+          ]
+        },
+        {
+          "id": "JobWorker",
+          "name": "JobWorker 独立队列调度",
+          "kind": "service",
+          "attributes": [
+            "ownerConcurrency: OCR=3 / AI=3",
+            "globalPools: OCR=12 / AI=12",
+            "workerToken / stopEvent"
+          ],
+          "operations": [
+            "start() / run() / stop()",
+            "_claim_next(kind)",
+            "process_job(job, worker_token)",
+            "pause_owner() / resume_owner()",
+            "presence() / leave()"
+          ],
+          "implementation": "app/jobs.py:JobWorker, _claim_next, process_job"
+        },
+        {
+          "id": "MaterialService",
+          "name": "MaterialService 识别与应用",
+          "kind": "service",
+          "attributes": [
+            "PDF文字层 / 腾讯云OCR",
+            "sealPages: 首页与末页",
+            "fileLeaseLimitPerOwner: 3"
+          ],
+          "operations": [
+            "run_ocr() / run_ai(ocr_result)",
+            "apply_ocr_evidence()",
+            "apply_analysis()",
+            "prepare_ocr_image()",
+            "tencent_ocr() / _original_ocr_coordinates()"
+          ],
+          "implementation": "app/materials.py; app/pdf_text.py; app/integrations.py"
+        },
+        {
+          "id": "SystemSetting",
+          "name": "SystemSetting 设置与用量归档",
+          "kind": "reference",
+          "attributes": [
+            "id: String",
+            "valueJson: JSON",
+            "changedBy / updatedAt",
+            "task_control: owner pause + live tabs JSON"
+          ],
+          "operations": [],
+          "table": "system_settings",
+          "notes": [
+            "active_academic_year与ocr_usage_archive为JSON键值结构；归档不含个人OCR文本。"
+          ]
+        }
+      ],
+      "relationships": [
+        {
+          "source": "ApplicationRevision",
+          "target": "RevisionFile",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "版本的附件集合"
+        },
+        {
+          "source": "FileObject",
+          "target": "RevisionFile",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "原件关联"
+        },
+        {
+          "source": "FileObject",
+          "target": "FilePage",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "逐页渲染"
+        },
+        {
+          "source": "FilePage",
+          "target": "RecognitionRun",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "本地文字层 / 云文字 / 印章"
+        },
+        {
+          "source": "RecognitionRun",
+          "target": "RecognitionRegion",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "原页文字位置"
+        },
+        {
+          "source": "ApplicationRevision",
+          "target": "EvidenceCrop",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "参与及有效性证据"
+        },
+        {
+          "source": "FilePage",
+          "target": "EvidenceCrop",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "原页、坐标与页码"
+        },
+        {
+          "source": "RecognitionRegion",
+          "target": "EvidenceCrop",
+          "kind": "association",
+          "source_cardinality": "0..1",
+          "target_cardinality": "0..*",
+          "label": "自动证据来源，手工可空"
+        },
+        {
+          "source": "ApplicationRevision",
+          "target": "AIAnalysis",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "分析输入快照"
+        },
+        {
+          "source": "AIAnalysis",
+          "target": "AnalysisInput",
+          "kind": "composition",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "可追溯输入"
+        },
+        {
+          "source": "FileObject",
+          "target": "AnalysisInput",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "证明材料来源"
+        },
+        {
+          "source": "RecognitionRun",
+          "target": "AnalysisInput",
+          "kind": "association",
+          "source_cardinality": "0..1",
+          "target_cardinality": "0..*",
+          "label": "识别结果来源，可空"
+        },
+        {
+          "source": "User",
+          "target": "BackgroundJob",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "仅所有人可查询"
+        },
+        {
+          "source": "ApplicationRevision",
+          "target": "BackgroundJob",
+          "kind": "association",
+          "source_cardinality": "1",
+          "target_cardinality": "0..*",
+          "label": "精确输入版本"
+        },
+        {
+          "source": "JobWorker",
+          "target": "BackgroundJob",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "原子领取及所有权校验"
+        },
+        {
+          "source": "JobWorker",
+          "target": "MaterialService",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "分别调度OCR与AI"
+        },
+        {
+          "source": "MaterialService",
+          "target": "RecognitionRun",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "内容缓存与用量预留"
+        },
+        {
+          "source": "MaterialService",
+          "target": "SystemSetting",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "按月接口计数 + 归档"
+        },
+        {
+          "source": "BackgroundJob",
+          "target": "BackgroundJob",
+          "kind": "dependency",
+          "source_cardinality": "",
+          "target_cardinality": "",
+          "label": "AI依赖OCR完成（JSON逻辑引用）"
+        }
+      ],
+      "notes": [
+        "确认上传才启动。PDF先读取可用文字层；扫描件≤12页识别全页，长扫描件只识别首页末页正文，个人信息可手动定位。每份文件仅首末页查章，多章取最后一个。",
+        "有可用文字的OCR完成后自动幂等排AI。每用户最多同时识别3个文件、分析3个小项，两类独立；等待OCR的AI不占分析运行名额，跨页面/刷新继续。",
+        "相同页内容及接口复用缓存；腾讯调用预留与本地月计数原子更新。只用免费额度，达到保护或资源停止条件即保留结果；归档次数不会因清理材料而清零。",
+        "输入指纹、内容版本及workerToken共同保护。空白新稿可自动填写，人工稿仅保留建议；改稿/冻结的迟到结果不覆盖。重启只恢复已失去进程的任务，不抢占活进程。",
+        "参与证据包含身份及本人奖次/考评：能同框则1张，否则最多2张，原页整宽且1/4页高；有效性仅活动名称1处、时间、印章。公示脱敏未就绪不放出原图。",
+        "暂停/继续同时控制上传、OCR和AI；站内切页继续，登出/最后一个本站标签离开暂停，45秒失联兜底。普通刷新仅对同页短时离开恢复，手动/登出暂停须明确继续。",
+        "已发请求返回后保存检查点；暂停后不启动后续页/文件/模型请求。完成结果和私有响应缓存供恢复复用。",
+        "所有腾讯文字/印章请求统一生成受限JPEG副本并将返回坐标映射原页；原件不改。证据计算、裁图、AI整理在短写事务之外，落库时重核指纹和人工修改。",
+        "JobWorker框同时表达实际执行类与同模块队列控制函数的职责分组；task_control与页面租约使用现有SystemSetting JSON，不新增实体表。"
+      ]
+    }
+  ]
+}

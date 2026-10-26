@@ -30,8 +30,8 @@
       "title": "虚构青禾春季集体活动",
       "body": "参加本次集体活动2次。",
       "score": "0.60",
-      "applicationId": "790ade8d-789b-49b7-afcf-befe98acaf3f",
-      "groupId": "0a46085c-322e-48f6-a415-6aab0f193820",
+      "applicationId": "e0eb956b-516e-4546-bbce-6c00bd4e31a9",
+      "groupId": "17984d05-2452-4438-be43-448f508a00f5",
       "actualScore": "0.60",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -49,8 +49,8 @@
       "title": "虚构青年党团理论研修班",
       "body": "参加党团理论学习培训1次并完成结业。",
       "score": "1.00",
-      "applicationId": "cb773865-7951-4a1e-953c-58913ff6a9fe",
-      "groupId": "dd499922-a38b-4d91-9284-abab5182539d",
+      "applicationId": "d9c9c1fd-ce51-4490-a1ff-6de0eaac1738",
+      "groupId": "6bc25f0d-dd44-4d40-bdca-836b30577171",
       "actualScore": "1.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -68,8 +68,8 @@
       "title": "虚构青禾社区志愿服务",
       "body": "参加志愿服务，服务工时16小时。",
       "score": "0.50",
-      "applicationId": "77ed26b8-0e79-42da-97dc-61464755380b",
-      "groupId": "734170c9-8baa-4612-b4b3-b82f61d7046a",
+      "applicationId": "2abed1be-aca2-4e52-9f29-3a83002d46ef",
+      "groupId": "d79a23fe-96c6-403d-8a39-b68d93b724b8",
       "actualScore": "0.50",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -87,9 +87,9 @@
       "title": "虚构大学生工程设计竞赛",
       "body": "荣获省级竞赛二等奖。",
       "score": "6.00",
-      "matched_activity_id": "aae61d57-7564-4b05-b828-74976fd531a7",
-      "applicationId": "c9e000bb-58b9-47b8-9aec-eabfeda6c3ed",
-      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
+      "matched_activity_id": "07dd0be7-c61e-4e9a-b43d-ad006783afbd",
+      "applicationId": "300fffbf-9b73-4995-8a61-5e4fcf478d03",
+      "groupId": "ba354cae-ce05-4dc5-bc0f-ee2dd49bc5b5",
       "actualScore": "6.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -107,10 +107,10 @@
       "title": "虚构校园星光长跑文体竞赛",
       "body": "校级文体竞赛，设一、二、三等奖。本人获得三等奖。",
       "score": "1.00",
-      "matched_activity_id": "09379e30-8509-4304-9c56-1f84bac4f1bf",
-      "invalid_activity_id": "173a2b39-b923-499b-99de-b34efd2c27b8",
-      "applicationId": "41b7ed2e-4c01-40a3-b791-d814886b3440",
-      "groupId": "3cb56868-eb8f-407d-bfee-835541d5f11f",
+      "matched_activity_id": "0d167491-d216-482c-a007-d160dd4db587",
+      "invalid_activity_id": "ffeb6167-bc4b-4eb1-b8b1-c5c10d0c8248",
+      "applicationId": "504669c8-a4b4-4cf1-bfdc-cbbfe14965e7",
+      "groupId": "4c294f91-cd8b-43cb-a35d-bb8919ffe96e",
       "actualScore": "1.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -128,9 +128,9 @@
       "title": "虚构班级学生干部任职考评",
       "body": "担任班长，任期满一年，考评良好。",
       "score": "1.50",
-      "matched_activity_id": "74a82331-f89e-4541-9483-3f0aa2d876f1",
-      "applicationId": "8f986533-bcd7-42fb-8bc2-a7d09277d31a",
-      "groupId": "cae40d71-6c60-4d52-9f60-a87e0c2797fa",
+      "matched_activity_id": "115ddbc4-9797-4188-ae7b-c77c8c32476e",
+      "applicationId": "972934d0-f7e2-4c47-8a4c-32a826f582df",
+      "groupId": "35841d85-437a-407b-bd53-18f383020b98",
       "actualScore": "1.50",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -148,8 +148,8 @@
       "title": "虚构文明学生表彰活动",
       "body": "获得校级精神文明先进个人荣誉称号。",
       "score": "2.00",
-      "applicationId": "1630588d-3843-4347-97ee-5e5be0dad27c",
-      "groupId": "a6b2be8f-8098-4351-bf3b-94f57bf4fe68",
+      "applicationId": "40932c42-ac7c-4d19-9241-a11505ac26d7",
+      "groupId": "8ad1c343-ed74-43fe-bee6-ce0aacdcbfd3",
       "actualScore": "2.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -167,8 +167,8 @@
       "title": "虚构电子设计竞赛待核对材料",
       "body": "省级电子设计竞赛二等奖，尚未列明参与学生。",
       "score": null,
-      "applicationId": "b517a3ea-829c-43e1-88df-2f27f563a5f1",
-      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
+      "applicationId": "1ba85d40-62b0-43cb-bc25-baa60a9bff24",
+      "groupId": "ba354cae-ce05-4dc5-bc0f-ee2dd49bc5b5",
       "actualScore": "0.00",
       "resolution": {
         "status": "NEEDS_REVIEW",
@@ -195,8 +195,8 @@
       "title": "虚构创新编程竞赛零分直接提交材料",
       "body": "省级创新编程竞赛三等奖，尚未列明参与学生。",
       "score": null,
-      "applicationId": "d07c91c6-b0d0-4e61-8747-6293a1f9ff69",
-      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
+      "applicationId": "f10796fe-0f13-4387-8017-be7c8a6d3330",
+      "groupId": "ba354cae-ce05-4dc5-bc0f-ee2dd49bc5b5",
       "actualScore": "0.00",
       "resolution": {
         "status": "NEEDS_REVIEW",
@@ -238,252 +238,252 @@
         "case_id": 1,
         "state": "START",
         "active": 1,
-        "time": 1793022116.5915132
+        "time": 1793028344.5548842
       },
       {
         "kind": "OCR",
         "case_id": 2,
         "state": "START",
         "active": 2,
-        "time": 1793022117.449078
+        "time": 1793028345.5290453
       },
       {
         "kind": "OCR",
         "case_id": 3,
         "state": "START",
         "active": 3,
-        "time": 1793022123.7785776
+        "time": 1793028352.0760195
       },
       {
         "kind": "OCR",
-        "case_id": 1,
+        "case_id": 3,
         "state": "END",
         "active": 2,
-        "time": 1793022146.2897549
+        "time": 1793028374.5010488
       },
       {
         "kind": "OCR",
         "case_id": 2,
         "state": "END",
         "active": 1,
-        "time": 1793022146.3368468
+        "time": 1793028374.5138426
       },
       {
         "kind": "OCR",
-        "case_id": 5,
+        "case_id": 1,
+        "state": "END",
+        "active": 0,
+        "time": 1793028374.5360076
+      },
+      {
+        "kind": "OCR",
+        "case_id": 6,
+        "state": "START",
+        "active": 1,
+        "time": 1793028375.8647094
+      },
+      {
+        "kind": "OCR",
+        "case_id": 6,
+        "state": "END",
+        "active": 0,
+        "time": 1793028375.9612741
+      },
+      {
+        "kind": "AI",
+        "case_id": 1,
+        "state": "START",
+        "active": 1,
+        "time": 1793028375.9913373
+      },
+      {
+        "kind": "AI",
+        "case_id": 2,
         "state": "START",
         "active": 2,
-        "time": 1793022147.605899
+        "time": 1793028376.0332875
       },
       {
-        "kind": "OCR",
-        "case_id": 4,
+        "kind": "AI",
+        "case_id": 3,
         "state": "START",
         "active": 3,
-        "time": 1793022147.6504471
+        "time": 1793028376.087862
       },
       {
-        "kind": "AI",
-        "case_id": 1,
+        "kind": "OCR",
+        "case_id": 4,
         "state": "START",
         "active": 1,
-        "time": 1793022147.6723225
+        "time": 1793028376.215289
+      },
+      {
+        "kind": "OCR",
+        "case_id": 4,
+        "state": "END",
+        "active": 0,
+        "time": 1793028376.3546207
+      },
+      {
+        "kind": "OCR",
+        "case_id": 5,
+        "state": "START",
+        "active": 1,
+        "time": 1793028376.3608103
       },
       {
         "kind": "OCR",
         "case_id": 5,
         "state": "END",
-        "active": 2,
-        "time": 1793022147.7138963
+        "active": 0,
+        "time": 1793028376.4613385
       },
       {
         "kind": "OCR",
-        "case_id": 4,
+        "case_id": 7,
+        "state": "START",
+        "active": 1,
+        "time": 1793028376.7620099
+      },
+      {
+        "kind": "OCR",
+        "case_id": 7,
+        "state": "END",
+        "active": 0,
+        "time": 1793028376.8978686
+      },
+      {
+        "kind": "OCR",
+        "case_id": 8,
+        "state": "START",
+        "active": 1,
+        "time": 1793028377.5643482
+      },
+      {
+        "kind": "OCR",
+        "case_id": 9,
+        "state": "START",
+        "active": 2,
+        "time": 1793028378.0433786
+      },
+      {
+        "kind": "OCR",
+        "case_id": 9,
         "state": "END",
         "active": 1,
-        "time": 1793022147.7429807
+        "time": 1793028378.1427977
+      },
+      {
+        "kind": "OCR",
+        "case_id": 8,
+        "state": "END",
+        "active": 0,
+        "time": 1793028378.320105
       },
       {
         "kind": "AI",
-        "case_id": 2,
-        "state": "START",
-        "active": 2,
-        "time": 1793022147.9409554
-      },
-      {
-        "kind": "AI",
-        "case_id": 4,
-        "state": "START",
-        "active": 3,
-        "time": 1793022148.5393198
-      },
-      {
-        "kind": "OCR",
-        "case_id": 6,
-        "state": "START",
-        "active": 2,
-        "time": 1793022148.6516726
-      },
-      {
-        "kind": "OCR",
-        "case_id": 6,
-        "state": "END",
-        "active": 1,
-        "time": 1793022148.7148757
-      },
-      {
-        "kind": "OCR",
         "case_id": 3,
         "state": "END",
-        "active": 0,
-        "time": 1793022148.7454495
-      },
-      {
-        "kind": "OCR",
-        "case_id": 9,
-        "state": "START",
-        "active": 1,
-        "time": 1793022150.5877202
-      },
-      {
-        "kind": "OCR",
-        "case_id": 8,
-        "state": "START",
         "active": 2,
-        "time": 1793022150.6685734
-      },
-      {
-        "kind": "OCR",
-        "case_id": 9,
-        "state": "END",
-        "active": 1,
-        "time": 1793022150.718969
-      },
-      {
-        "kind": "OCR",
-        "case_id": 7,
-        "state": "START",
-        "active": 2,
-        "time": 1793022150.7743757
-      },
-      {
-        "kind": "OCR",
-        "case_id": 7,
-        "state": "END",
-        "active": 1,
-        "time": 1793022150.8865952
-      },
-      {
-        "kind": "OCR",
-        "case_id": 8,
-        "state": "END",
-        "active": 0,
-        "time": 1793022151.6856494
-      },
-      {
-        "kind": "AI",
-        "case_id": 4,
-        "state": "END",
-        "active": 2,
-        "time": 1793022152.2163782
-      },
-      {
-        "kind": "AI",
-        "case_id": 2,
-        "state": "END",
-        "active": 1,
-        "time": 1793022152.2299237
+        "time": 1793028378.8717465
       },
       {
         "kind": "AI",
         "case_id": 1,
         "state": "END",
+        "active": 1,
+        "time": 1793028378.8946443
+      },
+      {
+        "kind": "AI",
+        "case_id": 2,
+        "state": "END",
         "active": 0,
-        "time": 1793022152.2438223
+        "time": 1793028378.9003487
+      },
+      {
+        "kind": "AI",
+        "case_id": 4,
+        "state": "START",
+        "active": 1,
+        "time": 1793028380.5375264
+      },
+      {
+        "kind": "AI",
+        "case_id": 4,
+        "state": "END",
+        "active": 0,
+        "time": 1793028380.557268
       },
       {
         "kind": "AI",
         "case_id": 6,
         "state": "START",
         "active": 1,
-        "time": 1793022152.8326612
+        "time": 1793028380.5698383
       },
       {
         "kind": "AI",
         "case_id": 6,
         "state": "END",
         "active": 0,
-        "time": 1793022152.8435526
+        "time": 1793028380.5990806
       },
       {
         "kind": "AI",
         "case_id": 5,
         "state": "START",
         "active": 1,
-        "time": 1793022153.13388
+        "time": 1793028380.6201613
       },
       {
         "kind": "AI",
         "case_id": 5,
         "state": "END",
         "active": 0,
-        "time": 1793022153.1451457
-      },
-      {
-        "kind": "AI",
-        "case_id": 3,
-        "state": "START",
-        "active": 1,
-        "time": 1793022153.4235227
-      },
-      {
-        "kind": "AI",
-        "case_id": 3,
-        "state": "END",
-        "active": 0,
-        "time": 1793022153.4336803
+        "time": 1793028380.6450763
       },
       {
         "kind": "AI",
         "case_id": 9,
         "state": "START",
         "active": 1,
-        "time": 1793022153.61929
+        "time": 1793028381.771058
       },
       {
         "kind": "AI",
         "case_id": 9,
         "state": "END",
         "active": 0,
-        "time": 1793022153.630253
-      },
-      {
-        "kind": "AI",
-        "case_id": 8,
-        "state": "START",
-        "active": 1,
-        "time": 1793022154.5345337
-      },
-      {
-        "kind": "AI",
-        "case_id": 8,
-        "state": "END",
-        "active": 0,
-        "time": 1793022154.5861588
+        "time": 1793028381.781263
       },
       {
         "kind": "AI",
         "case_id": 7,
         "state": "START",
         "active": 1,
-        "time": 1793022154.8620338
+        "time": 1793028381.8179367
       },
       {
         "kind": "AI",
         "case_id": 7,
         "state": "END",
         "active": 0,
-        "time": 1793022154.872322
+        "time": 1793028381.836864
+      },
+      {
+        "kind": "AI",
+        "case_id": 8,
+        "state": "START",
+        "active": 1,
+        "time": 1793028382.5662396
+      },
+      {
+        "kind": "AI",
+        "case_id": 8,
+        "state": "END",
+        "active": 0,
+        "time": 1793028382.5858858
       }
     ]
   },
@@ -493,13 +493,13 @@
   "dialogs": [],
   "transitions": [
     {
-      "path": "/api/applications/41b7ed2e-4c01-40a3-b791-d814886b3440",
+      "path": "/api/applications/504669c8-a4b4-4cf1-bfdc-cbbfe14965e7",
       "method": "PUT",
       "body": {
         "expected_version": 3,
         "title": "虚构校园星光长跑文体竞赛",
         "requested_score": "1.00",
-        "activity_id": "09379e30-8509-4304-9c56-1f84bac4f1bf",
+        "activity_id": "0d167491-d216-482c-a007-d160dd4db587",
         "payload_json": {
           "award_level": "SCHOOL",
           "subtype": "",
@@ -531,7 +531,7 @@
       }
     },
     {
-      "path": "/api/applications/b517a3ea-829c-43e1-88df-2f27f563a5f1",
+      "path": "/api/applications/1ba85d40-62b0-43cb-bc25-baa60a9bff24",
       "method": "PUT",
       "body": {
         "expected_version": 3,
@@ -569,7 +569,7 @@
       }
     },
     {
-      "path": "/api/applications/d07c91c6-b0d0-4e61-8747-6293a1f9ff69/submit",
+      "path": "/api/applications/f10796fe-0f13-4387-8017-be7c8a6d3330/submit",
       "method": "POST",
       "body": {
         "expected_version": 3,
@@ -580,5 +580,5 @@
   "temporary_server_stopped": true,
   "actual_cloud_calls": 0,
   "actual_business_writes": 0,
-  "createdAt": "2026-10-26T13:42:47.582Z"
+  "createdAt": "2026-10-26T15:26:38.229Z"
 }

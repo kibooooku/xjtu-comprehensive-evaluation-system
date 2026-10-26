@@ -1,0 +1,69 @@
+{
+  "status": "passed",
+  "implementation_baseline": "2e3abc3",
+  "diagrams": [
+    {
+      "id": "01-rbac-organization",
+      "nodes": 13,
+      "edges": 18,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "02-application-evidence-review",
+      "nodes": 12,
+      "edges": 13,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "03-activity-scoring-publicity",
+      "nodes": 14,
+      "edges": 16,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "04-materials-background-jobs",
+      "nodes": 14,
+      "edges": 19,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "08-er-overview",
+      "nodes": 37,
+      "edges": 49,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "09-er-rbac",
+      "nodes": 12,
+      "edges": 17,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "11-er-workflow",
+      "nodes": 16,
+      "edges": 29,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "10-er-evidence",
+      "nodes": 14,
+      "edges": 21,
+      "svg_and_png_valid": true
+    },
+    {
+      "id": "12-er-catalog",
+      "nodes": 13,
+      "edges": 17,
+      "svg_and_png_valid": true
+    }
+  ],
+  "tables": 37,
+  "fields": 333,
+  "physical_foreign_keys": 84,
+  "unique_indexes": 18,
+  "detail_diagrams_cover_all_foreign_keys": true,
+  "native_project_integrity": "ok",
+  "native_sha256": "ca1dab93319d3efa6e3eea22c05ef56bd4692be356738874f815d691eea565af",
+  "business_database_opened": false,
+  "cloud_calls": 0
+}

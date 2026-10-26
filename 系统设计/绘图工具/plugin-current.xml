@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin id="deyu.design.current.v2" name="Deyu Current UML ER Generator" description="Current implemented UML and ER artifacts, no DFD" provider="Project Design" class="deyu.design.CurrentDesignPlugin">
+  <runtime><library path="classes"/></runtime>
+</plugin>

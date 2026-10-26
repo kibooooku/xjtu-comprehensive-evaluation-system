@@ -1,0 +1,107 @@
+@startuml
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+hide empty members
+title UML：材料、证据与 OCR / AI 独立后台并行
+class "User 任务所有人" as User <<reference>> {
+  - id: UUID
+}
+class "ApplicationRevision 输入版本" as ApplicationRevision <<reference>> {
+  - id: UUID
+  - /contentFingerprint
+  - /filesFingerprint
+}
+class "RevisionFile 版本附件" as RevisionFile <<entity>> {
+  - revisionId / fileId: UUID
+  - sortOrder / addedBy
+}
+class "FileObject 原始材料" as FileObject <<entity>> {
+  - id / uploadedBy: UUID
+  - originalName / mimeType
+  - byteSize / sha256 / storageUri
+}
+class "FilePage 原件页" as FilePage <<entity>> {
+  - fileId / pageIndex
+  - renderVersion / renderSha256
+  - widthPx / heightPx / imageUri
+}
+class "RecognitionRun 文字或印章识别" as RecognitionRun <<entity>> {
+  - pageId / provider / apiName
+  - parametersHash / status
+  - resultJson / startedAt / finishedAt
+}
+class "RecognitionRegion 文字与位置" as RecognitionRegion <<entity>> {
+  - runId / regionNo
+  - kind / text / confidence
+  - polygonJson / extraJson
+}
+class "EvidenceCrop 证据截图" as EvidenceCrop <<entity>> {
+  - revisionId / pageId: UUID
+  - evidenceType / source
+  - polygonJson / masksJson
+  - privateAsset / publicAssetStatus
+}
+class "AIAnalysis 活动与政策建议" as AIAnalysis <<entity>> {
+  - applicationId / inputRevisionId
+  - inputFingerprint / status
+  - suggestedTitle / suggestedScore
+  - suggestedActivityId / resultJson
+}
+class "AnalysisInput 分析来源" as AnalysisInput <<entity>> {
+  - analysisId / fileId: UUID
+  - pageId / recognitionRunId: UUID?
+  - inputKind / inputHash / sortOrder
+}
+class "BackgroundJob 持久后台任务" as BackgroundJob <<entity>> {
+  - ownerId / applicationId / kind
+  - inputRevisionId / inputFingerprint
+  - state / stage / progress / total
+  - workerToken / heartbeatAt / resultJson
+  - state: QUEUED | RUNNING | PAUSED | terminal
+}
+class "JobWorker 独立队列调度" as JobWorker <<service>> {
+  - ownerConcurrency: OCR=3 / AI=3
+  - globalPools: OCR=12 / AI=12
+  - workerToken / stopEvent
+  + start() / run() / stop()
+  + _claim_next(kind)
+  + process_job(job, worker_token)
+  + pause_owner() / resume_owner()
+  + presence() / leave()
+}
+class "MaterialService 识别与应用" as MaterialService <<service>> {
+  - PDF文字层 / 腾讯云OCR
+  - sealPages: 首页与末页
+  - fileLeaseLimitPerOwner: 3
+  + run_ocr() / run_ai(ocr_result)
+  + apply_ocr_evidence()
+  + apply_analysis()
+  + prepare_ocr_image()
+  + tencent_ocr() / _original_ocr_coordinates()
+}
+class "SystemSetting 设置与用量归档" as SystemSetting <<reference>> {
+  - id: String
+  - valueJson: JSON
+  - changedBy / updatedAt
+  - task_control: owner pause + live tabs JSON
+}
+ApplicationRevision "1" *-- "0..*" RevisionFile : 版本的附件集合
+FileObject "1" -- "0..*" RevisionFile : 原件关联
+FileObject "1" *-- "0..*" FilePage : 逐页渲染
+FilePage "1" -- "0..*" RecognitionRun : 本地文字层 / 云文字 / 印章
+RecognitionRun "1" *-- "0..*" RecognitionRegion : 原页文字位置
+ApplicationRevision "1" *-- "0..*" EvidenceCrop : 参与及有效性证据
+FilePage "1" -- "0..*" EvidenceCrop : 原页、坐标与页码
+RecognitionRegion "0..1" -- "0..*" EvidenceCrop : 自动证据来源，手工可空
+ApplicationRevision "1" -- "0..*" AIAnalysis : 分析输入快照
+AIAnalysis "1" *-- "0..*" AnalysisInput : 可追溯输入
+FileObject "1" -- "0..*" AnalysisInput : 证明材料来源
+RecognitionRun "0..1" -- "0..*" AnalysisInput : 识别结果来源，可空
+User "1" -- "0..*" BackgroundJob : 仅所有人可查询
+ApplicationRevision "1" -- "0..*" BackgroundJob : 精确输入版本
+JobWorker "" ..> "" BackgroundJob : 原子领取及所有权校验
+JobWorker "" ..> "" MaterialService : 分别调度OCR与AI
+MaterialService "" ..> "" RecognitionRun : 内容缓存与用量预留
+MaterialService "" ..> "" SystemSetting : 按月接口计数 + 归档
+BackgroundJob "" ..> "" BackgroundJob : AI依赖OCR完成（JSON逻辑引用）
+@enduml

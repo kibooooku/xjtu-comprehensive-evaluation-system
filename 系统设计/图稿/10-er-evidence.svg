@@ -1,415 +1,837 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="2338px" height="1045px" viewBox="0 0 2338 1045"><rect width="100%" height="100%" fill="white"/><text x="28" y="32" font-family="Microsoft YaHei" font-size="21" font-weight="bold" fill="#203b50">数据库 ER：文件、识别与证据</text><text x="28" y="61" font-family="Microsoft YaHei" font-size="12" fill="#5e778b">逻辑 ER · PK 主键 / FK 外键 / ? 可空；完整字段约束见数据字典 · 设计评审版 / 2026-10-24</text><g transform="translate(0,85)">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 921.2)">
-<title>Design</title>
-<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-921.2 2308.77,-921.2 2308.77,28.8 -28.8,28.8"/>
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="3382px" height="2098px" viewBox="0 0 3382 2098"><style>text{font-family:Arial,"Microsoft YaHei",sans-serif}</style><rect width="100%" height="100%" fill="white"/><text x="28" y="34" font-size="24" font-weight="bold" fill="#203b50">数据库 ER · 材料、识别与后台任务</text><text x="28" y="60" font-size="13" fill="#5c7486">当前物理数据库 · PK/FK/UK/UQ 与实际可空性 · 详细字段可放大查看 · 2026-10-26</text><g transform="translate(0,86)">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(25.92 1902.32)">
+<title>CurrentDesign</title>
+<polygon fill="white" stroke="none" points="-25.92,25.92 -25.92,-1902.32 3356.52,-1902.32 3356.52,25.92 -25.92,25.92"/>
 <!-- users&#45;&gt;file_objects -->
 <g id="e0" class="edge">
-<title>users&#45;&gt;file_objects</title>
-<path fill="none" stroke="#237260" d="M258.11,-668.9C295.05,-668.9 336.13,-668.9 376.3,-668.9"/>
-<polygon fill="#237260" stroke="#237260" points="252.5,-672.15 252.5,-665.65 253.8,-665.65 253.8,-672.15 252.5,-672.15"/>
-<polyline fill="none" stroke="#237260" points="251.85,-668.9 255.1,-668.9"/>
-<polygon fill="#237260" stroke="#237260" points="255.75,-672.15 255.75,-665.65 257.05,-665.65 257.05,-672.15 255.75,-672.15"/>
-<polyline fill="none" stroke="#237260" points="255.1,-668.9 258.35,-668.9"/>
-<polygon fill="#237260" stroke="#237260" points="382.47,-668.9 388.97,-671.83 386.05,-668.9 388.63,-668.9 388.63,-668.9 388.63,-668.9 386.05,-668.9 388.97,-665.98 382.47,-668.9"/>
-<ellipse fill="none" stroke="#237260" cx="378.15" cy="-668.9" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="320.6" y="-671.9" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">uploaded_by</text>
+<title>users:p_id&#45;&gt;file_objects:p_uploaded_by</title>
+<g id="a_e0"><a xlink:title="file_objects.uploaded_by → users.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M426.93,-654.07C438.23,-642.77 465,-616 465,-616 465,-616 986.28,-578.8 986.28,-578.8 986.28,-578.8 986.8,-538.26 987.09,-516.09"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="424.97,-660.98 420.02,-656.03 421.01,-655.04 425.96,-659.99 424.97,-660.98"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="422,-659 424.47,-656.53"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="427.44,-658.51 422.49,-653.56 423.48,-652.57 428.43,-657.52 427.44,-658.51"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="424.47,-656.53 426.95,-654.05"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="987.18,-509.37 990.42,-502.41 987.23,-505.5 987.27,-502.74 987.27,-502.74 987.27,-502.74 987.23,-505.5 984.12,-502.33 987.18,-509.37"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="987.12" cy="-514.06" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="493.64" y="-619" font-family="Arial" font-size="10.00" fill="#334c62">uploaded_by</text>
+</g>
+<!-- users&#45;&gt;revision_files -->
+<g id="e14" class="edge">
+<title>users:p_id&#45;&gt;revision_files:p_added_by</title>
+<g id="a_e14"><a xlink:title="revision_files.added_by → users.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M428.99,-658.75C502.32,-656.16 1128.11,-634 1128.11,-634 1128.11,-634 1171.11,-587.8 1171.11,-587.8 1171.11,-587.8 1592.11,-587.8 1592.11,-587.8 1592.11,-587.8 1592.59,-618.16 1592.89,-636.66"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="422.82,-662.47 422.58,-655.48 423.97,-655.43 424.22,-662.42 422.82,-662.47"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="422,-659 425.5,-658.88"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="426.32,-662.35 426.07,-655.35 427.47,-655.3 427.72,-662.3 426.32,-662.35"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="425.5,-658.88 429,-658.75"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1592.99,-643.23 1589.95,-650.28 1593.05,-647.1 1593.1,-649.86 1593.1,-649.86 1593.1,-649.86 1593.05,-647.1 1596.25,-650.18 1592.99,-643.23"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.92" cy="-638.54" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="776.28" y="-656.91" font-family="Arial" font-size="10.00" fill="#334c62">added_by</text>
+</g>
+<!-- users&#45;&gt;background_jobs -->
+<g id="e19" class="edge">
+<title>users:p_id&#45;&gt;background_jobs:p_owner_id</title>
+<g id="a_e19"><a xlink:title="background_jobs.owner_id → users.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M423.42,-665.73C438.3,-736.35 565.28,-1339 565.28,-1339 565.28,-1339 1128.11,-1447 1128.11,-1447 1128.11,-1447 1171.11,-1876.4 1171.11,-1876.4 1171.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.69,-1816.61 1592.97,-1788.58"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="418.72,-660.41 425.57,-658.96 425.86,-660.33 419.01,-661.78 418.72,-660.41"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="422,-659 422.72,-662.42"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="419.44,-663.83 426.29,-662.39 426.58,-663.76 419.73,-665.2 419.44,-663.83"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="422.72,-662.42 423.44,-665.85"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.04,-1781.77 1596.25,-1774.8 1593.07,-1777.9 1593.1,-1775.14 1593.1,-1775.14 1593.1,-1775.14 1593.07,-1777.9 1589.95,-1774.74 1593.04,-1781.77"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.99" cy="-1786.46" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="776.28" y="-1422.48" font-family="Arial" font-size="10.00" fill="#334c62">owner_id</text>
 </g>
 <!-- file_objects&#45;&gt;file_pages -->
 <g id="e1" class="edge">
-<title>file_objects&#45;&gt;file_pages</title>
-<path fill="none" stroke="#237260" d="M782.4,-699.29C817.18,-704.61 853.44,-710.15 888.39,-715.5"/>
-<polygon fill="#237260" stroke="#237260" points="776.3,-701.64 777.28,-695.22 778.57,-695.42 777.59,-701.84 776.3,-701.64"/>
-<polyline fill="none" stroke="#237260" points="776.15,-698.33 779.36,-698.82"/>
-<polygon fill="#237260" stroke="#237260" points="779.51,-702.14 780.5,-695.71 781.78,-695.91 780.8,-702.33 779.51,-702.14"/>
-<polyline fill="none" stroke="#237260" points="779.36,-698.82 782.58,-699.32"/>
-<polygon fill="#237260" stroke="#237260" points="894.45,-716.43 900.44,-720.3 898,-716.97 900.55,-717.36 900.55,-717.36 900.55,-717.36 898,-716.97 901.32,-714.52 894.45,-716.43"/>
-<ellipse fill="none" stroke="#237260" cx="890.18" cy="-715.77" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="838.7" y="-713.24" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">file_id</text>
+<title>file_objects:p_id&#45;&gt;file_pages:p_file_id</title>
+<g id="a_e1"><a xlink:title="file_pages.file_id → file_objects.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M992.21,-522.24C1003.5,-510.9 1030.28,-484 1030.28,-484 1030.28,-484 1592.11,-436.4 1592.11,-436.4 1592.11,-436.4 1592.64,-395.86 1592.92,-373.69"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="990.25,-529.17 985.29,-524.23 986.28,-523.24 991.24,-528.18 990.25,-529.17"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-527.2 989.74,-524.72"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="992.72,-526.69 987.76,-521.75 988.75,-520.76 993.71,-525.7 992.72,-526.69"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="989.74,-524.72 992.21,-522.24"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.01,-366.97 1596.25,-360.01 1593.06,-363.1 1593.1,-360.34 1593.1,-360.34 1593.1,-360.34 1593.06,-363.1 1589.95,-359.93 1593.01,-366.97"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.95" cy="-371.66" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-487" font-family="Arial" font-size="10.00" fill="#334c62">file_id</text>
 </g>
 <!-- file_objects&#45;&gt;analysis_inputs -->
-<g id="e6" class="edge">
-<title>file_objects&#45;&gt;analysis_inputs</title>
-<path fill="none" stroke="#237260" d="M781.92,-585.34C817.14,-570.49 853.88,-555 889.26,-540.09"/>
-<polygon fill="#237260" stroke="#237260" points="778.01,-590.51 775.49,-584.52 776.69,-584.02 779.21,-590.01 778.01,-590.51"/>
-<polyline fill="none" stroke="#237260" points="776.15,-587.77 779.15,-586.51"/>
-<polygon fill="#237260" stroke="#237260" points="781.01,-589.25 778.48,-583.26 779.68,-582.76 782.21,-588.75 781.01,-589.25"/>
-<polyline fill="none" stroke="#237260" points="779.15,-586.51 782.14,-585.25"/>
-<polygon fill="#237260" stroke="#237260" points="894.91,-537.71 902.04,-537.88 898.21,-536.31 900.59,-535.31 900.59,-535.31 900.59,-535.31 898.21,-536.31 899.76,-532.48 894.91,-537.71"/>
-<ellipse fill="none" stroke="#237260" cx="890.93" cy="-539.38" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="838.7" y="-570.85" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">file_id</text>
+<g id="e9" class="edge">
+<title>file_objects:p_id&#45;&gt;analysis_inputs:p_file_id</title>
+<g id="a_e9"><a xlink:title="analysis_inputs.file_id → file_objects.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M994.08,-527.66C1060.64,-532.14 1593.11,-568 1593.11,-568 1593.11,-568 2304.98,-655.8 2304.98,-655.8 2304.98,-655.8 2725.98,-655.8 2725.98,-655.8 2725.98,-655.8 2726.56,-596.01 2726.84,-567.98"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="987.74,-530.74 988.21,-523.75 989.61,-523.85 989.14,-530.83 987.74,-530.74"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-527.2 990.77,-527.44"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="991.23,-530.97 991.7,-523.99 993.1,-524.08 992.63,-531.07 991.23,-530.97"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="990.77,-527.44 994.26,-527.67"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.91,-561.17 2730.12,-554.2 2726.94,-557.3 2726.97,-554.54 2726.97,-554.54 2726.97,-554.54 2726.94,-557.3 2723.83,-554.14 2726.91,-561.17"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2726.86" cy="-565.86" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1653.9" y="-580.13" font-family="Arial" font-size="10.00" fill="#334c62">file_id</text>
 </g>
 <!-- file_objects&#45;&gt;revision_files -->
-<g id="e8" class="edge">
-<title>file_objects&#45;&gt;revision_files</title>
-<path fill="none" stroke="#237260" d="M752.83,-545.02C767.09,-534.58 776.21,-527.9 776.21,-527.9 776.21,-527.9 861.2,-414.9 861.2,-414.9 861.2,-414.9 901.2,-313.9 901.2,-313.9 901.2,-313.9 908.93,-308.76 921.29,-300.55"/>
-<polygon fill="#237260" stroke="#237260" points="750.25,-550.94 746.41,-545.7 747.46,-544.93 751.3,-550.17 750.25,-550.94"/>
-<polyline fill="none" stroke="#237260" points="747.8,-548.71 750.42,-546.78"/>
-<polygon fill="#237260" stroke="#237260" points="752.87,-549.02 749.03,-543.78 750.08,-543.01 753.92,-548.25 752.87,-549.02"/>
-<polyline fill="none" stroke="#237260" points="750.42,-546.78 753.05,-544.86"/>
-<polygon fill="#237260" stroke="#237260" points="926.44,-297.12 933.47,-295.96 929.42,-295.13 931.57,-293.7 931.57,-293.7 931.57,-293.7 929.42,-295.13 930.23,-291.08 926.44,-297.12"/>
-<ellipse fill="none" stroke="#237260" cx="922.84" cy="-299.51" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="838.7" y="-474.4" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">file_id</text>
+<g id="e13" class="edge">
+<title>file_objects:p_id&#45;&gt;revision_files:p_file_id</title>
+<g id="a_e13"><a xlink:title="revision_files.file_id → file_objects.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M992.9,-531.23C1004.55,-539.58 1030.28,-558 1030.28,-558 1030.28,-558 1128.11,-616 1128.11,-616 1128.11,-616 1171.11,-828.2 1171.11,-828.2 1171.11,-828.2 1592.11,-828.2 1592.11,-828.2 1592.11,-828.2 1592.69,-768.41 1592.97,-740.38"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="985.81,-530.45 989.88,-524.76 991.02,-525.58 986.94,-531.27 985.81,-530.45"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-527.2 990.12,-529.24"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="988.65,-532.49 992.73,-526.8 993.87,-527.62 989.79,-533.31 988.65,-532.49"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="990.12,-529.24 992.97,-531.28"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.04,-733.57 1596.25,-726.6 1593.07,-729.7 1593.1,-726.94 1593.1,-726.94 1593.1,-726.94 1593.07,-729.7 1589.95,-726.54 1593.04,-733.57"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.99" cy="-738.26" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-619" font-family="Arial" font-size="10.00" fill="#334c62">file_id</text>
 </g>
 <!-- file_pages&#45;&gt;recognition_runs -->
 <g id="e2" class="edge">
-<title>file_pages&#45;&gt;recognition_runs</title>
-<path fill="none" stroke="#237260" d="M1294.54,-746.9C1324.93,-746.9 1356.34,-746.9 1386.86,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1288.73,-750.15 1288.73,-743.65 1290.03,-743.65 1290.03,-750.15 1288.73,-750.15"/>
-<polyline fill="none" stroke="#237260" points="1288.08,-746.9 1291.33,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1291.98,-750.15 1291.98,-743.65 1293.28,-743.65 1293.28,-750.15 1291.98,-750.15"/>
-<polyline fill="none" stroke="#237260" points="1291.33,-746.9 1294.58,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1393.05,-746.9 1399.55,-749.83 1396.63,-746.9 1399.21,-746.9 1399.21,-746.9 1399.21,-746.9 1396.63,-746.9 1399.55,-743.98 1393.05,-746.9"/>
-<ellipse fill="none" stroke="#237260" cx="1388.73" cy="-746.9" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="1344.03" y="-749.9" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">page_id</text>
+<title>file_pages:p_id&#45;&gt;recognition_runs:p_page_id</title>
+<g id="a_e2"><a xlink:title="recognition_runs.page_id → file_pages.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M1596.48,-378.93C1606.62,-361.3 1636.11,-310 1636.11,-310 1636.11,-310 2135.7,-292 2135.7,-292 2135.7,-292 2136.23,-251.46 2136.51,-229.29"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1596.49,-385.94 1590.42,-382.45 1591.12,-381.24 1597.19,-384.72 1596.49,-385.94"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1593.11,-384.8 1594.85,-381.77"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1598.24,-382.9 1592.17,-379.41 1592.86,-378.2 1598.93,-381.69 1598.24,-382.9"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1594.85,-381.77 1596.6,-378.73"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2136.6,-222.57 2139.84,-215.61 2136.65,-218.7 2136.69,-215.94 2136.69,-215.94 2136.69,-215.94 2136.65,-218.7 2133.54,-215.53 2136.6,-222.57"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2136.54" cy="-227.26" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1653.9" y="-313" font-family="Arial" font-size="10.00" fill="#334c62">page_id</text>
+</g>
+<!-- file_pages&#45;&gt;analysis_inputs -->
+<g id="e10" class="edge">
+<title>file_pages:p_id&#45;&gt;analysis_inputs:p_page_id</title>
+<g id="a_e10"><a xlink:title="analysis_inputs.page_id → file_pages.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M1603.25,-385.06C1715.72,-387.98 2725.98,-414.2 2725.98,-414.2 2725.98,-414.2 2726.59,-484.02 2726.86,-514.57"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.72,-388.32 1593.9,-381.32 1595.3,-381.36 1595.12,-388.35 1593.72,-388.32"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1593.11,-384.8 1596.61,-384.89"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1599.96" cy="-384.98" rx="2.8" ry="2.8"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.91,-521.23 2723.83,-528.26 2726.95,-525.1 2726.97,-527.86 2726.97,-527.86 2726.97,-527.86 2726.95,-525.1 2730.13,-528.2 2726.91,-521.23"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2726.87" cy="-516.54" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1925.7" y="-401.62" font-family="Arial" font-size="10.00" fill="#334c62">page_id</text>
 </g>
 <!-- file_pages&#45;&gt;evidence_crops -->
-<g id="e10" class="edge">
-<title>file_pages&#45;&gt;evidence_crops</title>
-<path fill="none" stroke="#237260" d="M1267.53,-610.33C1280.23,-600.24 1288.2,-593.9 1288.2,-593.9 1288.2,-593.9 1360.66,-499.08 1434.85,-402"/>
-<polygon fill="#237260" stroke="#237260" points="1265.17,-616.36 1261.13,-611.27 1262.14,-610.46 1266.19,-615.55 1265.17,-616.36"/>
-<polyline fill="none" stroke="#237260" points="1262.64,-614.22 1265.18,-612.2"/>
-<polygon fill="#237260" stroke="#237260" points="1267.71,-614.33 1263.67,-609.25 1264.69,-608.44 1268.73,-613.53 1267.71,-614.33"/>
-<polyline fill="none" stroke="#237260" points="1265.18,-612.2 1267.73,-610.17"/>
-<polygon fill="#237260" stroke="#237260" points="1438.58,-397.12 1444.85,-393.74 1440.76,-394.28 1442.32,-392.23 1442.32,-392.23 1442.32,-392.23 1440.76,-394.28 1440.2,-390.18 1438.58,-397.12"/>
-<ellipse fill="none" stroke="#237260" cx="1435.96" cy="-400.56" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="1344.03" y="-539.13" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">page_id</text>
+<g id="e16" class="edge">
+<title>file_pages:p_id&#45;&gt;evidence_crops:p_page_id</title>
+<g id="a_e16"><a xlink:title="evidence_crops.page_id → file_pages.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M1599.83,-383.74C1611.92,-381.82 1636.11,-378 1636.11,-378 1636.11,-378 2261.98,-378 2261.98,-378 2261.98,-378 2726.98,-394 2726.98,-394 2726.98,-394 2908.6,-455.4 2908.6,-455.4 2908.6,-455.4 3329.6,-455.4 3329.6,-455.4 3329.6,-455.4 3330.19,-395.61 3330.46,-367.58"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1594.35,-388.15 1593.25,-381.23 1594.63,-381.01 1595.73,-387.93 1594.35,-388.15"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1593.11,-384.8 1596.56,-384.25"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1597.8,-387.6 1596.71,-380.69 1598.09,-380.47 1599.19,-387.38 1597.8,-387.6"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1596.56,-384.25 1600.02,-383.71"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="3330.53,-360.77 3333.75,-353.8 3330.57,-356.9 3330.6,-354.14 3330.6,-354.14 3330.6,-354.14 3330.57,-356.9 3327.45,-353.74 3330.53,-360.77"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="3330.49" cy="-365.46" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="2220.84" y="-381" font-family="Arial" font-size="10.00" fill="#334c62">page_id</text>
 </g>
 <!-- recognition_runs&#45;&gt;recognition_regions -->
 <g id="e3" class="edge">
-<title>recognition_runs&#45;&gt;recognition_regions</title>
-<path fill="none" stroke="#237260" d="M1792.85,-746.9C1821.65,-746.9 1851.35,-746.9 1880.28,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1787.34,-750.15 1787.34,-743.65 1788.64,-743.65 1788.64,-750.15 1787.34,-750.15"/>
-<polyline fill="none" stroke="#237260" points="1786.69,-746.9 1789.94,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1790.59,-750.15 1790.59,-743.65 1791.89,-743.65 1791.89,-750.15 1790.59,-750.15"/>
-<polyline fill="none" stroke="#237260" points="1789.94,-746.9 1793.19,-746.9"/>
-<polygon fill="#237260" stroke="#237260" points="1886.23,-746.9 1892.73,-749.83 1889.82,-746.9 1892.4,-746.9 1892.4,-746.9 1892.4,-746.9 1889.82,-746.9 1892.73,-743.98 1886.23,-746.9"/>
-<ellipse fill="none" stroke="#237260" cx="1881.92" cy="-746.9" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="1839.91" y="-749.9" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">run_id</text>
+<title>recognition_runs:p_id&#45;&gt;recognition_regions:p_run_id</title>
+<g id="a_e3"><a xlink:title="recognition_regions.run_id → recognition_runs.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M2143.42,-238.46C2155.51,-234.97 2179.7,-228 2179.7,-228 2179.7,-228 2261.98,-228 2261.98,-228 2261.98,-228 2304.98,-291.8 2304.98,-291.8 2304.98,-291.8 2725.98,-291.8 2725.98,-291.8 2725.98,-291.8 2726.51,-251.26 2726.8,-229.09"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2138.34,-243.57 2136.4,-236.84 2137.75,-236.46 2139.69,-243.18 2138.34,-243.57"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="2136.7,-240.4 2140.06,-239.43"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2141.7,-242.6 2139.76,-235.87 2141.11,-235.49 2143.05,-242.21 2141.7,-242.6"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="2140.06,-239.43 2143.42,-238.46"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.88,-222.37 2730.12,-215.41 2726.93,-218.5 2726.97,-215.74 2726.97,-215.74 2726.97,-215.74 2726.93,-218.5 2723.82,-215.33 2726.88,-222.37"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2726.82" cy="-227.06" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="2220.84" y="-231" font-family="Arial" font-size="10.00" fill="#334c62">run_id</text>
+</g>
+<!-- recognition_runs&#45;&gt;analysis_inputs -->
+<g id="e11" class="edge">
+<title>recognition_runs:p_id&#45;&gt;analysis_inputs:p_recognition_run_id</title>
+<g id="a_e11"><a xlink:title="analysis_inputs.recognition_run_id → recognition_runs.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M2146.11,-244.2C2175.25,-255.97 2261.98,-291 2261.98,-291 2261.98,-291 2304.98,-311 2304.98,-311 2304.98,-311 2725.98,-414.2 2725.98,-414.2 2725.98,-414.2 2726.54,-464.38 2726.82,-489.46"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2136.04,-243.91 2138.66,-237.42 2139.96,-237.94 2137.33,-244.43 2136.04,-243.91"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="2136.7,-240.4 2139.94,-241.71"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2143.05" cy="-242.97" rx="2.8" ry="2.8"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.9,-496.03 2723.82,-503.07 2726.94,-499.9 2726.97,-502.66 2726.97,-502.66 2726.97,-502.66 2726.94,-499.9 2730.12,-503 2726.9,-496.03"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2726.84" cy="-491.34" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="2220.84" y="-294" font-family="Arial" font-size="10.00" fill="#334c62">recognition_run_id</text>
+</g>
+<!-- recognition_regions&#45;&gt;evidence_crops -->
+<g id="e17" class="edge">
+<title>recognition_regions:p_id&#45;&gt;evidence_crops:p_recognition_region_id</title>
+<g id="a_e17"><a xlink:title="evidence_crops.recognition_region_id → recognition_regions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M2736.07,-244.78C2766.91,-260.31 2865.6,-310 2865.6,-310 2865.6,-310 2908.6,-455.4 2908.6,-455.4 2908.6,-455.4 3329.6,-455.4 3329.6,-455.4 3329.6,-455.4 3330.29,-333.6 3330.53,-291.74"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.03,-243.64 2729.18,-237.39 2730.43,-238.02 2727.28,-244.27 2726.03,-243.64"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="2726.98,-240.2 2730.1,-241.77"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2733.1" cy="-243.28" rx="2.8" ry="2.8"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="3330.56,-285.17 3333.75,-278.19 3330.58,-281.3 3330.6,-278.54 3330.6,-278.54 3330.6,-278.54 3330.58,-281.3 3327.45,-278.15 3330.56,-285.17"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="3330.54" cy="-289.86" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="2817.79" y="-313" font-family="Arial" font-size="10.00" fill="#334c62">recognition_region_id</text>
 </g>
 <!-- ai_analyses&#45;&gt;analysis_inputs -->
-<g id="e5" class="edge">
-<title>ai_analyses&#45;&gt;analysis_inputs</title>
-<path fill="none" stroke="#237260" d="M782.4,-375.16C817.34,-384 853.75,-393.21 888.85,-402.08"/>
-<polygon fill="#237260" stroke="#237260" points="775.98,-376.89 777.58,-370.59 778.84,-370.9 777.24,-377.21 775.98,-376.89"/>
-<polyline fill="none" stroke="#237260" points="776.15,-373.58 779.3,-374.37"/>
-<polygon fill="#237260" stroke="#237260" points="779.13,-377.68 780.73,-371.38 781.99,-371.7 780.4,-378 779.13,-377.68"/>
-<polyline fill="none" stroke="#237260" points="779.3,-374.37 782.45,-375.17"/>
-<polygon fill="#237260" stroke="#237260" points="894.58,-403.53 900.17,-407.96 898.06,-404.41 900.56,-405.05 900.56,-405.05 900.56,-405.05 898.06,-404.41 901.6,-402.29 894.58,-403.53"/>
-<ellipse fill="none" stroke="#237260" cx="890.4" cy="-402.47" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="838.7" y="-396.27" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">analysis_id</text>
+<g id="e8" class="edge">
+<title>ai_analyses:p_id&#45;&gt;analysis_inputs:p_analysis_id</title>
+<g id="a_e8"><a xlink:title="analysis_inputs.analysis_id → ai_analyses.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M1599.2,-1181.36C1688.37,-1139.77 2725.98,-655.8 2725.98,-655.8 2725.98,-655.8 2726.51,-615.26 2726.8,-593.09"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1595.22,-1187.08 1592.26,-1180.73 1593.53,-1180.14 1596.49,-1186.48 1595.22,-1187.08"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1593.11,-1184.2 1596.28,-1182.72"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1598.39,-1185.6 1595.43,-1179.25 1596.7,-1178.66 1599.66,-1185 1598.39,-1185.6"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="1596.28,-1182.72 1599.45,-1181.24"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="2726.88,-586.37 2730.12,-579.41 2726.93,-582.5 2726.97,-579.74 2726.97,-579.74 2726.97,-579.74 2726.93,-582.5 2723.82,-579.33 2726.88,-586.37"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="2726.82" cy="-591.06" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1925.7" y="-1127.08" font-family="Arial" font-size="10.00" fill="#334c62">analysis_id</text>
+</g>
+<!-- activities&#45;&gt;ai_analyses -->
+<g id="e7" class="edge">
+<title>activities:p_id&#45;&gt;ai_analyses:p_suggested_activity_id</title>
+<g id="a_e7"><a xlink:title="ai_analyses.suggested_activity_id → activities.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M996.64,-929.7C1034.11,-916.49 1171.11,-868.2 1171.11,-868.2 1171.11,-868.2 1592.11,-868.2 1592.11,-868.2 1592.11,-868.2 1592.6,-899.49 1592.89,-918.31"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="989.1,-936.07 986.77,-929.47 988.09,-929 990.42,-935.6 989.1,-936.07"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-933 990.58,-931.84"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="993.74" cy="-930.72" rx="2.8" ry="2.8"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1592.99,-924.83 1589.95,-931.88 1593.05,-928.7 1593.1,-931.46 1593.1,-931.46 1593.1,-931.46 1593.05,-928.7 1596.25,-931.78 1592.99,-924.83"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.92" cy="-920.14" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-920.62" font-family="Arial" font-size="10.00" fill="#334c62">suggested_activity_id</text>
 </g>
 <!-- applications&#45;&gt;ai_analyses -->
 <g id="e4" class="edge">
-<title>applications&#45;&gt;ai_analyses</title>
-<path fill="none" stroke="#237260" d="M258.11,-324.9C295.05,-324.9 336.13,-324.9 376.3,-324.9"/>
-<polygon fill="#237260" stroke="#237260" points="252.5,-328.15 252.5,-321.65 253.8,-321.65 253.8,-328.15 252.5,-328.15"/>
-<polyline fill="none" stroke="#237260" points="251.85,-324.9 255.1,-324.9"/>
-<polygon fill="#237260" stroke="#237260" points="255.75,-328.15 255.75,-321.65 257.05,-321.65 257.05,-328.15 255.75,-328.15"/>
-<polyline fill="none" stroke="#237260" points="255.1,-324.9 258.35,-324.9"/>
-<polygon fill="#237260" stroke="#237260" points="382.47,-324.9 388.97,-327.83 386.05,-324.9 388.63,-324.9 388.63,-324.9 388.63,-324.9 386.05,-324.9 388.97,-321.98 382.47,-324.9"/>
-<ellipse fill="none" stroke="#237260" cx="378.15" cy="-324.9" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="320.6" y="-327.9" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">application_id</text>
+<title>applications:p_id&#45;&gt;ai_analyses:p_application_id</title>
+<g id="a_e4"><a xlink:title="ai_analyses.application_id → applications.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M991.34,-1574.84C1014.43,-1545.49 1128.11,-1401 1128.11,-1401 1128.11,-1401 1171.11,-1339 1171.11,-1339 1171.11,-1339 1592.11,-1235.8 1592.11,-1235.8 1592.11,-1235.8 1592.64,-1195.26 1592.92,-1173.09"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="990.46,-1581.61 984.96,-1577.29 985.82,-1576.19 991.32,-1580.51 990.46,-1581.61"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1580 989.44,-1577.25"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="992.62,-1578.86 987.12,-1574.53 987.99,-1573.43 993.49,-1577.76 992.62,-1578.86"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="989.44,-1577.25 991.6,-1574.5"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.01,-1166.37 1596.25,-1159.41 1593.06,-1162.5 1593.1,-1159.74 1593.1,-1159.74 1593.1,-1159.74 1593.06,-1162.5 1589.95,-1159.33 1593.01,-1166.37"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.95" cy="-1171.06" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1524.26" font-family="Arial" font-size="10.00" fill="#334c62">application_id</text>
+</g>
+<!-- applications&#45;&gt;background_jobs -->
+<g id="e18" class="edge">
+<title>applications:p_id&#45;&gt;background_jobs:p_application_id</title>
+<g id="a_e18"><a xlink:title="background_jobs.application_id → applications.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M990.95,-1585.92C1016.86,-1627.7 1171.11,-1876.4 1171.11,-1876.4 1171.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.64,-1835.86 1592.92,-1813.69"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="984.67,-1582.44 990.62,-1578.75 991.36,-1579.94 985.41,-1583.63 984.67,-1582.44"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1580 989.12,-1582.97"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="986.51,-1585.41 992.46,-1581.72 993.2,-1582.91 987.25,-1586.6 986.51,-1585.41"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="989.12,-1582.97 990.96,-1585.95"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.01,-1806.97 1596.25,-1800.01 1593.06,-1803.1 1593.1,-1800.34 1593.1,-1800.34 1593.1,-1800.34 1593.06,-1803.1 1589.95,-1799.93 1593.01,-1806.97"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.95" cy="-1811.66" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1809.06" font-family="Arial" font-size="10.00" fill="#334c62">application_id</text>
+</g>
+<!-- application_revisions&#45;&gt;ai_analyses -->
+<g id="e5" class="edge">
+<title>application_revisions:p_id&#45;&gt;ai_analyses:p_input_revision_id</title>
+<g id="a_e5"><a xlink:title="ai_analyses.input_revision_id → application_revisions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M993.62,-1265.08C1005.58,-1261.47 1030.28,-1254 1030.28,-1254 1030.28,-1254 1592.11,-1235.8 1592.11,-1235.8 1592.11,-1235.8 1592.69,-1176.01 1592.97,-1147.98"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="988.96,-1270.15 986.93,-1263.45 988.27,-1263.04 990.3,-1269.74 988.96,-1270.15"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1267 990.63,-1265.99"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="992.31,-1269.13 990.28,-1262.43 991.62,-1262.03 993.65,-1268.73 992.31,-1269.13"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="990.63,-1265.99 993.98,-1264.97"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.04,-1141.17 1596.25,-1134.2 1593.07,-1137.3 1593.1,-1134.54 1593.1,-1134.54 1593.1,-1134.54 1593.07,-1137.3 1589.95,-1134.14 1593.04,-1141.17"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.99" cy="-1145.86" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1257" font-family="Arial" font-size="10.00" fill="#334c62">input_revision_id</text>
 </g>
 <!-- application_revisions&#45;&gt;revision_files -->
-<g id="e7" class="edge">
-<title>application_revisions&#45;&gt;revision_files</title>
-<path fill="none" stroke="#237260" d="M714.64,-88.53C767.73,-102.17 830.3,-118.24 889.15,-133.36"/>
-<polygon fill="#237260" stroke="#237260" points="708.29,-90.26 709.9,-83.96 711.16,-84.28 709.55,-90.58 708.29,-90.26"/>
-<polyline fill="none" stroke="#237260" points="708.47,-86.95 711.61,-87.75"/>
-<polygon fill="#237260" stroke="#237260" points="711.43,-91.06 713.05,-84.77 714.31,-85.09 712.69,-91.39 711.43,-91.06"/>
-<polyline fill="none" stroke="#237260" points="711.61,-87.75 714.76,-88.56"/>
-<polygon fill="#237260" stroke="#237260" points="895.02,-134.87 900.59,-139.32 898.49,-135.76 900.99,-136.4 900.99,-136.4 900.99,-136.4 898.49,-135.76 902.05,-133.65 895.02,-134.87"/>
-<ellipse fill="none" stroke="#237260" cx="890.84" cy="-133.79" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="838.7" y="-127.33" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">revision_id</text>
+<g id="e12" class="edge">
+<title>application_revisions:p_id&#45;&gt;revision_files:p_revision_id</title>
+<g id="a_e12"><a xlink:title="revision_files.revision_id → application_revisions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M991.96,-1261.84C1016.4,-1234.95 1128.11,-1112 1128.11,-1112 1128.11,-1112 1171.11,-849 1171.11,-849 1171.11,-849 1592.11,-828.2 1592.11,-828.2 1592.11,-828.2 1592.64,-787.66 1592.92,-765.49"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="990.34,-1268.84 985.16,-1264.13 986.1,-1263.09 991.28,-1267.8 990.34,-1268.84"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1267 989.63,-1264.41"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="992.69,-1266.25 987.51,-1261.54 988.45,-1260.5 993.63,-1265.21 992.69,-1266.25"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="989.63,-1264.41 991.98,-1261.82"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.01,-758.77 1596.25,-751.81 1593.06,-754.9 1593.1,-752.14 1593.1,-752.14 1593.1,-752.14 1593.06,-754.9 1589.95,-751.73 1593.01,-758.77"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1592.95" cy="-763.46" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1219.13" font-family="Arial" font-size="10.00" fill="#334c62">revision_id</text>
 </g>
 <!-- application_revisions&#45;&gt;evidence_crops -->
-<g id="e9" class="edge">
-<title>application_revisions&#45;&gt;evidence_crops</title>
-<path fill="none" stroke="#237260" d="M714.56,-51.19C802.04,-48.71 901.2,-45.9 901.2,-45.9 901.2,-45.9 1288.2,-45.9 1288.2,-45.9 1288.2,-45.9 1333.2,-68.09 1388.58,-95.4"/>
-<polygon fill="#237260" stroke="#237260" points="709.02,-54.6 708.84,-48.1 710.14,-48.06 710.32,-54.56 709.02,-54.6"/>
-<polyline fill="none" stroke="#237260" points="708.28,-51.37 711.53,-51.28"/>
-<polygon fill="#237260" stroke="#237260" points="712.27,-54.51 712.08,-48.01 713.38,-47.97 713.57,-54.47 712.27,-54.51"/>
-<polyline fill="none" stroke="#237260" points="711.53,-51.28 714.78,-51.18"/>
-<polygon fill="#237260" stroke="#237260" points="1394.03,-98.09 1398.57,-103.59 1397.25,-99.68 1399.56,-100.82 1399.56,-100.82 1399.56,-100.82 1397.25,-99.68 1401.16,-98.34 1394.03,-98.09"/>
-<ellipse fill="none" stroke="#237260" cx="1390.16" cy="-96.18" rx="2.6" ry="2.6"/>
-<text xml:space="preserve" text-anchor="middle" x="1094.7" y="-48.9" font-family="Microsoft YaHei" font-size="10.00" fill="#38536b">revision_id</text>
+<g id="e15" class="edge">
+<title>application_revisions:p_id&#45;&gt;evidence_crops:p_revision_id</title>
+<g id="a_e15"><a xlink:title="evidence_crops.revision_id → application_revisions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M993.99,-1267.78C1006.09,-1269.19 1030.28,-1272 1030.28,-1272 1030.28,-1272 1381.11,-1297 1381.11,-1297 1381.11,-1297 1381.11,-1297 2516.98,-1297 2516.98,-1297 3329.6,-455.4 3329.6,-455.4 3329.6,-455.4 3330.13,-414.86 3330.42,-392.69"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="987.57,-1270.56 988.38,-1263.6 989.77,-1263.77 988.96,-1270.72 987.57,-1270.56"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1267 990.75,-1267.4"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="991.04,-1270.96 991.85,-1264.01 993.24,-1264.17 992.43,-1271.12 991.04,-1270.96"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="990.75,-1267.4 994.23,-1267.81"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="3330.51,-385.97 3333.75,-379.01 3330.56,-382.1 3330.59,-379.34 3330.59,-379.34 3330.59,-379.34 3330.56,-382.1 3327.45,-378.93 3330.51,-385.97"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="3330.45" cy="-390.66" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1925.7" y="-1300" font-family="Arial" font-size="10.00" fill="#334c62">revision_id</text>
+</g>
+<!-- application_revisions&#45;&gt;background_jobs -->
+<g id="e20" class="edge">
+<title>application_revisions:p_id&#45;&gt;background_jobs:p_input_revision_id</title>
+<g id="a_e20"><a xlink:title="background_jobs.input_revision_id → application_revisions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M991.24,-1272.63C1001.89,-1287.73 1030.28,-1328 1030.28,-1328 1030.28,-1328 1128.11,-1379 1128.11,-1379 1128.11,-1379 1171.11,-1876.4 1171.11,-1876.4 1171.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.11,-1876.4 1592.84,-1690.25 1593.05,-1637.17"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="984.82,-1269.59 990.54,-1265.56 991.35,-1266.7 985.62,-1270.73 984.82,-1269.59"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1267 989.29,-1269.86"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="986.83,-1272.45 992.56,-1268.42 993.36,-1269.56 987.64,-1273.59 986.83,-1272.45"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="989.29,-1269.86 991.31,-1272.72"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.08,-1630.57 1596.26,-1623.58 1593.09,-1626.7 1593.1,-1623.94 1593.1,-1623.94 1593.1,-1623.94 1593.09,-1626.7 1589.96,-1623.56 1593.08,-1630.57"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1593.06" cy="-1635.26" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1382" font-family="Arial" font-size="10.00" fill="#334c62">input_revision_id</text>
+</g>
+<!-- score_rule_versions&#45;&gt;ai_analyses -->
+<g id="e6" class="edge">
+<title>score_rule_versions:p_id&#45;&gt;ai_analyses:p_score_rule_version_id</title>
+<g id="a_e6"><a xlink:title="ai_analyses.score_rule_version_id → score_rule_versions.id">
+<path fill="none" stroke="#237467" stroke-width="1.1" d="M994.07,-1083.53C1022.2,-1085.73 1128.11,-1094 1128.11,-1094 1128.11,-1094 1171.11,-1235.8 1171.11,-1235.8 1171.11,-1235.8 1592.11,-1235.8 1592.11,-1235.8 1592.11,-1235.8 1592.77,-1135.19 1593.02,-1097.46"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="987.7,-1086.54 988.25,-1079.57 989.64,-1079.67 989.1,-1086.65 987.7,-1086.54"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="987.28,-1083 990.76,-1083.27"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="991.19,-1086.82 991.74,-1079.84 993.13,-1079.95 992.59,-1086.93 991.19,-1086.82"/>
+<polyline fill="none" stroke="#237467" stroke-width="1.1" points="990.76,-1083.27 994.25,-1083.55"/>
+<polygon fill="#237467" stroke="#237467" stroke-width="1.1" points="1593.06,-1090.77 1596.25,-1083.79 1593.08,-1086.9 1593.1,-1084.14 1593.1,-1084.14 1593.1,-1084.14 1593.08,-1086.9 1589.96,-1083.75 1593.06,-1090.77"/>
+<ellipse fill="none" stroke="#237467" stroke-width="1.1" cx="1593.03" cy="-1095.46" rx="2.8" ry="2.8"/>
+</a>
+</g>
+<text xml:space="preserve" text-anchor="middle" x="1079.19" y="-1097" font-family="Arial" font-size="10.00" fill="#334c62">score_rule_version_id</text>
 </g>
 <!-- users -->
 <g id="node1" class="node">
 <title>users</title>
-<polygon fill="none" stroke="#7c8994" points="0,-636.8 0,-701 252,-701 252,-636.8 0,-636.8"/>
-<polygon fill="#7c8994" stroke="none" points="1,-663 1,-700 251,-700 251,-663 1,-663"/>
-<text xml:space="preserve" text-anchor="start" x="111.56" y="-683.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">users</text>
-<text xml:space="preserve" text-anchor="start" x="99" y="-671.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">用户（引用）</text>
-<polygon fill="#eaf0f5" stroke="none" points="1,-637.8 1,-663 251,-663 251,-637.8 1,-637.8"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-648.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="22.28" y="-648.1" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="none" stroke="#697d8e" points="0,-645.4 0,-710.6 422,-710.6 422,-645.4 0,-645.4"/>
+<polygon fill="#697d8e" stroke="none" points="1,-671.6 1,-709.6 421,-709.6 421,-671.6 1,-671.6"/>
+<text xml:space="preserve" text-anchor="start" x="192.32" y="-692" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">users</text>
+<text xml:space="preserve" text-anchor="start" x="180.99" y="-679.8" font-family="Arial" font-size="12.00" fill="white">用户（引用）</text>
+<polygon fill="#e8eff5" stroke="none" points="1,-646.4 1,-671.6 181.91,-671.6 181.91,-646.4 1,-646.4"/>
+<text xml:space="preserve" text-anchor="start" x="84.79" y="-655" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="181.91,-646.4 181.91,-671.6 421,-671.6 421,-646.4 181.91,-646.4"/>
+<text xml:space="preserve" text-anchor="start" x="187.91" y="-654.6" font-family="Arial" font-size="11.00">id : VARCHAR</text>
 </g>
 <!-- file_objects -->
 <g id="node2" class="node">
 <title>file_objects</title>
-<polygon fill="none" stroke="#237260" points="389.21,-548.6 389.21,-789.2 776.21,-789.2 776.21,-548.6 389.21,-548.6"/>
-<polygon fill="#237260" stroke="none" points="390.21,-751.2 390.21,-788.2 775.21,-788.2 775.21,-751.2 390.21,-751.2"/>
-<text xml:space="preserve" text-anchor="start" x="551.3" y="-771.5" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">file_objects</text>
-<text xml:space="preserve" text-anchor="start" x="555.71" y="-759.4" font-family="Microsoft YaHei" font-size="12.00" fill="white">原始证明文件</text>
-<polygon fill="#eaf0f5" stroke="none" points="390.21,-726 390.21,-751.2 775.21,-751.2 775.21,-726 390.21,-726"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-736.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-736.3" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-700.8 390.21,-726 775.21,-726 775.21,-700.8 390.21,-700.8"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-711.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-711.1" font-family="Microsoft YaHei" font-size="11.00"> uploaded_by : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-675.6 390.21,-700.8 775.21,-700.8 775.21,-675.6 390.21,-675.6"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-683.8" font-family="Microsoft YaHei" font-size="11.00">　 original_name : VARCHAR(255)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-650.4 390.21,-675.6 775.21,-675.6 775.21,-650.4 390.21,-650.4"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-658.6" font-family="Microsoft YaHei" font-size="11.00">　 mime_type : VARCHAR(80)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-625.2 390.21,-650.4 775.21,-650.4 775.21,-625.2 390.21,-625.2"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-633.4" font-family="Microsoft YaHei" font-size="11.00">　 byte_size : BIGINT</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-600 390.21,-625.2 775.21,-625.2 775.21,-600 390.21,-600"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-608.2" font-family="Microsoft YaHei" font-size="11.00">　 sha256 : CHAR(64)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-574.8 390.21,-600 775.21,-600 775.21,-574.8 390.21,-574.8"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-583" font-family="Microsoft YaHei" font-size="11.00">　 storage_uri : TEXT</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-549.6 390.21,-574.8 775.21,-574.8 775.21,-549.6 390.21,-549.6"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-557.8" font-family="Microsoft YaHei" font-size="11.00">　 created_at : TIMESTAMP</text>
+<polygon fill="none" stroke="#237467" points="565.28,-337.2 565.28,-578.8 987.28,-578.8 987.28,-337.2 565.28,-337.2"/>
+<polygon fill="#237467" stroke="none" points="566.28,-539.8 566.28,-577.8 986.28,-577.8 986.28,-539.8 566.28,-539.8"/>
+<text xml:space="preserve" text-anchor="start" x="737.76" y="-560.2" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">file_objects</text>
+<text xml:space="preserve" text-anchor="start" x="746.27" y="-548" font-family="Arial" font-size="12.00" fill="white">原始证明文件</text>
+<polygon fill="#e8eff5" stroke="none" points="566.28,-514.6 566.28,-539.8 716.92,-539.8 716.92,-514.6 566.28,-514.6"/>
+<text xml:space="preserve" text-anchor="start" x="634.93" y="-523.2" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-514.6 716.92,-539.8 986.28,-539.8 986.28,-514.6 716.92,-514.6"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-522.8" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-489.4 566.28,-514.6 716.92,-514.6 716.92,-489.4 566.28,-489.4"/>
+<text xml:space="preserve" text-anchor="start" x="635.21" y="-498" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-489.4 716.92,-514.6 986.28,-514.6 986.28,-489.4 716.92,-489.4"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-497.6" font-family="Arial" font-size="11.00">uploaded_by : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-464.2 566.28,-489.4 716.92,-489.4 716.92,-464.2 566.28,-464.2"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-472.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-464.2 716.92,-489.4 986.28,-489.4 986.28,-464.2 716.92,-464.2"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-472.4" font-family="Arial" font-size="11.00">original_name : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-439 566.28,-464.2 716.92,-464.2 716.92,-439 566.28,-439"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-447.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-439 716.92,-464.2 986.28,-464.2 986.28,-439 716.92,-439"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-447.2" font-family="Arial" font-size="11.00">mime_type : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-413.8 566.28,-439 716.92,-439 716.92,-413.8 566.28,-413.8"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-422.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-413.8 716.92,-439 986.28,-439 986.28,-413.8 716.92,-413.8"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-422" font-family="Arial" font-size="11.00">byte_size : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-388.6 566.28,-413.8 716.92,-413.8 716.92,-388.6 566.28,-388.6"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-397.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-388.6 716.92,-413.8 986.28,-413.8 986.28,-388.6 716.92,-388.6"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-396.8" font-family="Arial" font-size="11.00">sha256 : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-363.4 566.28,-388.6 716.92,-388.6 716.92,-363.4 566.28,-363.4"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-372" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-363.4 716.92,-388.6 986.28,-388.6 986.28,-363.4 716.92,-363.4"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-371.6" font-family="Arial" font-size="11.00">storage_uri : TEXT</text>
+<polygon fill="#f7f9fb" stroke="none" points="566.28,-338.2 566.28,-363.4 716.92,-363.4 716.92,-338.2 566.28,-338.2"/>
+<text xml:space="preserve" text-anchor="start" x="640.21" y="-346.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="716.92,-338.2 716.92,-363.4 986.28,-363.4 986.28,-338.2 716.92,-338.2"/>
+<text xml:space="preserve" text-anchor="start" x="722.92" y="-346.4" font-family="Arial" font-size="11.00">created_at : VARCHAR</text>
 </g>
 <!-- file_pages -->
 <g id="node3" class="node">
 <title>file_pages</title>
-<polygon fill="none" stroke="#237260" points="901.2,-614 901.2,-879.8 1288.2,-879.8 1288.2,-614 901.2,-614"/>
-<polygon fill="#237260" stroke="none" points="902.2,-841.8 902.2,-878.8 1287.2,-878.8 1287.2,-841.8 902.2,-841.8"/>
-<text xml:space="preserve" text-anchor="start" x="1067.26" y="-862.1" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">file_pages</text>
-<text xml:space="preserve" text-anchor="start" x="1076.7" y="-850" font-family="Microsoft YaHei" font-size="12.00" fill="white">文件页面</text>
-<polygon fill="#eaf0f5" stroke="none" points="902.2,-816.6 902.2,-841.8 1287.2,-841.8 1287.2,-816.6 902.2,-816.6"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-826.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-826.9" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-791.4 902.2,-816.6 1287.2,-816.6 1287.2,-791.4 902.2,-791.4"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-801.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-801.7" font-family="Microsoft YaHei" font-size="11.00"> file_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-766.2 902.2,-791.4 1287.2,-791.4 1287.2,-766.2 902.2,-766.2"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-774.4" font-family="Microsoft YaHei" font-size="11.00">　 page_index : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-741 902.2,-766.2 1287.2,-766.2 1287.2,-741 902.2,-741"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-749.2" font-family="Microsoft YaHei" font-size="11.00">　 render_version : VARCHAR(40)</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-715.8 902.2,-741 1287.2,-741 1287.2,-715.8 902.2,-715.8"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-724" font-family="Microsoft YaHei" font-size="11.00">　 width_px : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-690.6 902.2,-715.8 1287.2,-715.8 1287.2,-690.6 902.2,-690.6"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-698.8" font-family="Microsoft YaHei" font-size="11.00">　 height_px : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-665.4 902.2,-690.6 1287.2,-690.6 1287.2,-665.4 902.2,-665.4"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-673.6" font-family="Microsoft YaHei" font-size="11.00">　 rotation_degrees : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-640.2 902.2,-665.4 1287.2,-665.4 1287.2,-640.2 902.2,-640.2"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-648.4" font-family="Microsoft YaHei" font-size="11.00">　 image_uri : TEXT</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-615 902.2,-640.2 1287.2,-640.2 1287.2,-615 902.2,-615"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-623.2" font-family="Microsoft YaHei" font-size="11.00">　 render_sha256 : CHAR(64)</text>
+<polygon fill="none" stroke="#237467" points="1171.11,-145.6 1171.11,-436.4 1593.11,-436.4 1593.11,-145.6 1171.11,-145.6"/>
+<polygon fill="#237467" stroke="none" points="1172.11,-397.4 1172.11,-435.4 1592.11,-435.4 1592.11,-397.4 1172.11,-397.4"/>
+<text xml:space="preserve" text-anchor="start" x="1347.87" y="-417.8" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">file_pages</text>
+<text xml:space="preserve" text-anchor="start" x="1362.1" y="-405.6" font-family="Arial" font-size="12.00" fill="white">文件页面</text>
+<polygon fill="#e8eff5" stroke="none" points="1172.11,-372.2 1172.11,-397.4 1318.47,-397.4 1318.47,-372.2 1172.11,-372.2"/>
+<text xml:space="preserve" text-anchor="start" x="1238.62" y="-380.8" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-372.2 1318.47,-397.4 1592.11,-397.4 1592.11,-372.2 1318.47,-372.2"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-380.4" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-347 1172.11,-372.2 1318.47,-372.2 1318.47,-347 1172.11,-347"/>
+<text xml:space="preserve" text-anchor="start" x="1238.9" y="-355.6" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-347 1318.47,-372.2 1592.11,-372.2 1592.11,-347 1318.47,-347"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-355.2" font-family="Arial" font-size="11.00">file_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-321.8 1172.11,-347 1318.47,-347 1318.47,-321.8 1172.11,-321.8"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-330.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-321.8 1318.47,-347 1592.11,-347 1592.11,-321.8 1318.47,-321.8"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-330" font-family="Arial" font-size="11.00">page_index : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-296.6 1172.11,-321.8 1318.47,-321.8 1318.47,-296.6 1172.11,-296.6"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-305.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-296.6 1318.47,-321.8 1592.11,-321.8 1592.11,-296.6 1318.47,-296.6"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-304.8" font-family="Arial" font-size="11.00">render_version : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-271.4 1172.11,-296.6 1318.47,-296.6 1318.47,-271.4 1172.11,-271.4"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-280" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-271.4 1318.47,-296.6 1592.11,-296.6 1592.11,-271.4 1318.47,-271.4"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-279.6" font-family="Arial" font-size="11.00">width_px : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-246.2 1172.11,-271.4 1318.47,-271.4 1318.47,-246.2 1172.11,-246.2"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-254.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-246.2 1318.47,-271.4 1592.11,-271.4 1592.11,-246.2 1318.47,-246.2"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-254.4" font-family="Arial" font-size="11.00">height_px : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-221 1172.11,-246.2 1318.47,-246.2 1318.47,-221 1172.11,-221"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-229.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-221 1318.47,-246.2 1592.11,-246.2 1592.11,-221 1318.47,-221"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-229.2" font-family="Arial" font-size="11.00">rotation_degrees : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-195.8 1172.11,-221 1318.47,-221 1318.47,-195.8 1172.11,-195.8"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-204.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-195.8 1318.47,-221 1592.11,-221 1592.11,-195.8 1318.47,-195.8"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-204" font-family="Arial" font-size="11.00">image_uri : TEXT</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-170.6 1172.11,-195.8 1318.47,-195.8 1318.47,-170.6 1172.11,-170.6"/>
+<text xml:space="preserve" text-anchor="start" x="1243.9" y="-179.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1318.47,-170.6 1318.47,-195.8 1592.11,-195.8 1592.11,-170.6 1318.47,-170.6"/>
+<text xml:space="preserve" text-anchor="start" x="1324.47" y="-178.8" font-family="Arial" font-size="11.00">render_sha256 : VARCHAR</text>
+<polygon fill="#edf3f7" stroke="none" points="1172.11,-146.6 1172.11,-170.6 1592.11,-170.6 1592.11,-146.6 1172.11,-146.6"/>
+<text xml:space="preserve" text-anchor="start" x="1178.11" y="-154.6" font-family="Arial" font-size="10.00" fill="#526b7d">UQ (file_id, page_index)</text>
 </g>
 <!-- recognition_runs -->
 <g id="node4" class="node">
 <title>recognition_runs</title>
-<polygon fill="none" stroke="#237260" points="1399.86,-601.4 1399.86,-892.4 1786.86,-892.4 1786.86,-601.4 1399.86,-601.4"/>
-<polygon fill="#237260" stroke="none" points="1400.86,-854.4 1400.86,-891.4 1785.86,-891.4 1785.86,-854.4 1400.86,-854.4"/>
-<text xml:space="preserve" text-anchor="start" x="1546.05" y="-874.7" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">recognition_runs</text>
-<text xml:space="preserve" text-anchor="start" x="1563.02" y="-862.6" font-family="Microsoft YaHei" font-size="12.00" fill="white">OCR识别运行</text>
-<polygon fill="#eaf0f5" stroke="none" points="1400.86,-829.2 1400.86,-854.4 1785.86,-854.4 1785.86,-829.2 1400.86,-829.2"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-839.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-839.5" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-804 1400.86,-829.2 1785.86,-829.2 1785.86,-804 1400.86,-804"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-814.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-814.3" font-family="Microsoft YaHei" font-size="11.00"> page_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-778.8 1400.86,-804 1785.86,-804 1785.86,-778.8 1400.86,-778.8"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-787" font-family="Microsoft YaHei" font-size="11.00">　 provider : VARCHAR(30)</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-753.6 1400.86,-778.8 1785.86,-778.8 1785.86,-753.6 1400.86,-753.6"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-761.8" font-family="Microsoft YaHei" font-size="11.00">　 api_name : VARCHAR(60)</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-728.4 1400.86,-753.6 1785.86,-753.6 1785.86,-728.4 1400.86,-728.4"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-736.6" font-family="Microsoft YaHei" font-size="11.00">　 parameters_hash : CHAR(64)</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-703.2 1400.86,-728.4 1785.86,-728.4 1785.86,-703.2 1400.86,-703.2"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-711.4" font-family="Microsoft YaHei" font-size="11.00">　 status : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-678 1400.86,-703.2 1785.86,-703.2 1785.86,-678 1400.86,-678"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-686.2" font-family="Microsoft YaHei" font-size="11.00">　 provider_request_id : VARCHAR(100) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-652.8 1400.86,-678 1785.86,-678 1785.86,-652.8 1400.86,-652.8"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-661" font-family="Microsoft YaHei" font-size="11.00">　 result_json : JSON ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-627.6 1400.86,-652.8 1785.86,-652.8 1785.86,-627.6 1400.86,-627.6"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-635.8" font-family="Microsoft YaHei" font-size="11.00">　 started_at : TIMESTAMP ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-602.4 1400.86,-627.6 1785.86,-627.6 1785.86,-602.4 1400.86,-602.4"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-610.6" font-family="Microsoft YaHei" font-size="11.00">　 finished_at : TIMESTAMP ?</text>
+<polygon fill="none" stroke="#237467" points="1714.7,0 1714.7,-292 2136.7,-292 2136.7,0 1714.7,0"/>
+<polygon fill="#237467" stroke="none" points="1715.7,-253 1715.7,-291 2135.7,-291 2135.7,-253 1715.7,-253"/>
+<text xml:space="preserve" text-anchor="start" x="1868.53" y="-273.4" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">recognition_runs</text>
+<text xml:space="preserve" text-anchor="start" x="1880.69" y="-261.2" font-family="Arial" font-size="12.00" fill="white">文字／印章识别记录</text>
+<polygon fill="#e8eff5" stroke="none" points="1715.7,-227.8 1715.7,-253 1847.69,-253 1847.69,-227.8 1715.7,-227.8"/>
+<text xml:space="preserve" text-anchor="start" x="1775.02" y="-236.4" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-227.8 1847.69,-253 2135.7,-253 2135.7,-227.8 1847.69,-227.8"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-236" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-202.6 1715.7,-227.8 1847.69,-227.8 1847.69,-202.6 1715.7,-202.6"/>
+<text xml:space="preserve" text-anchor="start" x="1775.31" y="-211.2" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-202.6 1847.69,-227.8 2135.7,-227.8 2135.7,-202.6 1847.69,-202.6"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-210.8" font-family="Arial" font-size="11.00">page_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-177.4 1715.7,-202.6 1847.69,-202.6 1847.69,-177.4 1715.7,-177.4"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-186" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-177.4 1847.69,-202.6 2135.7,-202.6 2135.7,-177.4 1847.69,-177.4"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-185.6" font-family="Arial" font-size="11.00">provider : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-152.2 1715.7,-177.4 1847.69,-177.4 1847.69,-152.2 1715.7,-152.2"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-160.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-152.2 1847.69,-177.4 2135.7,-177.4 2135.7,-152.2 1847.69,-152.2"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-160.4" font-family="Arial" font-size="11.00">api_name : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-127 1715.7,-152.2 1847.69,-152.2 1847.69,-127 1715.7,-127"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-135.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-127 1847.69,-152.2 2135.7,-152.2 2135.7,-127 1847.69,-127"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-135.2" font-family="Arial" font-size="11.00">parameters_hash : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-101.8 1715.7,-127 1847.69,-127 1847.69,-101.8 1715.7,-101.8"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-110.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-101.8 1847.69,-127 2135.7,-127 2135.7,-101.8 1847.69,-101.8"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-110" font-family="Arial" font-size="11.00">status : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-76.6 1715.7,-101.8 1847.69,-101.8 1847.69,-76.6 1715.7,-76.6"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-85.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-76.6 1847.69,-101.8 2135.7,-101.8 2135.7,-76.6 1847.69,-76.6"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-84.8" font-family="Arial" font-size="11.00">provider_request_id : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-51.4 1715.7,-76.6 1847.69,-76.6 1847.69,-51.4 1715.7,-51.4"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-60" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-51.4 1847.69,-76.6 2135.7,-76.6 2135.7,-51.4 1847.69,-51.4"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-59.6" font-family="Arial" font-size="11.00">result_json : JSON ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-26.2 1715.7,-51.4 1847.69,-51.4 1847.69,-26.2 1715.7,-26.2"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-34.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-26.2 1847.69,-51.4 2135.7,-51.4 2135.7,-26.2 1847.69,-26.2"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-34.4" font-family="Arial" font-size="11.00">started_at : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1715.7,-1 1715.7,-26.2 1847.69,-26.2 1847.69,-1 1715.7,-1"/>
+<text xml:space="preserve" text-anchor="start" x="1780.31" y="-9.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1847.69,-1 1847.69,-26.2 2135.7,-26.2 2135.7,-1 1847.69,-1"/>
+<text xml:space="preserve" text-anchor="start" x="1853.69" y="-9.2" font-family="Arial" font-size="11.00">finished_at : VARCHAR ?</text>
 </g>
 <!-- recognition_regions -->
 <g id="node5" class="node">
 <title>recognition_regions</title>
-<polygon fill="none" stroke="#237260" points="1892.97,-626.6 1892.97,-867.2 2279.97,-867.2 2279.97,-626.6 1892.97,-626.6"/>
-<polygon fill="#237260" stroke="none" points="1893.97,-829.2 1893.97,-866.2 2278.97,-866.2 2278.97,-829.2 1893.97,-829.2"/>
-<text xml:space="preserve" text-anchor="start" x="2031.58" y="-849.5" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">recognition_regions</text>
-<text xml:space="preserve" text-anchor="start" x="2045.97" y="-837.4" font-family="Microsoft YaHei" font-size="12.00" fill="white">识别文字及印章区域</text>
-<polygon fill="#eaf0f5" stroke="none" points="1893.97,-804 1893.97,-829.2 2278.97,-829.2 2278.97,-804 1893.97,-804"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-814.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="1915.24" y="-814.3" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-778.8 1893.97,-804 2278.97,-804 2278.97,-778.8 1893.97,-778.8"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-789.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="1915.24" y="-789.1" font-family="Microsoft YaHei" font-size="11.00"> run_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-753.6 1893.97,-778.8 2278.97,-778.8 2278.97,-753.6 1893.97,-753.6"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-761.8" font-family="Microsoft YaHei" font-size="11.00">　 region_no : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-728.4 1893.97,-753.6 2278.97,-753.6 2278.97,-728.4 1893.97,-728.4"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-736.6" font-family="Microsoft YaHei" font-size="11.00">　 kind : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-703.2 1893.97,-728.4 2278.97,-728.4 2278.97,-703.2 1893.97,-703.2"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-711.4" font-family="Microsoft YaHei" font-size="11.00">　 text : TEXT ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-678 1893.97,-703.2 2278.97,-703.2 2278.97,-678 1893.97,-678"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-686.2" font-family="Microsoft YaHei" font-size="11.00">　 confidence : DECIMAL(6,4) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-652.8 1893.97,-678 2278.97,-678 2278.97,-652.8 1893.97,-652.8"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-661" font-family="Microsoft YaHei" font-size="11.00">　 polygon_json : JSON</text>
-<polygon fill="#f8fafc" stroke="none" points="1893.97,-627.6 1893.97,-652.8 2278.97,-652.8 2278.97,-627.6 1893.97,-627.6"/>
-<text xml:space="preserve" text-anchor="start" x="1899.97" y="-635.8" font-family="Microsoft YaHei" font-size="11.00">　 extra_json : JSON ?</text>
+<polygon fill="none" stroke="#237467" points="2304.98,-50.2 2304.98,-291.8 2726.98,-291.8 2726.98,-50.2 2304.98,-50.2"/>
+<polygon fill="#237467" stroke="none" points="2305.98,-252.8 2305.98,-290.8 2725.98,-290.8 2725.98,-252.8 2305.98,-252.8"/>
+<text xml:space="preserve" text-anchor="start" x="2448.69" y="-273.2" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">recognition_regions</text>
+<text xml:space="preserve" text-anchor="start" x="2470.97" y="-261" font-family="Arial" font-size="12.00" fill="white">识别文字及印章区域</text>
+<polygon fill="#e8eff5" stroke="none" points="2305.98,-227.6 2305.98,-252.8 2448.37,-252.8 2448.37,-227.6 2305.98,-227.6"/>
+<text xml:space="preserve" text-anchor="start" x="2370.51" y="-236.2" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-227.6 2448.37,-252.8 2725.98,-252.8 2725.98,-227.6 2448.37,-227.6"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-235.8" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-202.4 2305.98,-227.6 2448.37,-227.6 2448.37,-202.4 2305.98,-202.4"/>
+<text xml:space="preserve" text-anchor="start" x="2370.79" y="-211" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-202.4 2448.37,-227.6 2725.98,-227.6 2725.98,-202.4 2448.37,-202.4"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-210.6" font-family="Arial" font-size="11.00">run_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-177.2 2305.98,-202.4 2448.37,-202.4 2448.37,-177.2 2305.98,-177.2"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-185.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-177.2 2448.37,-202.4 2725.98,-202.4 2725.98,-177.2 2448.37,-177.2"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-185.4" font-family="Arial" font-size="11.00">region_no : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-152 2305.98,-177.2 2448.37,-177.2 2448.37,-152 2305.98,-152"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-160.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-152 2448.37,-177.2 2725.98,-177.2 2725.98,-152 2448.37,-152"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-160.2" font-family="Arial" font-size="11.00">kind : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-126.8 2305.98,-152 2448.37,-152 2448.37,-126.8 2305.98,-126.8"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-135.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-126.8 2448.37,-152 2725.98,-152 2725.98,-126.8 2448.37,-126.8"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-135" font-family="Arial" font-size="11.00">text : TEXT ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-101.6 2305.98,-126.8 2448.37,-126.8 2448.37,-101.6 2305.98,-101.6"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-110.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-101.6 2448.37,-126.8 2725.98,-126.8 2725.98,-101.6 2448.37,-101.6"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-109.8" font-family="Arial" font-size="11.00">confidence : NUMERIC(6, 4) ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-76.4 2305.98,-101.6 2448.37,-101.6 2448.37,-76.4 2305.98,-76.4"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-85" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-76.4 2448.37,-101.6 2725.98,-101.6 2725.98,-76.4 2448.37,-76.4"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-84.6" font-family="Arial" font-size="11.00">polygon_json : JSON</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-51.2 2305.98,-76.4 2448.37,-76.4 2448.37,-51.2 2305.98,-51.2"/>
+<text xml:space="preserve" text-anchor="start" x="2375.79" y="-59.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2448.37,-51.2 2448.37,-76.4 2725.98,-76.4 2725.98,-51.2 2448.37,-51.2"/>
+<text xml:space="preserve" text-anchor="start" x="2454.37" y="-59.4" font-family="Arial" font-size="11.00">extra_json : JSON ?</text>
 </g>
 <!-- ai_analyses -->
 <g id="node6" class="node">
 <title>ai_analyses</title>
-<polygon fill="none" stroke="#237260" points="389.21,-141.6 389.21,-508.2 776.21,-508.2 776.21,-141.6 389.21,-141.6"/>
-<polygon fill="#237260" stroke="none" points="390.21,-470.2 390.21,-507.2 775.21,-507.2 775.21,-470.2 390.21,-470.2"/>
-<text xml:space="preserve" text-anchor="start" x="551.29" y="-490.5" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">ai_analyses</text>
-<text xml:space="preserve" text-anchor="start" x="558.38" y="-478.4" font-family="Microsoft YaHei" font-size="12.00" fill="white">AI建议记录</text>
-<polygon fill="#eaf0f5" stroke="none" points="390.21,-445 390.21,-470.2 775.21,-470.2 775.21,-445 390.21,-445"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-455.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-455.3" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-419.8 390.21,-445 775.21,-445 775.21,-419.8 390.21,-419.8"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-430.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-430.1" font-family="Microsoft YaHei" font-size="11.00"> application_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-394.6 390.21,-419.8 775.21,-419.8 775.21,-394.6 390.21,-394.6"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-404.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-404.9" font-family="Microsoft YaHei" font-size="11.00"> input_revision_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-369.4 390.21,-394.6 775.21,-394.6 775.21,-369.4 390.21,-369.4"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-377.6" font-family="Microsoft YaHei" font-size="11.00">　 input_fingerprint : CHAR(64)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-344.2 390.21,-369.4 775.21,-369.4 775.21,-344.2 390.21,-344.2"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-354.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-354.5" font-family="Microsoft YaHei" font-size="11.00"> score_rule_version_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-319 390.21,-344.2 775.21,-344.2 775.21,-319 390.21,-319"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-327.2" font-family="Microsoft YaHei" font-size="11.00">　 model_name : VARCHAR(80)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-293.8 390.21,-319 775.21,-319 775.21,-293.8 390.21,-293.8"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-302" font-family="Microsoft YaHei" font-size="11.00">　 prompt_version : VARCHAR(40)</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-268.6 390.21,-293.8 775.21,-293.8 775.21,-268.6 390.21,-268.6"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-276.8" font-family="Microsoft YaHei" font-size="11.00">　 status : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-243.4 390.21,-268.6 775.21,-268.6 775.21,-243.4 390.21,-243.4"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-251.6" font-family="Microsoft YaHei" font-size="11.00">　 suggested_title : VARCHAR(255) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-218.2 390.21,-243.4 775.21,-243.4 775.21,-218.2 390.21,-218.2"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-226.4" font-family="Microsoft YaHei" font-size="11.00">　 suggested_score : DECIMAL(6,2) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-193 390.21,-218.2 775.21,-218.2 775.21,-193 390.21,-193"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-203.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="411.48" y="-203.3" font-family="Microsoft YaHei" font-size="11.00"> suggested_activity_id : UUID ?</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-167.8 390.21,-193 775.21,-193 775.21,-167.8 390.21,-167.8"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-176" font-family="Microsoft YaHei" font-size="11.00">　 result_json : JSON ?</text>
-<polygon fill="#f8fafc" stroke="none" points="390.21,-142.6 390.21,-167.8 775.21,-167.8 775.21,-142.6 390.21,-142.6"/>
-<text xml:space="preserve" text-anchor="start" x="396.21" y="-150.8" font-family="Microsoft YaHei" font-size="11.00">　 created_at : TIMESTAMP</text>
+<polygon fill="none" stroke="#237467" points="1171.11,-868.2 1171.11,-1235.8 1593.11,-1235.8 1593.11,-868.2 1171.11,-868.2"/>
+<polygon fill="#237467" stroke="none" points="1172.11,-1196.8 1172.11,-1234.8 1592.11,-1234.8 1592.11,-1196.8 1172.11,-1196.8"/>
+<text xml:space="preserve" text-anchor="start" x="1342.8" y="-1217.2" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">ai_analyses</text>
+<text xml:space="preserve" text-anchor="start" x="1356.43" y="-1205" font-family="Arial" font-size="12.00" fill="white">AI建议记录</text>
+<polygon fill="#e8eff5" stroke="none" points="1172.11,-1171.6 1172.11,-1196.8 1299.21,-1196.8 1299.21,-1171.6 1172.11,-1171.6"/>
+<text xml:space="preserve" text-anchor="start" x="1228.99" y="-1180.2" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1171.6 1299.21,-1196.8 1592.11,-1196.8 1592.11,-1171.6 1299.21,-1171.6"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1179.8" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1146.4 1172.11,-1171.6 1299.21,-1171.6 1299.21,-1146.4 1172.11,-1146.4"/>
+<text xml:space="preserve" text-anchor="start" x="1229.27" y="-1155" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1146.4 1299.21,-1171.6 1592.11,-1171.6 1592.11,-1146.4 1299.21,-1146.4"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1154.6" font-family="Arial" font-size="11.00">application_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1121.2 1172.11,-1146.4 1299.21,-1146.4 1299.21,-1121.2 1172.11,-1121.2"/>
+<text xml:space="preserve" text-anchor="start" x="1229.27" y="-1129.8" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1121.2 1299.21,-1146.4 1592.11,-1146.4 1592.11,-1121.2 1299.21,-1121.2"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1129.4" font-family="Arial" font-size="11.00">input_revision_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1096 1172.11,-1121.2 1299.21,-1121.2 1299.21,-1096 1172.11,-1096"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-1104.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1096 1299.21,-1121.2 1592.11,-1121.2 1592.11,-1096 1299.21,-1096"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1104.2" font-family="Arial" font-size="11.00">input_fingerprint : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1070.8 1172.11,-1096 1299.21,-1096 1299.21,-1070.8 1172.11,-1070.8"/>
+<text xml:space="preserve" text-anchor="start" x="1229.27" y="-1079.4" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1070.8 1299.21,-1096 1592.11,-1096 1592.11,-1070.8 1299.21,-1070.8"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1079" font-family="Arial" font-size="11.00">score_rule_version_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1045.6 1172.11,-1070.8 1299.21,-1070.8 1299.21,-1045.6 1172.11,-1045.6"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-1054.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1045.6 1299.21,-1070.8 1592.11,-1070.8 1592.11,-1045.6 1299.21,-1045.6"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1053.8" font-family="Arial" font-size="11.00">model_name : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1020.4 1172.11,-1045.6 1299.21,-1045.6 1299.21,-1020.4 1172.11,-1020.4"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-1029" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-1020.4 1299.21,-1045.6 1592.11,-1045.6 1592.11,-1020.4 1299.21,-1020.4"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1028.6" font-family="Arial" font-size="11.00">prompt_version : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-995.2 1172.11,-1020.4 1299.21,-1020.4 1299.21,-995.2 1172.11,-995.2"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-1003.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-995.2 1299.21,-1020.4 1592.11,-1020.4 1592.11,-995.2 1299.21,-995.2"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-1003.4" font-family="Arial" font-size="11.00">status : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-970 1172.11,-995.2 1299.21,-995.2 1299.21,-970 1172.11,-970"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-978.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-970 1299.21,-995.2 1592.11,-995.2 1592.11,-970 1299.21,-970"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-978.2" font-family="Arial" font-size="11.00">suggested_title : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-944.8 1172.11,-970 1299.21,-970 1299.21,-944.8 1172.11,-944.8"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-953.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-944.8 1299.21,-970 1592.11,-970 1592.11,-944.8 1299.21,-944.8"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-953" font-family="Arial" font-size="11.00">suggested_score : NUMERIC(6, 2) ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-919.6 1172.11,-944.8 1299.21,-944.8 1299.21,-919.6 1172.11,-919.6"/>
+<text xml:space="preserve" text-anchor="start" x="1229.27" y="-928.2" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-919.6 1299.21,-944.8 1592.11,-944.8 1592.11,-919.6 1299.21,-919.6"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-927.8" font-family="Arial" font-size="11.00">suggested_activity_id : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-894.4 1172.11,-919.6 1299.21,-919.6 1299.21,-894.4 1172.11,-894.4"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-903" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-894.4 1299.21,-919.6 1592.11,-919.6 1592.11,-894.4 1299.21,-894.4"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-902.6" font-family="Arial" font-size="11.00">result_json : JSON ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-869.2 1172.11,-894.4 1299.21,-894.4 1299.21,-869.2 1172.11,-869.2"/>
+<text xml:space="preserve" text-anchor="start" x="1234.27" y="-877.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1299.21,-869.2 1299.21,-894.4 1592.11,-894.4 1592.11,-869.2 1299.21,-869.2"/>
+<text xml:space="preserve" text-anchor="start" x="1305.21" y="-877.4" font-family="Arial" font-size="11.00">created_at : VARCHAR</text>
 </g>
 <!-- analysis_inputs -->
 <g id="node7" class="node">
 <title>analysis_inputs</title>
-<polygon fill="none" stroke="#237260" points="901.2,-333.6 901.2,-574.2 1288.2,-574.2 1288.2,-333.6 901.2,-333.6"/>
-<polygon fill="#237260" stroke="none" points="902.2,-536.2 902.2,-573.2 1287.2,-573.2 1287.2,-536.2 902.2,-536.2"/>
-<text xml:space="preserve" text-anchor="start" x="1052.07" y="-556.5" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">analysis_inputs</text>
-<text xml:space="preserve" text-anchor="start" x="1061.37" y="-544.4" font-family="Microsoft YaHei" font-size="12.00" fill="white">AI识别输入关系</text>
-<polygon fill="#eaf0f5" stroke="none" points="902.2,-511 902.2,-536.2 1287.2,-536.2 1287.2,-511 902.2,-511"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-521.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-521.3" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-485.8 902.2,-511 1287.2,-511 1287.2,-485.8 902.2,-485.8"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-496.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-496.1" font-family="Microsoft YaHei" font-size="11.00"> analysis_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-460.6 902.2,-485.8 1287.2,-485.8 1287.2,-460.6 902.2,-460.6"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-470.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-470.9" font-family="Microsoft YaHei" font-size="11.00"> file_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-435.4 902.2,-460.6 1287.2,-460.6 1287.2,-435.4 902.2,-435.4"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-445.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-445.7" font-family="Microsoft YaHei" font-size="11.00"> page_id : UUID ?</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-410.2 902.2,-435.4 1287.2,-435.4 1287.2,-410.2 902.2,-410.2"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-420.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-420.5" font-family="Microsoft YaHei" font-size="11.00"> recognition_run_id : UUID ?</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-385 902.2,-410.2 1287.2,-410.2 1287.2,-385 902.2,-385"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-393.2" font-family="Microsoft YaHei" font-size="11.00">　 input_kind : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-359.8 902.2,-385 1287.2,-385 1287.2,-359.8 902.2,-359.8"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-368" font-family="Microsoft YaHei" font-size="11.00">　 input_hash : CHAR(64)</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-334.6 902.2,-359.8 1287.2,-359.8 1287.2,-334.6 902.2,-334.6"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-342.8" font-family="Microsoft YaHei" font-size="11.00">　 sort_order : INTEGER</text>
+<polygon fill="none" stroke="#237467" points="2304.98,-414.2 2304.98,-655.8 2726.98,-655.8 2726.98,-414.2 2304.98,-414.2"/>
+<polygon fill="#237467" stroke="none" points="2305.98,-616.8 2305.98,-654.8 2725.98,-654.8 2725.98,-616.8 2305.98,-616.8"/>
+<text xml:space="preserve" text-anchor="start" x="2463.46" y="-637.2" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">analysis_inputs</text>
+<text xml:space="preserve" text-anchor="start" x="2480.3" y="-625" font-family="Arial" font-size="12.00" fill="white">AI识别输入关系</text>
+<polygon fill="#e8eff5" stroke="none" points="2305.98,-591.6 2305.98,-616.8 2441.33,-616.8 2441.33,-591.6 2305.98,-591.6"/>
+<text xml:space="preserve" text-anchor="start" x="2366.98" y="-600.2" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-591.6 2441.33,-616.8 2725.98,-616.8 2725.98,-591.6 2441.33,-591.6"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-599.8" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-566.4 2305.98,-591.6 2441.33,-591.6 2441.33,-566.4 2305.98,-566.4"/>
+<text xml:space="preserve" text-anchor="start" x="2367.27" y="-575" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-566.4 2441.33,-591.6 2725.98,-591.6 2725.98,-566.4 2441.33,-566.4"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-574.6" font-family="Arial" font-size="11.00">analysis_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-541.2 2305.98,-566.4 2441.33,-566.4 2441.33,-541.2 2305.98,-541.2"/>
+<text xml:space="preserve" text-anchor="start" x="2367.27" y="-549.8" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-541.2 2441.33,-566.4 2725.98,-566.4 2725.98,-541.2 2441.33,-541.2"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-549.4" font-family="Arial" font-size="11.00">file_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-516 2305.98,-541.2 2441.33,-541.2 2441.33,-516 2305.98,-516"/>
+<text xml:space="preserve" text-anchor="start" x="2367.27" y="-524.6" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-516 2441.33,-541.2 2725.98,-541.2 2725.98,-516 2441.33,-516"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-524.2" font-family="Arial" font-size="11.00">page_id : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-490.8 2305.98,-516 2441.33,-516 2441.33,-490.8 2305.98,-490.8"/>
+<text xml:space="preserve" text-anchor="start" x="2367.27" y="-499.4" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-490.8 2441.33,-516 2725.98,-516 2725.98,-490.8 2441.33,-490.8"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-499" font-family="Arial" font-size="11.00">recognition_run_id : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-465.6 2305.98,-490.8 2441.33,-490.8 2441.33,-465.6 2305.98,-465.6"/>
+<text xml:space="preserve" text-anchor="start" x="2372.27" y="-474.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-465.6 2441.33,-490.8 2725.98,-490.8 2725.98,-465.6 2441.33,-465.6"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-473.8" font-family="Arial" font-size="11.00">input_kind : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-440.4 2305.98,-465.6 2441.33,-465.6 2441.33,-440.4 2305.98,-440.4"/>
+<text xml:space="preserve" text-anchor="start" x="2372.27" y="-449" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-440.4 2441.33,-465.6 2725.98,-465.6 2725.98,-440.4 2441.33,-440.4"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-448.6" font-family="Arial" font-size="11.00">input_hash : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2305.98,-415.2 2305.98,-440.4 2441.33,-440.4 2441.33,-415.2 2305.98,-415.2"/>
+<text xml:space="preserve" text-anchor="start" x="2372.27" y="-423.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="2441.33,-415.2 2441.33,-440.4 2725.98,-440.4 2725.98,-415.2 2441.33,-415.2"/>
+<text xml:space="preserve" text-anchor="start" x="2447.33" y="-423.4" font-family="Arial" font-size="11.00">sort_order : INTEGER</text>
+</g>
+<!-- activities -->
+<g id="node8" class="node">
+<title>activities</title>
+<polygon fill="none" stroke="#697d8e" points="565.28,-919.4 565.28,-984.6 987.28,-984.6 987.28,-919.4 565.28,-919.4"/>
+<polygon fill="#697d8e" stroke="none" points="566.28,-945.6 566.28,-983.6 986.28,-983.6 986.28,-945.6 566.28,-945.6"/>
+<text xml:space="preserve" text-anchor="start" x="746.31" y="-966" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">activities</text>
+<text xml:space="preserve" text-anchor="start" x="736.27" y="-953.8" font-family="Arial" font-size="12.00" fill="white">活动目录（引用）</text>
+<polygon fill="#e8eff5" stroke="none" points="566.28,-920.4 566.28,-945.6 747.19,-945.6 747.19,-920.4 566.28,-920.4"/>
+<text xml:space="preserve" text-anchor="start" x="650.06" y="-929" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="747.19,-920.4 747.19,-945.6 986.28,-945.6 986.28,-920.4 747.19,-920.4"/>
+<text xml:space="preserve" text-anchor="start" x="753.19" y="-928.6" font-family="Arial" font-size="11.00">id : VARCHAR</text>
 </g>
 <!-- applications -->
-<g id="node8" class="node">
+<g id="node9" class="node">
 <title>applications</title>
-<polygon fill="none" stroke="#7c8994" points="0,-292.8 0,-357 252,-357 252,-292.8 0,-292.8"/>
-<polygon fill="#7c8994" stroke="none" points="1,-319 1,-356 251,-356 251,-319 1,-319"/>
-<text xml:space="preserve" text-anchor="start" x="92.41" y="-339.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">applications</text>
-<text xml:space="preserve" text-anchor="start" x="85.5" y="-327.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请聚合根（引用）</text>
-<polygon fill="#eaf0f5" stroke="none" points="1,-293.8 1,-319 251,-319 251,-293.8 1,-293.8"/>
-<text xml:space="preserve" text-anchor="start" x="7" y="-304.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="22.28" y="-304.1" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="none" stroke="#697d8e" points="565.28,-1566.4 565.28,-1631.6 987.28,-1631.6 987.28,-1566.4 565.28,-1566.4"/>
+<polygon fill="#697d8e" stroke="none" points="566.28,-1592.6 566.28,-1630.6 986.28,-1630.6 986.28,-1592.6 566.28,-1592.6"/>
+<text xml:space="preserve" text-anchor="start" x="735.43" y="-1613" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">applications</text>
+<text xml:space="preserve" text-anchor="start" x="706.26" y="-1600.8" font-family="Arial" font-size="12.00" fill="white">加分小项（稳定申请）（引用）</text>
+<polygon fill="#e8eff5" stroke="none" points="566.28,-1567.4 566.28,-1592.6 747.19,-1592.6 747.19,-1567.4 566.28,-1567.4"/>
+<text xml:space="preserve" text-anchor="start" x="650.06" y="-1576" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="747.19,-1567.4 747.19,-1592.6 986.28,-1592.6 986.28,-1567.4 747.19,-1567.4"/>
+<text xml:space="preserve" text-anchor="start" x="753.19" y="-1575.6" font-family="Arial" font-size="11.00">id : VARCHAR</text>
 </g>
 <!-- application_revisions -->
-<g id="node9" class="node">
+<g id="node10" class="node">
 <title>application_revisions</title>
-<polygon fill="none" stroke="#7c8994" points="456.71,-22.8 456.71,-87 708.71,-87 708.71,-22.8 456.71,-22.8"/>
-<polygon fill="#7c8994" stroke="none" points="457.71,-49 457.71,-86 707.71,-86 707.71,-49 457.71,-49"/>
-<text xml:space="preserve" text-anchor="start" x="523.84" y="-69.3" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">application_revisions</text>
-<text xml:space="preserve" text-anchor="start" x="537.71" y="-57.2" font-family="Microsoft YaHei" font-size="12.00" fill="white">申请内容版本（引用）</text>
-<polygon fill="#eaf0f5" stroke="none" points="457.71,-23.8 457.71,-49 707.71,-49 707.71,-23.8 457.71,-23.8"/>
-<text xml:space="preserve" text-anchor="start" x="463.71" y="-34.1" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="478.98" y="-34.1" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
+<polygon fill="none" stroke="#697d8e" points="565.28,-1253.4 565.28,-1318.6 987.28,-1318.6 987.28,-1253.4 565.28,-1253.4"/>
+<polygon fill="#697d8e" stroke="none" points="566.28,-1279.6 566.28,-1317.6 986.28,-1317.6 986.28,-1279.6 566.28,-1279.6"/>
+<text xml:space="preserve" text-anchor="start" x="704.7" y="-1300" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">application_revisions</text>
+<text xml:space="preserve" text-anchor="start" x="726.27" y="-1287.8" font-family="Arial" font-size="12.00" fill="white">申请内容版本（引用）</text>
+<polygon fill="#e8eff5" stroke="none" points="566.28,-1254.4 566.28,-1279.6 747.19,-1279.6 747.19,-1254.4 566.28,-1254.4"/>
+<text xml:space="preserve" text-anchor="start" x="650.06" y="-1263" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="747.19,-1254.4 747.19,-1279.6 986.28,-1279.6 986.28,-1254.4 747.19,-1254.4"/>
+<text xml:space="preserve" text-anchor="start" x="753.19" y="-1262.6" font-family="Arial" font-size="11.00">id : VARCHAR</text>
 </g>
 <!-- revision_files -->
-<g id="node10" class="node">
+<g id="node11" class="node">
 <title>revision_files</title>
-<polygon fill="none" stroke="#237260" points="901.2,-78.2 901.2,-293.6 1288.2,-293.6 1288.2,-78.2 901.2,-78.2"/>
-<polygon fill="#237260" stroke="none" points="902.2,-255.6 902.2,-292.6 1287.2,-292.6 1287.2,-255.6 902.2,-255.6"/>
-<text xml:space="preserve" text-anchor="start" x="1058.23" y="-275.9" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">revision_files</text>
-<text xml:space="preserve" text-anchor="start" x="1067.7" y="-263.8" font-family="Microsoft YaHei" font-size="12.00" fill="white">版本附件关系</text>
-<polygon fill="#eaf0f5" stroke="none" points="902.2,-230.4 902.2,-255.6 1287.2,-255.6 1287.2,-230.4 902.2,-230.4"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-240.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-240.7" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-205.2 902.2,-230.4 1287.2,-230.4 1287.2,-205.2 902.2,-205.2"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-215.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-215.5" font-family="Microsoft YaHei" font-size="11.00"> revision_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-180 902.2,-205.2 1287.2,-205.2 1287.2,-180 902.2,-180"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-190.3" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-190.3" font-family="Microsoft YaHei" font-size="11.00"> file_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-154.8 902.2,-180 1287.2,-180 1287.2,-154.8 902.2,-154.8"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-163" font-family="Microsoft YaHei" font-size="11.00">　 sort_order : INTEGER</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-129.6 902.2,-154.8 1287.2,-154.8 1287.2,-129.6 902.2,-129.6"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-137.8" font-family="Microsoft YaHei" font-size="11.00">　 purpose : VARCHAR(80) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-104.4 902.2,-129.6 1287.2,-129.6 1287.2,-104.4 902.2,-104.4"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-114.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="923.48" y="-114.7" font-family="Microsoft YaHei" font-size="11.00"> added_by : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="902.2,-79.2 902.2,-104.4 1287.2,-104.4 1287.2,-79.2 902.2,-79.2"/>
-<text xml:space="preserve" text-anchor="start" x="908.2" y="-87.4" font-family="Microsoft YaHei" font-size="11.00">　 added_at : TIMESTAMP</text>
+<polygon fill="none" stroke="#237467" points="1171.11,-587.8 1171.11,-828.2 1593.11,-828.2 1593.11,-587.8 1171.11,-587.8"/>
+<polygon fill="#237467" stroke="none" points="1172.11,-789.2 1172.11,-827.2 1592.11,-827.2 1592.11,-789.2 1172.11,-789.2"/>
+<text xml:space="preserve" text-anchor="start" x="1337.36" y="-809.6" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">revision_files</text>
+<text xml:space="preserve" text-anchor="start" x="1352.1" y="-797.4" font-family="Arial" font-size="12.00" fill="white">版本附件关系</text>
+<polygon fill="#e8eff5" stroke="none" points="1172.11,-764 1172.11,-789.2 1331.01,-789.2 1331.01,-764 1172.11,-764"/>
+<text xml:space="preserve" text-anchor="start" x="1244.89" y="-772.6" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-764 1331.01,-789.2 1592.11,-789.2 1592.11,-764 1331.01,-764"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-772.2" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-738.8 1172.11,-764 1331.01,-764 1331.01,-738.8 1172.11,-738.8"/>
+<text xml:space="preserve" text-anchor="start" x="1245.17" y="-747.4" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-738.8 1331.01,-764 1592.11,-764 1592.11,-738.8 1331.01,-738.8"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-747" font-family="Arial" font-size="11.00">revision_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-713.6 1172.11,-738.8 1331.01,-738.8 1331.01,-713.6 1172.11,-713.6"/>
+<text xml:space="preserve" text-anchor="start" x="1245.17" y="-722.2" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-713.6 1331.01,-738.8 1592.11,-738.8 1592.11,-713.6 1331.01,-713.6"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-721.8" font-family="Arial" font-size="11.00">file_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-688.4 1172.11,-713.6 1331.01,-713.6 1331.01,-688.4 1172.11,-688.4"/>
+<text xml:space="preserve" text-anchor="start" x="1250.17" y="-697" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-688.4 1331.01,-713.6 1592.11,-713.6 1592.11,-688.4 1331.01,-688.4"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-696.6" font-family="Arial" font-size="11.00">sort_order : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-663.2 1172.11,-688.4 1331.01,-688.4 1331.01,-663.2 1172.11,-663.2"/>
+<text xml:space="preserve" text-anchor="start" x="1250.17" y="-671.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-663.2 1331.01,-688.4 1592.11,-688.4 1592.11,-663.2 1331.01,-663.2"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-671.4" font-family="Arial" font-size="11.00">purpose : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-638 1172.11,-663.2 1331.01,-663.2 1331.01,-638 1172.11,-638"/>
+<text xml:space="preserve" text-anchor="start" x="1245.17" y="-646.6" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-638 1331.01,-663.2 1592.11,-663.2 1592.11,-638 1331.01,-638"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-646.2" font-family="Arial" font-size="11.00">added_by : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-612.8 1172.11,-638 1331.01,-638 1331.01,-612.8 1172.11,-612.8"/>
+<text xml:space="preserve" text-anchor="start" x="1250.17" y="-621.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1331.01,-612.8 1331.01,-638 1592.11,-638 1592.11,-612.8 1331.01,-612.8"/>
+<text xml:space="preserve" text-anchor="start" x="1337.01" y="-621" font-family="Arial" font-size="11.00">added_at : VARCHAR</text>
+<polygon fill="#edf3f7" stroke="none" points="1172.11,-588.8 1172.11,-612.8 1592.11,-612.8 1592.11,-588.8 1172.11,-588.8"/>
+<text xml:space="preserve" text-anchor="start" x="1178.11" y="-596.8" font-family="Arial" font-size="10.00" fill="#526b7d">UQ (revision_id, file_id)</text>
 </g>
 <!-- evidence_crops -->
-<g id="node11" class="node">
+<g id="node12" class="node">
 <title>evidence_crops</title>
-<polygon fill="none" stroke="#237260" points="1399.86,0 1399.86,-391.8 1786.86,-391.8 1786.86,0 1399.86,0"/>
-<polygon fill="#237260" stroke="none" points="1400.86,-353.8 1400.86,-390.8 1785.86,-390.8 1785.86,-353.8 1400.86,-353.8"/>
-<text xml:space="preserve" text-anchor="start" x="1551.12" y="-374.1" font-family="Microsoft YaHei" font-weight="bold" font-size="13.00" fill="white">evidence_crops</text>
-<text xml:space="preserve" text-anchor="start" x="1548.36" y="-362" font-family="Microsoft YaHei" font-size="12.00" fill="white">关键证据与公示脱敏版</text>
-<polygon fill="#eaf0f5" stroke="none" points="1400.86,-328.6 1400.86,-353.8 1785.86,-353.8 1785.86,-328.6 1400.86,-328.6"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-338.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">PK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-338.9" font-family="Microsoft YaHei" font-size="11.00"> id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-303.4 1400.86,-328.6 1785.86,-328.6 1785.86,-303.4 1400.86,-303.4"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-313.7" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-313.7" font-family="Microsoft YaHei" font-size="11.00"> revision_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-278.2 1400.86,-303.4 1785.86,-303.4 1785.86,-278.2 1400.86,-278.2"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-288.5" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-288.5" font-family="Microsoft YaHei" font-size="11.00"> page_id : UUID</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-253 1400.86,-278.2 1785.86,-278.2 1785.86,-253 1400.86,-253"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-261.2" font-family="Microsoft YaHei" font-size="11.00">　 evidence_type : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-227.8 1400.86,-253 1785.86,-253 1785.86,-227.8 1400.86,-227.8"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-236" font-family="Microsoft YaHei" font-size="11.00">　 source : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-202.6 1400.86,-227.8 1785.86,-227.8 1785.86,-202.6 1400.86,-202.6"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-212.9" font-family="Microsoft YaHei" font-weight="bold" font-size="11.00">FK</text>
-<text xml:space="preserve" text-anchor="start" x="1422.13" y="-212.9" font-family="Microsoft YaHei" font-size="11.00"> recognition_region_id : UUID ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-177.4 1400.86,-202.6 1785.86,-202.6 1785.86,-177.4 1400.86,-177.4"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-185.6" font-family="Microsoft YaHei" font-size="11.00">　 polygon_json : JSON</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-152.2 1400.86,-177.4 1785.86,-177.4 1785.86,-152.2 1400.86,-152.2"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-160.4" font-family="Microsoft YaHei" font-size="11.00">　 private_asset_uri : TEXT</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-127 1400.86,-152.2 1785.86,-152.2 1785.86,-127 1400.86,-127"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-135.2" font-family="Microsoft YaHei" font-size="11.00">　 source_hash : CHAR(64)</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-101.8 1400.86,-127 1785.86,-127 1785.86,-101.8 1400.86,-101.8"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-110" font-family="Microsoft YaHei" font-size="11.00">　 redaction_version : VARCHAR(40) ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-76.6 1400.86,-101.8 1785.86,-101.8 1785.86,-76.6 1400.86,-76.6"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-84.8" font-family="Microsoft YaHei" font-size="11.00">　 masks_json : JSON ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-51.4 1400.86,-76.6 1785.86,-76.6 1785.86,-51.4 1400.86,-51.4"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-59.6" font-family="Microsoft YaHei" font-size="11.00">　 public_asset_uri : TEXT ?</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-26.2 1400.86,-51.4 1785.86,-51.4 1785.86,-26.2 1400.86,-26.2"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-34.4" font-family="Microsoft YaHei" font-size="11.00">　 public_asset_status : ENUM</text>
-<polygon fill="#f8fafc" stroke="none" points="1400.86,-1 1400.86,-26.2 1785.86,-26.2 1785.86,-1 1400.86,-1"/>
-<text xml:space="preserve" text-anchor="start" x="1406.86" y="-9.2" font-family="Microsoft YaHei" font-size="11.00">　 sort_order : INTEGER</text>
+<polygon fill="none" stroke="#237467" points="2908.6,-62.6 2908.6,-455.4 3330.6,-455.4 3330.6,-62.6 2908.6,-62.6"/>
+<polygon fill="#237467" stroke="none" points="2909.6,-416.4 2909.6,-454.4 3329.6,-454.4 3329.6,-416.4 2909.6,-416.4"/>
+<text xml:space="preserve" text-anchor="start" x="3066.69" y="-436.8" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">evidence_crops</text>
+<text xml:space="preserve" text-anchor="start" x="3069.59" y="-424.6" font-family="Arial" font-size="12.00" fill="white">关键证据与公示脱敏版</text>
+<polygon fill="#e8eff5" stroke="none" points="2909.6,-391.2 2909.6,-416.4 3037.62,-416.4 3037.62,-391.2 2909.6,-391.2"/>
+<text xml:space="preserve" text-anchor="start" x="2966.94" y="-399.8" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-391.2 3037.62,-416.4 3329.6,-416.4 3329.6,-391.2 3037.62,-391.2"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-399.4" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-366 2909.6,-391.2 3037.62,-391.2 3037.62,-366 2909.6,-366"/>
+<text xml:space="preserve" text-anchor="start" x="2967.22" y="-374.6" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-366 3037.62,-391.2 3329.6,-391.2 3329.6,-366 3037.62,-366"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-374.2" font-family="Arial" font-size="11.00">revision_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-340.8 2909.6,-366 3037.62,-366 3037.62,-340.8 2909.6,-340.8"/>
+<text xml:space="preserve" text-anchor="start" x="2967.22" y="-349.4" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-340.8 3037.62,-366 3329.6,-366 3329.6,-340.8 3037.62,-340.8"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-349" font-family="Arial" font-size="11.00">page_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-315.6 2909.6,-340.8 3037.62,-340.8 3037.62,-315.6 2909.6,-315.6"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-324.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-315.6 3037.62,-340.8 3329.6,-340.8 3329.6,-315.6 3037.62,-315.6"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-323.8" font-family="Arial" font-size="11.00">evidence_type : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-290.4 2909.6,-315.6 3037.62,-315.6 3037.62,-290.4 2909.6,-290.4"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-299" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-290.4 3037.62,-315.6 3329.6,-315.6 3329.6,-290.4 3037.62,-290.4"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-298.6" font-family="Arial" font-size="11.00">source : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-265.2 2909.6,-290.4 3037.62,-290.4 3037.62,-265.2 2909.6,-265.2"/>
+<text xml:space="preserve" text-anchor="start" x="2967.22" y="-273.8" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-265.2 3037.62,-290.4 3329.6,-290.4 3329.6,-265.2 3037.62,-265.2"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-273.4" font-family="Arial" font-size="11.00">recognition_region_id : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-240 2909.6,-265.2 3037.62,-265.2 3037.62,-240 2909.6,-240"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-248.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-240 3037.62,-265.2 3329.6,-265.2 3329.6,-240 3037.62,-240"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-248.2" font-family="Arial" font-size="11.00">polygon_json : JSON</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-214.8 2909.6,-240 3037.62,-240 3037.62,-214.8 2909.6,-214.8"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-223.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-214.8 3037.62,-240 3329.6,-240 3329.6,-214.8 3037.62,-214.8"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-223" font-family="Arial" font-size="11.00">private_asset_uri : TEXT</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-189.6 2909.6,-214.8 3037.62,-214.8 3037.62,-189.6 2909.6,-189.6"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-198.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-189.6 3037.62,-214.8 3329.6,-214.8 3329.6,-189.6 3037.62,-189.6"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-197.8" font-family="Arial" font-size="11.00">source_hash : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-164.4 2909.6,-189.6 3037.62,-189.6 3037.62,-164.4 2909.6,-164.4"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-173" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-164.4 3037.62,-189.6 3329.6,-189.6 3329.6,-164.4 3037.62,-164.4"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-172.6" font-family="Arial" font-size="11.00">redaction_version : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-139.2 2909.6,-164.4 3037.62,-164.4 3037.62,-139.2 2909.6,-139.2"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-147.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-139.2 3037.62,-164.4 3329.6,-164.4 3329.6,-139.2 3037.62,-139.2"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-147.4" font-family="Arial" font-size="11.00">masks_json : JSON ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-114 2909.6,-139.2 3037.62,-139.2 3037.62,-114 2909.6,-114"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-122.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-114 3037.62,-139.2 3329.6,-139.2 3329.6,-114 3037.62,-114"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-122.2" font-family="Arial" font-size="11.00">public_asset_uri : TEXT ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-88.8 2909.6,-114 3037.62,-114 3037.62,-88.8 2909.6,-88.8"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-97.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-88.8 3037.62,-114 3329.6,-114 3329.6,-88.8 3037.62,-88.8"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-97" font-family="Arial" font-size="11.00">public_asset_status : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="2909.6,-63.6 2909.6,-88.8 3037.62,-88.8 3037.62,-63.6 2909.6,-63.6"/>
+<text xml:space="preserve" text-anchor="start" x="2972.22" y="-72.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="3037.62,-63.6 3037.62,-88.8 3329.6,-88.8 3329.6,-63.6 3037.62,-63.6"/>
+<text xml:space="preserve" text-anchor="start" x="3043.62" y="-71.8" font-family="Arial" font-size="11.00">sort_order : INTEGER</text>
+</g>
+<!-- score_rule_versions -->
+<g id="node13" class="node">
+<title>score_rule_versions</title>
+<polygon fill="none" stroke="#697d8e" points="565.28,-1069.4 565.28,-1134.6 987.28,-1134.6 987.28,-1069.4 565.28,-1069.4"/>
+<polygon fill="#697d8e" stroke="none" points="566.28,-1095.6 566.28,-1133.6 986.28,-1133.6 986.28,-1095.6 566.28,-1095.6"/>
+<text xml:space="preserve" text-anchor="start" x="708.18" y="-1116" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">score_rule_versions</text>
+<text xml:space="preserve" text-anchor="start" x="726.27" y="-1103.8" font-family="Arial" font-size="12.00" fill="white">评分规则版本（引用）</text>
+<polygon fill="#e8eff5" stroke="none" points="566.28,-1070.4 566.28,-1095.6 747.19,-1095.6 747.19,-1070.4 566.28,-1070.4"/>
+<text xml:space="preserve" text-anchor="start" x="650.06" y="-1079" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="747.19,-1070.4 747.19,-1095.6 986.28,-1095.6 986.28,-1070.4 747.19,-1070.4"/>
+<text xml:space="preserve" text-anchor="start" x="753.19" y="-1078.6" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+</g>
+<!-- background_jobs -->
+<g id="node14" class="node">
+<title>background_jobs</title>
+<polygon fill="none" stroke="#237467" points="1171.11,-1357.6 1171.11,-1876.4 1593.11,-1876.4 1593.11,-1357.6 1171.11,-1357.6"/>
+<polygon fill="#237467" stroke="none" points="1172.11,-1837.4 1172.11,-1875.4 1592.11,-1875.4 1592.11,-1837.4 1172.11,-1837.4"/>
+<text xml:space="preserve" text-anchor="start" x="1323.77" y="-1857.8" font-family="Arial" font-weight="bold" font-size="14.00" fill="white">background_jobs</text>
+<text xml:space="preserve" text-anchor="start" x="1341.43" y="-1845.6" font-family="Arial" font-size="12.00" fill="white">后台OCR/AI任务</text>
+<polygon fill="#e8eff5" stroke="none" points="1172.11,-1812.2 1172.11,-1837.4 1316.02,-1837.4 1316.02,-1812.2 1172.11,-1812.2"/>
+<text xml:space="preserve" text-anchor="start" x="1237.4" y="-1820.8" font-family="Arial" font-size="10.00" fill="#536a7c">PK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1812.2 1316.02,-1837.4 1592.11,-1837.4 1592.11,-1812.2 1316.02,-1812.2"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1820.4" font-family="Arial" font-size="11.00">id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1787 1172.11,-1812.2 1316.02,-1812.2 1316.02,-1787 1172.11,-1787"/>
+<text xml:space="preserve" text-anchor="start" x="1237.68" y="-1795.6" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1787 1316.02,-1812.2 1592.11,-1812.2 1592.11,-1787 1316.02,-1787"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1795.2" font-family="Arial" font-size="11.00">application_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1761.8 1172.11,-1787 1316.02,-1787 1316.02,-1761.8 1172.11,-1761.8"/>
+<text xml:space="preserve" text-anchor="start" x="1237.68" y="-1770.4" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1761.8 1316.02,-1787 1592.11,-1787 1592.11,-1761.8 1316.02,-1761.8"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1770" font-family="Arial" font-size="11.00">owner_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1736.6 1172.11,-1761.8 1316.02,-1761.8 1316.02,-1736.6 1172.11,-1736.6"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1745.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1736.6 1316.02,-1761.8 1592.11,-1761.8 1592.11,-1736.6 1316.02,-1736.6"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1744.8" font-family="Arial" font-size="11.00">kind : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1711.4 1172.11,-1736.6 1316.02,-1736.6 1316.02,-1711.4 1172.11,-1711.4"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1720" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1711.4 1316.02,-1736.6 1592.11,-1736.6 1592.11,-1711.4 1316.02,-1711.4"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1719.6" font-family="Arial" font-size="11.00">state : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1686.2 1172.11,-1711.4 1316.02,-1711.4 1316.02,-1686.2 1172.11,-1686.2"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1694.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1686.2 1316.02,-1711.4 1592.11,-1711.4 1592.11,-1686.2 1316.02,-1686.2"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1694.4" font-family="Arial" font-size="11.00">stage : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1661 1172.11,-1686.2 1316.02,-1686.2 1316.02,-1661 1172.11,-1661"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1669.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1661 1316.02,-1686.2 1592.11,-1686.2 1592.11,-1661 1316.02,-1661"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1669.2" font-family="Arial" font-size="11.00">progress : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1635.8 1172.11,-1661 1316.02,-1661 1316.02,-1635.8 1172.11,-1635.8"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1644.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1635.8 1316.02,-1661 1592.11,-1661 1592.11,-1635.8 1316.02,-1635.8"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1644" font-family="Arial" font-size="11.00">total : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1610.6 1172.11,-1635.8 1316.02,-1635.8 1316.02,-1610.6 1172.11,-1610.6"/>
+<text xml:space="preserve" text-anchor="start" x="1237.68" y="-1619.2" font-family="Arial" font-size="10.00" fill="#285c84">FK</text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1610.6 1316.02,-1635.8 1592.11,-1635.8 1592.11,-1610.6 1316.02,-1610.6"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1618.8" font-family="Arial" font-size="11.00">input_revision_id : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1585.4 1172.11,-1610.6 1316.02,-1610.6 1316.02,-1585.4 1172.11,-1585.4"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1594" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1585.4 1316.02,-1610.6 1592.11,-1610.6 1592.11,-1585.4 1316.02,-1585.4"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1593.6" font-family="Arial" font-size="11.00">input_fingerprint : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1560.2 1172.11,-1585.4 1316.02,-1585.4 1316.02,-1560.2 1172.11,-1560.2"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1568.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1560.2 1316.02,-1585.4 1592.11,-1585.4 1592.11,-1560.2 1316.02,-1560.2"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1568.4" font-family="Arial" font-size="11.00">result_json : JSON</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1535 1172.11,-1560.2 1316.02,-1560.2 1316.02,-1535 1172.11,-1535"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1543.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1535 1316.02,-1560.2 1592.11,-1560.2 1592.11,-1535 1316.02,-1535"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1543.2" font-family="Arial" font-size="11.00">error_message : TEXT ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1509.8 1172.11,-1535 1316.02,-1535 1316.02,-1509.8 1172.11,-1509.8"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1518.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1509.8 1316.02,-1535 1592.11,-1535 1592.11,-1509.8 1316.02,-1509.8"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1518" font-family="Arial" font-size="11.00">force : BOOLEAN</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1484.6 1172.11,-1509.8 1316.02,-1509.8 1316.02,-1484.6 1172.11,-1484.6"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1493.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1484.6 1316.02,-1509.8 1592.11,-1509.8 1592.11,-1484.6 1316.02,-1484.6"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1492.8" font-family="Arial" font-size="11.00">attempts : INTEGER</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1459.4 1172.11,-1484.6 1316.02,-1484.6 1316.02,-1459.4 1172.11,-1459.4"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1468" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1459.4 1316.02,-1484.6 1592.11,-1484.6 1592.11,-1459.4 1316.02,-1459.4"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1467.6" font-family="Arial" font-size="11.00">worker_token : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1434.2 1172.11,-1459.4 1316.02,-1459.4 1316.02,-1434.2 1172.11,-1434.2"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1442.8" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1434.2 1316.02,-1459.4 1592.11,-1459.4 1592.11,-1434.2 1316.02,-1434.2"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1442.4" font-family="Arial" font-size="11.00">heartbeat_at : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1409 1172.11,-1434.2 1316.02,-1434.2 1316.02,-1409 1172.11,-1409"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1417.6" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1409 1316.02,-1434.2 1592.11,-1434.2 1592.11,-1409 1316.02,-1409"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1417.2" font-family="Arial" font-size="11.00">created_at : VARCHAR</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1383.8 1172.11,-1409 1316.02,-1409 1316.02,-1383.8 1172.11,-1383.8"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1392.4" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1383.8 1316.02,-1409 1592.11,-1409 1592.11,-1383.8 1316.02,-1383.8"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1392" font-family="Arial" font-size="11.00">started_at : VARCHAR ?</text>
+<polygon fill="#f7f9fb" stroke="none" points="1172.11,-1358.6 1172.11,-1383.8 1316.02,-1383.8 1316.02,-1358.6 1172.11,-1358.6"/>
+<text xml:space="preserve" text-anchor="start" x="1242.68" y="-1367.2" font-family="Arial" font-size="10.00" fill="#536a7c"> </text>
+<polygon fill="#f7f9fb" stroke="none" points="1316.02,-1358.6 1316.02,-1383.8 1592.11,-1383.8 1592.11,-1358.6 1316.02,-1358.6"/>
+<text xml:space="preserve" text-anchor="start" x="1322.02" y="-1366.8" font-family="Arial" font-size="11.00">finished_at : VARCHAR ?</text>
 </g>
 </g>
-</g></svg>
+</g><text x="28" y="2073" font-size="12" fill="#62798a">本图按外键所在子表分组，展示 21 条实际外键；跨组父表只显示主键。</text></svg>

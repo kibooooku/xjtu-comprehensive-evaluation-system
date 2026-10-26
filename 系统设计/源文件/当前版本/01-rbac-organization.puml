@@ -1,0 +1,92 @@
+@startuml
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+hide empty members
+title UML：RBAC 与班级学年组织
+class "User 用户" as User <<entity>> {
+  - id: UUID
+  - username / displayName: String
+  - baseIdentity: IdentityKind
+  - status: ACTIVE | DISABLED | DELETED
+}
+class "StudentProfile 学生档案" as StudentProfile <<entity>> {
+  - id / userId: UUID
+  - studentNumber: String
+  - profileStatus: ProfileStatus
+}
+class "TeachingClass 教学班" as TeachingClass <<entity>> {
+  - id: UUID
+  - code / name: String
+  - status: ACTIVE | SETUP
+}
+class "AcademicYear 学年" as AcademicYear <<entity>> {
+  - id: UUID
+  - code / name: String
+  - isSelectable: Boolean
+}
+class "ClassYear 班级学年" as ClassYear <<entity>> {
+  - id: UUID
+  - classId / academicYearId: UUID
+  - scoreRuleVersionId: UUID
+  - lockVersion: Integer
+}
+class "Enrollment 学生学年归属" as Enrollment <<entity>> {
+  - id: UUID
+  - studentId / classYearId: UUID
+  - status / recordedAt
+}
+class "Role 角色" as Role <<entity>> {
+  - id / code: String
+  - allowedIdentity: IdentityKind
+  - scopeKind: GLOBAL | CLASS
+}
+class "Permission 资源操作" as Permission <<entity>> {
+  - id / code: String
+  - module / action: String
+}
+class "RolePermission 权限矩阵" as RolePermission <<entity>> {
+  - roleId / permissionId: UUID
+  - isAllowed: Boolean
+  - dataScope: DataScope
+}
+class "RoleAssignment 角色授权" as RoleAssignment <<entity>> {
+  - userId / roleId: UUID
+  - classId: UUID?
+  - validFrom / validTo
+  - status: GrantStatus
+}
+class "CounselorClassAssignment 带班关系" as CounselorClassAssignment <<entity>> {
+  - counselorId / classId: UUID
+  - validFrom / validTo
+  - status: GrantStatus
+}
+class "AuthorizationService 授权服务" as AuthorizationService <<service>> {
+  - mandatoryIdentityRules
+  - scopeIntersectionRules
+  + active_grants(user)
+  + allowed(permission, class, owner)
+  + require(permission, class, owner)
+}
+class "UserAdministrationService 学生账号管理" as UserAdministrationService <<service>> {
+  + delete_student_account(target_id, actor)
+  + backup / archive_usage / preserve_audit
+}
+User "1" -- "0..1" StudentProfile : 学生专属档案
+StudentProfile "1" -- "0..*" Enrollment : 按学年归属
+ClassYear "1" -- "0..*" Enrollment : 班级成员
+TeachingClass "1" -- "0..*" ClassYear : 每学年一条
+AcademicYear "1" -- "0..*" ClassYear : 组织学年
+User "1" -- "0..*" RoleAssignment : 获得授权
+Role "1" -- "0..*" RoleAssignment : 授权角色
+TeachingClass "0..1" -- "0..*" RoleAssignment : 班长 / 审查员范围
+Role "1" -- "0..*" RolePermission : 矩阵配置
+Permission "1" -- "0..*" RolePermission : 资源 × 操作
+User "1" -- "0..*" CounselorClassAssignment : 辅导员带班
+TeachingClass "1" -- "0..*" CounselorClassAssignment : 所带班级
+AuthorizationService "" ..> "" RoleAssignment : 有效授权
+AuthorizationService "" ..> "" RolePermission : 逐条求交后合并
+AuthorizationService "" ..> "" Enrollment : 本人及本班范围
+AuthorizationService "" ..> "" CounselorClassAssignment : 辅导员带班范围
+UserAdministrationService "" ..> "" User : 管理员管理学生账号
+UserAdministrationService "" ..> "" AuthorizationService : 权限与班级职务约束
+@enduml

@@ -4,2780 +4,4078 @@
       "id": "users",
       "name": "用户",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "username",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_users_username"
+          ],
           "note": "登录名"
         },
         {
           "name": "password_hash",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "密码哈希，不存明文"
         },
         {
           "name": "display_name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "真实姓名/展示姓名"
         },
         {
           "name": "base_identity",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "STUDENT / COUNSELOR / ADMIN，三者互斥"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "ACTIVE / DISABLED"
+          "unique": false,
+          "unique_groups": [],
+          "note": "ACTIVE / DISABLED / DELETED；DELETED为无登录能力的匿名审计占位"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建时间"
         },
         {
           "name": "last_login_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近登录时间"
         }
       ],
       "constraints": [
-        "UNIQUE(username)；停用代替物理删除。",
-        "基础身份是硬约束，角色权限矩阵不得使管理员获得材料读取或业务审核权限。"
+        "UNIQUE(username)"
       ]
     },
     {
       "id": "student_profiles",
       "name": "学生档案",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "user_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_student_profiles_user_id"
+          ],
           "note": "学生对应用户"
         },
         {
           "name": "student_number",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_student_profiles_student_number"
+          ],
           "note": "学号，普通同学界面及公示必须脱敏"
         },
         {
           "name": "admission_year",
-          "type": "SMALLINT",
+          "type": "INTEGER",
+          "logical_type": "SMALLINT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "入学年份"
         },
         {
           "name": "profile_status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / INACTIVE"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "建立时间"
         },
         {
           "name": "updated_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "档案最近维护时间"
         }
       ],
       "constraints": [
-        "UNIQUE(user_id)；UNIQUE(student_number)。",
-        "user_id 对应 users.base_identity 必须为 STUDENT。"
+        "UNIQUE(student_number)",
+        "UNIQUE(user_id)"
       ]
     },
     {
       "id": "classes",
       "name": "班级",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "code",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_classes_code"
+          ],
           "note": "稳定班级代码"
         },
         {
           "name": "name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "如软件2401"
         },
         {
           "name": "program_name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "专业名称"
         },
         {
           "name": "cohort_year",
-          "type": "SMALLINT",
+          "type": "INTEGER",
+          "logical_type": "SMALLINT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "年级"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / ARCHIVED"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建时间"
         }
       ],
       "constraints": [
-        "UNIQUE(code)。",
-        "归档班级保留既有学年、授权与审核历史。"
+        "UNIQUE(code)"
       ]
     },
     {
       "id": "academic_years",
       "name": "学年",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "code",
-          "type": "VARCHAR(20)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(20)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_academic_years_code"
+          ],
           "note": "如2025-2026"
         },
         {
           "name": "name",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "展示学年"
         },
         {
           "name": "sort_order",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "展示排序"
         },
         {
           "name": "is_selectable",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "是否出现在填报学年选项"
+          "unique": false,
+          "unique_groups": [],
+          "note": "是否允许作为统计学年配置；学生当前填报学年由管理员指定。"
         },
         {
           "name": "reference_start",
-          "type": "DATE",
+          "type": "VARCHAR",
+          "logical_type": "DATE",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "仅供人工参考，不作活动日期强制判断"
         },
         {
           "name": "reference_end",
-          "type": "DATE",
+          "type": "VARCHAR",
+          "logical_type": "DATE",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "仅供人工参考，不作活动日期强制判断"
         }
       ],
       "constraints": [
-        "UNIQUE(code)。",
-        "学年由学生选择；reference_start/reference_end 不能用作自动拒绝条件。"
+        "UNIQUE(code)"
       ]
     },
     {
       "id": "class_years",
       "name": "班级学年",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "class_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "classes.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_class_years_class_id_academic_year_id"
+          ],
           "note": "所属班级"
         },
         {
           "name": "academic_year_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "academic_years.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_class_years_class_id_academic_year_id"
+          ],
           "note": "所属学年"
         },
         {
           "name": "score_rule_version_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "score_rule_versions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本班本学年统一使用的评分规则版本"
         },
         {
           "name": "lock_version",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "公示开启/提交竞争的乐观锁版本"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "建立时间"
         },
         {
           "name": "updated_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近事务更新时间"
         }
       ],
       "constraints": [
-        "UNIQUE(class_id, academic_year_id)。",
-        "本表不独立存公示开关；UML ClassYear.publicityState为class_publicity.is_open的一对一读取投影，唯一持久化真源在class_publicity。",
-        "公示开启检查、正式提交、重提与竞赛替代使用本记录作为同一事务边界。",
-        "本学年开始实际业务后，不自动迁移评分规则版本；变更需另行设计迁移策略。"
+        "UNIQUE(class_id,academic_year_id)"
       ]
     },
     {
       "id": "enrollments",
       "name": "学生班级学年归属",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "student_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "student_profiles.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_enrollments_student_id_class_year_id"
+          ],
           "note": "学生档案"
         },
         {
           "name": "class_year_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "class_years.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_enrollments_student_id_class_year_id"
+          ],
           "note": "班级及学年"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / HISTORICAL"
         },
         {
           "name": "recorded_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "绑定时间"
         },
         {
           "name": "ended_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "结束时间，仅表示组织关系"
         },
         {
           "name": "managed_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "执行绑定的管理员"
         }
       ],
       "constraints": [
-        "UNIQUE(student_id, class_year_id)。",
-        "通过 class_years 关联检查：同一学生同一学年至多一个有效班级归属；不能仅以不同 class_year_id 放行。",
-        "本设计不新增转班业务；历史申请始终绑定提交所属 enrollment。"
+        "UNIQUE(student_id,class_year_id)"
       ]
     },
     {
       "id": "roles",
       "name": "角色",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "code",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_roles_code"
+          ],
           "note": "STUDENT / MONITOR / REVIEWER / COUNSELOR / ADMIN"
         },
         {
           "name": "name",
-          "type": "VARCHAR(60)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(60)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "角色名称"
         },
         {
           "name": "allowed_identity",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "允许绑定的基础身份"
         },
         {
           "name": "scope_kind",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "GLOBAL / CLASS"
         },
         {
           "name": "is_system",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "预置业务角色不可随意删除"
         },
         {
           "name": "description",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "角色说明"
         }
       ],
       "constraints": [
-        "UNIQUE(code)。",
-        "班长、审查员只允许 STUDENT；COUNSELOR、ADMIN 分别受基础身份约束。"
+        "UNIQUE(code)"
       ]
     },
     {
       "id": "permissions",
       "name": "权限项",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "code",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_permissions_code"
+          ],
           "note": "稳定权限代码"
         },
         {
           "name": "name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "权限名称"
         },
         {
           "name": "module",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "功能模块"
         },
         {
           "name": "action",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "READ / CREATE / REVIEW / EXPORT / MANAGE 等"
         },
         {
           "name": "boundary_note",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "所有者、班级、公示或硬拒绝约束"
         },
         {
           "name": "is_system",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "预置权限"
         }
       ],
       "constraints": [
-        "UNIQUE(code)。",
-        "权限授予仅通过角色矩阵生效；仍必须叠加对象范围及业务状态检查。"
+        "UNIQUE(code)"
       ]
     },
     {
       "id": "role_permissions",
       "name": "角色权限矩阵",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "role_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "roles.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_role_permissions_role_id_permission_id"
+          ],
           "note": "角色"
         },
         {
           "name": "permission_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "permissions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_role_permissions_role_id_permission_id"
+          ],
           "note": "权限"
         },
         {
           "name": "data_scope",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "OWN / CLASS / LED_CLASSES / CLASS_PUBLIC / SYSTEM_METADATA；本条资源操作授权的最大数据范围，须与实际角色范围及强制策略相交"
         },
         {
           "name": "is_allowed",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "矩阵是否授予；无记录视为拒绝"
         },
         {
           "name": "changed_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "矩阵维护者"
         },
         {
           "name": "changed_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "维护时间"
         },
         {
           "name": "note",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "维护说明"
         }
       ],
       "constraints": [
-        "UNIQUE(role_id, permission_id)。",
-        "先计算同一条完整授权的操作权限、data_scope、角色实际班级范围与强制策略交集，再对允许结果求并集；不能混搭不同角色的操作与范围。",
-        "禁止用矩阵覆盖管理员材料禁读、禁止自审、基础身份及公示提交限制。"
+        "UNIQUE(role_id,permission_id)"
       ]
     },
     {
       "id": "role_assignments",
       "name": "用户角色授权",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "user_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "被授权用户"
         },
         {
           "name": "role_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "roles.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "角色"
         },
         {
           "name": "class_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "classes.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "班长/审查员所属班级；全局基础角色为空"
         },
         {
           "name": "granted_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "授权人"
         },
         {
           "name": "valid_from",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "开始生效时间"
         },
         {
           "name": "valid_to",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "撤销/终止时间"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / REVOKED"
         }
       ],
-      "constraints": [
-        "有效授权不可重复：(user_id, role_id, class_id/全局)。",
-        "CLASS 角色必须 class_id 非空，GLOBAL 角色必须为空。",
-        "每个有效班级恰一名班长、至少两名不同学生审查员；任命/撤销在事务结束前校验。",
-        "班级授权与当前学生班级归属必须一致；历史授权保留，审核记录不随撤销消失。"
-      ]
+      "constraints": []
     },
     {
       "id": "counselor_classes",
       "name": "辅导员带班范围",
       "group": "rbac",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "counselor_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "基础身份必须 COUNSELOR"
         },
         {
           "name": "class_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "classes.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "所带班级"
         },
         {
           "name": "assigned_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "绑定管理员"
         },
         {
           "name": "valid_from",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "生效时间"
         },
         {
           "name": "valid_to",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "结束时间"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / REVOKED"
         }
       ],
-      "constraints": [
-        "同一辅导员、班级至多一条有效关系；保留历次关系。",
-        "不强制一班只能有一名辅导员；需求未限制该基数。",
-        "查看、审核、公示、导出同时要求 COUNSELOR 身份和有效带班关系。"
-      ]
+      "constraints": []
     },
     {
       "id": "file_objects",
       "name": "原始证明文件",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "uploaded_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "上传学生"
         },
         {
           "name": "original_name",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "原文件名"
         },
         {
           "name": "mime_type",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "允许PDF/JPG/JPEG/PNG"
         },
         {
           "name": "byte_size",
-          "type": "BIGINT",
+          "type": "INTEGER",
+          "logical_type": "BIGINT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "文件字节数"
         },
         {
           "name": "sha256",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "原始字节摘要，便于查重及缓存"
         },
         {
           "name": "storage_uri",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "后端私有存储引用，不作为公共下载地址"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "上传时间"
         }
       ],
-      "constraints": [
-        "文件对象不可被覆盖；替换材料创建新对象。",
-        "sha256 不全局唯一绑定申请：全班名单、多学生及跨类别使用同一证明均可能合法。",
-        "只有授权对象读取接口可以解析 storage_uri；管理员无材料读取权。"
-      ]
+      "constraints": []
     },
     {
       "id": "file_pages",
       "name": "文件页面",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "file_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_objects.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_file_pages_file_id_page_index"
+          ],
           "note": "来源原文件"
         },
         {
           "name": "page_index",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "统一从0开始；图片为第0页"
+          "unique": false,
+          "unique_groups": [
+            "uq_file_pages_file_id_page_index"
+          ],
+          "note": "当前实现从1开始计页；图片也以第1页表示。"
         },
         {
           "name": "render_version",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "页面渲染策略版本"
         },
         {
           "name": "width_px",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本页面坐标基准宽"
         },
         {
           "name": "height_px",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本页面坐标基准高"
         },
         {
           "name": "rotation_degrees",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "归一化旋转角度"
         },
         {
           "name": "image_uri",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "完整私有页面图"
         },
         {
           "name": "render_sha256",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "页面渲染结果摘要"
         }
       ],
       "constraints": [
-        "UNIQUE(file_id, page_index, render_version)。",
-        "width_px/height_px > 0；原件页索引、OCR坐标及截图均引用这一确切页面版本。"
+        "UNIQUE(file_id,page_index)"
       ]
     },
     {
       "id": "recognition_runs",
-      "name": "OCR识别运行",
+      "name": "文字／印章识别记录",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "page_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_pages.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "识别页面"
         },
         {
           "name": "provider",
-          "type": "VARCHAR(30)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(30)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "首版固定TENCENT"
         },
         {
           "name": "api_name",
-          "type": "VARCHAR(60)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(60)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "GeneralAccurateOCR / SealOCR"
         },
         {
           "name": "parameters_hash",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "参数、页面摘要和接口版本组成的缓存键"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "QUEUED / RUNNING / SUCCEEDED / FAILED / QUOTA_EXHAUSTED / SKIPPED"
         },
         {
           "name": "provider_request_id",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "供应商请求号"
         },
         {
           "name": "result_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "完整识别结果或可审计错误，排除凭据"
         },
         {
           "name": "started_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "发起时间"
         },
         {
           "name": "finished_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "完成时间"
         }
       ],
-      "constraints": [
-        "成功识别结果按(page_id, api_name, parameters_hash)复用；失败重试可保留多个运行。",
-        "一页文字与印章属于两种独立调用；运行记录不能被当作云端剩余额度权威。",
-        "仅免费额度，额度不足/失败可使用手填和手动截图；本表不存API密钥。"
-      ]
+      "constraints": []
     },
     {
       "id": "recognition_regions",
       "name": "识别文字及印章区域",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "run_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "recognition_runs.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "来源识别运行"
         },
         {
           "name": "region_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "运行内区域序号"
         },
         {
           "name": "kind",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "TEXT / SEAL"
         },
         {
           "name": "text",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "识别内容"
         },
         {
           "name": "confidence",
-          "type": "DECIMAL(6,4)",
+          "type": "NUMERIC(6, 4)",
+          "logical_type": "DECIMAL(6,4)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "统一0~1置信度"
         },
         {
           "name": "polygon_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "在file_pages坐标系下的区域顶点"
         },
         {
           "name": "extra_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "供应商补充信息"
         }
       ],
-      "constraints": [
-        "UNIQUE(run_id, region_no)。",
-        "polygon_json 是受模式约束的几何值；不能混入API密钥、文件外链授权参数。"
-      ]
+      "constraints": []
     },
     {
       "id": "ai_analyses",
       "name": "AI建议记录",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "application_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "applications.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "申请"
         },
         {
           "name": "input_revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "开始分析时对应的输入内容修订；与application_id同属一个申请，迟到结果不得自动覆盖已换版或冻结内容"
         },
         {
           "name": "input_fingerprint",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "文件、OCR输入、用户大类及规则版本摘要"
         },
         {
           "name": "score_rule_version_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "score_rule_versions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "建议采用的规则版本"
         },
         {
           "name": "model_name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "实际DeepSeek模型"
         },
         {
           "name": "prompt_version",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "提示模板版本"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "SUCCEEDED / FAILED / SKIPPED"
         },
         {
           "name": "suggested_title",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "建议项目名称"
         },
         {
           "name": "suggested_score",
-          "type": "DECIMAL(6,2)",
+          "type": "NUMERIC(6, 2)",
+          "logical_type": "DECIMAL(6,2)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "AI建议分值"
         },
         {
           "name": "suggested_activity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activities.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "建议匹配的规范活动"
         },
         {
           "name": "result_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "建议细项、候选匹配和错误信息"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "分析时间"
         }
       ],
-      "constraints": [
-        "AI建议不可覆盖学生填写结果；分析失败允许无建议继续业务。",
-        "input_revision_id必须属于application_id；输入指纹须包含该修订的材料、字段和规则版本。分析完成只保存建议，应用建议时仍比较当前工作修订及预期状态版本。",
-        "大类取自学生入口，AI只能建议类别细项；建议记录与内容版本通过ai_analysis_id关联。"
-      ]
+      "constraints": []
     },
     {
       "id": "analysis_inputs",
       "name": "AI识别输入关系",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "analysis_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "ai_analyses.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "AI分析"
         },
         {
           "name": "file_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_objects.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "分析使用的原文件"
         },
         {
           "name": "page_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_pages.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "涉及的具体页面"
         },
         {
           "name": "recognition_run_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "recognition_runs.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "复用的OCR运行"
         },
         {
           "name": "input_kind",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ORIGINAL_METADATA / PAGE / OCR_TEXT / OCR_SEAL"
         },
         {
           "name": "input_hash",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本次使用输入快照的摘要"
         },
         {
           "name": "sort_order",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "输入顺序"
         }
       ],
-      "constraints": [
-        "识别页面必须属于file_id；OCR运行必须属于page_id。",
-        "输入集合引用不可变识别结果，避免复用后来已变更的分析输入。"
-      ]
+      "constraints": []
     },
     {
       "id": "activities",
-      "name": "规范活动",
+      "name": "活动目录",
       "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "canonical_name",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "规范活动名称"
         },
         {
           "name": "normalized_name",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "标准化检索名称"
         },
         {
           "name": "organizer",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "主办单位"
         },
         {
           "name": "description",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "活动说明"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / ARCHIVED"
         },
         {
           "name": "maintained_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "维护辅导员"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建时间"
         },
         {
           "name": "updated_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近维护时间"
         }
       ],
-      "constraints": [
-        "规范ID稳定；名称可修订，历史版本保留提交时名称快照。",
-        "不以活动名称充当竞赛项目唯一键；不硬删除已被申请或资格版本引用的活动。"
-      ]
+      "constraints": []
     },
     {
       "id": "activity_aliases",
       "name": "活动别名",
       "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "activity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activities.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "规范活动"
         },
         {
           "name": "alias",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "原始别名"
         },
         {
           "name": "normalized_alias",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "标准化检索别名"
         },
         {
           "name": "created_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "维护辅导员"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建时间"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / ARCHIVED"
         }
       ],
-      "constraints": [
-        "UNIQUE(activity_id, normalized_alias)。",
-        "不强制normalized_alias全局唯一；同名活动可产生多个候选，交学生核对。"
-      ]
+      "constraints": []
     },
     {
       "id": "activity_eligibility_versions",
       "name": "活动资格认定版本",
       "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "activity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activities.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "规范活动"
         },
         {
           "name": "category_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "score_categories.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "资格适用的申请大类"
         },
         {
           "name": "scope_key",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "届次/赛道/组别/学年范围的规范化签名"
+          "unique": false,
+          "unique_groups": [],
+          "note": "旧届次/赛道/组别范围认定保留；当前表单按活动、大类、学年复用通用认定，冲突交人工。"
         },
         {
           "name": "edition_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "限定届次；空表示不限定"
         },
         {
           "name": "track_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "限定赛道；空表示不限定"
         },
         {
           "name": "group_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "限定组别；空表示不限定"
         },
         {
           "name": "academic_year_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "academic_years.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "限定学年；空表示不限定"
         },
         {
           "name": "version_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "同活动同范围递增版本"
         },
         {
           "name": "decision",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "VALID / INVALID / REMOVED"
         },
         {
           "name": "effective_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "认定生效时间"
         },
         {
           "name": "decided_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "认定辅导员"
         },
         {
           "name": "source_review_decision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "review_decisions.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "由个人审核操作产生时的关联"
         },
         {
           "name": "reason",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "资格认定说明"
         }
       ],
-      "constraints": [
-        "UNIQUE(activity_id, category_id, scope_key, version_no)。",
-        "版本内容不可覆盖；同范围按最新生效版本判定，REMOVED表示移除该范围认定。",
-        "个人材料驳回不能自动生成INVALID；活动有效与个人申请驳回可以同时成立。",
-        "活动改无效仅影响新提交资格；历史通过申请不自动撤销，按引用和范围检索受影响清单。"
-      ]
+      "constraints": []
     },
     {
       "id": "competition_projects",
-      "name": "竞赛项目身份",
+      "name": "竞赛项目（历史兼容）",
       "group": "catalog",
+      "legacy": true,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
-          "note": "稳定主键"
+          "unique": true,
+          "unique_groups": [],
+          "note": "稳定主键",
+          "legacy": true
         },
         {
           "name": "activity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activities.id",
           "nullable": false,
-          "note": "规范赛事"
+          "unique": false,
+          "unique_groups": [],
+          "note": "规范赛事",
+          "legacy": true
         },
         {
           "name": "edition_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "届次"
+          "unique": false,
+          "unique_groups": [],
+          "note": "届次",
+          "legacy": true
         },
         {
           "name": "track_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "赛道，缺省值须与未知区分"
+          "unique": false,
+          "unique_groups": [],
+          "note": "赛道，缺省值须与未知区分",
+          "legacy": true
         },
         {
           "name": "group_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "组别"
+          "unique": false,
+          "unique_groups": [],
+          "note": "组别",
+          "legacy": true
         },
         {
           "name": "work_key",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "作品/参赛项目的确认身份"
+          "unique": false,
+          "unique_groups": [],
+          "note": "作品/参赛项目的确认身份",
+          "legacy": true
         },
         {
           "name": "identity_fingerprint",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "确定身份的标准化摘要；未确定时为空"
+          "unique": false,
+          "unique_groups": [],
+          "note": "确定身份的标准化摘要；未确定时为空",
+          "legacy": true
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "PROVISIONAL / CONFIRMED / ARCHIVED"
+          "unique": false,
+          "unique_groups": [],
+          "note": "PROVISIONAL / CONFIRMED / ARCHIVED",
+          "legacy": true
         },
         {
           "name": "confirmed_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": true,
-          "note": "关联或确认身份的用户"
+          "unique": false,
+          "unique_groups": [],
+          "note": "关联或确认身份的用户",
+          "legacy": true
         },
         {
           "name": "confirmed_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "确认时间"
+          "unique": false,
+          "unique_groups": [],
+          "note": "确认时间",
+          "legacy": true
         }
       ],
-      "constraints": [
-        "确定身份后UNIQUE(identity_fingerprint)。",
-        "不把所有未知届次/作品折叠成同一项目；歧义由学生确认关联并写事件。",
-        "个人去重组=(student_id, academic_year_id, category_id, competition_project_id)，不跨学生或类别互斥。"
-      ]
+      "constraints": []
     },
     {
       "id": "applications",
-      "name": "申请聚合根",
+      "name": "加分小项（稳定申请）",
       "group": "workflow",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "enrollment_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "enrollments.id",
           "nullable": false,
-          "note": "申请人所属班级及所选学年"
+          "unique": false,
+          "unique_groups": [],
+          "note": "申请人的班级学年归属；当前统计学年由管理员指定。"
         },
         {
           "name": "category_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "score_categories.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "学生选择的七类填报入口"
         },
         {
           "name": "working_revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "当前可编辑工作版本；可与当前有效轮次版本不同"
         },
         {
           "name": "current_round_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "submission_rounds.id",
           "nullable": true,
-          "note": "当前生效/最近业务轮次，恢复时可回指旧轮次"
+          "unique": false,
+          "unique_groups": [],
+          "note": "当前生效或最近的审核轮次；当前流程不自动恢复其它竞赛申请。"
         },
         {
           "name": "lock_version",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "申请并发状态版本"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建时间"
         },
         {
           "name": "archived_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "归档时间"
+          "unique": false,
+          "unique_groups": [],
+          "note": "申请归档标记；不代表物理删除。"
         }
       ],
-      "constraints": [
-        "working_revision_id和current_round_id都必须属于本申请。",
-        "application不把草稿与当前有效审核状态混成一个status；审核状态以submission_rounds为准。",
-        "创建时学生选大类；首版没有隐含跨入口迁移操作，类别细项随内容版本修改。"
-      ]
+      "constraints": []
     },
     {
       "id": "application_revisions",
       "name": "申请内容版本",
       "group": "workflow",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "application_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "applications.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_application_revisions_application_id_revision_no"
+          ],
           "note": "所属申请"
         },
         {
           "name": "revision_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_application_revisions_application_id_revision_no"
+          ],
           "note": "申请内递增版本号"
         },
         {
           "name": "title",
-          "type": "VARCHAR(255)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(255)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "学生确认的条目名称"
         },
         {
           "name": "requested_score",
-          "type": "DECIMAL(6,2)",
+          "type": "NUMERIC(6, 2)",
+          "logical_type": "DECIMAL(6,2)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "学生确认的本条申请分值"
         },
         {
           "name": "student_modified_score",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本工作修订分支曾手动编辑计分；改回AI原值也保持true，克隆继承；手填兜底亦标记人工来源，不能按当前数值差异推导"
         },
         {
           "name": "activity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activities.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "学生确认的规范活动"
         },
         {
           "name": "competition_project_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "competition_projects.id",
           "nullable": true,
-          "note": "竞赛项目身份；非竞赛为空"
+          "unique": false,
+          "unique_groups": [],
+          "note": "仅保留旧数据引用；当前填报不自动关联竞赛项目。"
         },
         {
           "name": "ai_analysis_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "ai_analyses.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "本版本采用的AI建议基线；手填可空"
         },
         {
           "name": "payload_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "受类别模式约束的细项事实及名称快照，如次数/工时/任职考核/奖项层级"
+          "unique": false,
+          "unique_groups": [],
+          "note": "统一表单保留note；RESEARCH/ARTS/POST额外保留result_label。仍保存未展示的旧事实、AI计分依据和人工确认标记。"
         },
         {
           "name": "content_frozen_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "第一次正式提交冻结时间；未提交为空"
         },
         {
           "name": "created_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "创建/克隆该内容版本的学生"
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "版本创建时间"
         }
       ],
       "constraints": [
-        "UNIQUE(application_id, revision_no)。",
-        "一经正式提交，内容、文件与截图关系全部冻结；修改克隆新工作版本，不覆盖旧记录。",
-        "student_modified_score表示曾编辑事实，在同一工作修订分支中不得因当前分值恰等于AI建议或迟到分析结果而重置。",
-        "requested_score为非负两位小数；学生修改无需理由，不强制等于AI建议。",
-        "competition_project关联的赛事必须与activity_id一致；派生competition_group_key不得使用活动名称代替项目ID。"
+        "UNIQUE(application_id,revision_no)"
       ]
     },
     {
       "id": "submission_rounds",
       "name": "申请提审轮次",
       "group": "workflow",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "application_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "applications.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_submission_rounds_application_id_round_no"
+          ],
           "note": "申请"
         },
         {
           "name": "revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本轮冻结内容"
         },
         {
           "name": "round_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_submission_rounds_application_id_round_no"
+          ],
           "note": "申请内递增提审轮次"
         },
         {
           "name": "state",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "PENDING_PEER / PENDING_COUNSELOR / APPROVED / REJECTED / WITHDRAWN"
         },
         {
           "name": "eligibility_version_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "activity_eligibility_versions.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "提交/审核路由最终采用的资格版本；未认定可空"
         },
         {
           "name": "competition_group_key",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "同学生+所选学年+类别+项目的派生唯一分组键"
+          "unique": false,
+          "unique_groups": [],
+          "note": "历史兼容字段；当前提交写入NULL，不按项目自动替代或取最高。"
         },
         {
           "name": "is_current_candidate",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "竞赛组当前候选投影；新候选待审也占位"
+          "unique": false,
+          "unique_groups": [],
+          "note": "本申请当前审核候选标志；保留历史字段，不表示当前赛事组自动去重。"
         },
         {
           "name": "lock_version",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "审核/恢复状态版本"
+          "unique": false,
+          "unique_groups": [],
+          "note": "审核轮次乐观锁版本。"
         },
         {
           "name": "submitted_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "正式提交时间"
         },
         {
           "name": "last_event_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_events.id",
           "nullable": true,
-          "note": "最后状态事件ID；逻辑回指，图中省略"
+          "unique": false,
+          "unique_groups": [],
+          "note": "到最近状态事件的真实外键回指，完整关系保留在当前ER模型中。"
         }
       ],
       "constraints": [
-        "UNIQUE(application_id, round_no)；revision必须属于application。",
-        "同competition_group_key最多一个is_current_candidate=true；普通非竞赛轮次不参与此唯一约束。",
-        "状态与当前候选投影只能与相应不可变事件在一个事务更新。",
-        "重提新建轮次；恢复复用原轮次及原审核阶段，不伪造一次新提交。"
+        "UNIQUE(application_id,round_no)"
       ]
     },
     {
       "id": "revision_files",
       "name": "版本附件关系",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_revision_files_revision_id_file_id"
+          ],
           "note": "内容版本"
         },
         {
           "name": "file_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_objects.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_revision_files_revision_id_file_id"
+          ],
           "note": "原始证明文件"
         },
         {
           "name": "sort_order",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "附件展示顺序"
         },
         {
           "name": "purpose",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "本申请中的证明用途"
         },
         {
           "name": "added_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "添加人"
         },
         {
           "name": "added_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "添加时间"
         }
       ],
       "constraints": [
-        "UNIQUE(revision_id, file_id)；正式提交版本至少一份附件。",
-        "提交后关系冻结；一份文件证明多次活动时在同一条目合计，不拆出多条活动申请。",
-        "材料复用不得越过原文件所有者与申请访问范围校验。"
+        "UNIQUE(revision_id,file_id)"
       ]
     },
     {
       "id": "evidence_crops",
       "name": "关键证据与公示脱敏版",
       "group": "evidence",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "所属版本"
         },
         {
           "name": "page_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "file_pages.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "截图来源页面"
         },
         {
           "name": "evidence_type",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "VALIDITY / PARTICIPATION"
         },
         {
           "name": "source",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "OCR / MANUAL"
         },
         {
           "name": "recognition_region_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "recognition_regions.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "来源文字或印章区域"
         },
         {
           "name": "polygon_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "截图在来源页面上的坐标"
         },
         {
           "name": "private_asset_uri",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "审核端完整截图私有引用"
         },
         {
           "name": "source_hash",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本次完整截图摘要"
         },
         {
           "name": "redaction_version",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "脱敏算法/策略版本"
         },
         {
           "name": "masks_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "公示学号遮挡区域及坐标系"
+          "unique": false,
+          "unique_groups": [],
+          "note": "还保存原页红框、PRIMARY/OUTCOME、NAME/TIME/SEAL等元数据与公示脱敏信息。"
         },
         {
           "name": "public_asset_uri",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "与source_hash匹配的脱敏截图引用"
         },
         {
           "name": "public_asset_status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "NOT_READY / READY / FAILED"
         },
         {
           "name": "sort_order",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "同类截图排序"
         }
       ],
-      "constraints": [
-        "两类证据均可多张、跨附件和页面；page所属file必须出现在本revision附件集合。",
-        "提交后完整截图及坐标冻结；脱敏派生物可按同一源摘要重新生成，但必须保留处理版本。",
-        "READY要求public_asset_uri、source_hash、redaction_version匹配；普通同学不得退回读取private_asset_uri。",
-        "本表储存两类证据截图；无效活动认定与截图类型无关。"
-      ]
+      "constraints": []
     },
     {
       "id": "review_decisions",
       "name": "审核决定",
       "group": "workflow",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "round_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "submission_rounds.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "被审核轮次"
         },
         {
           "name": "revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "被审核的确切版本"
         },
         {
           "name": "actor_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_review_decisions_actor_id_idempotency_key"
+          ],
           "note": "实际经办人"
         },
         {
           "name": "role_assignment_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "role_assignments.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "初审采用的历史授权；辅导员可空"
         },
         {
           "name": "stage",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "PEER / COUNSELOR"
         },
         {
           "name": "action",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "APPROVE / REJECT / REVOKE_APPROVAL"
         },
         {
           "name": "rejection_reason",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "缺少有效性/缺少参与证明/类型错误/分值错误/活动无资格/其他；非驳回为空"
         },
         {
           "name": "comment",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "可选备注"
         },
         {
           "name": "actor_name_snapshot",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "当时经办人姓名快照"
         },
         {
           "name": "decided_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "决定时间"
         },
         {
           "name": "idempotency_key",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_review_decisions_actor_id_idempotency_key"
+          ],
           "note": "防重复审核请求键"
         }
       ],
       "constraints": [
-        "UNIQUE(idempotency_key)；revision必须等于round.revision_id。",
-        "每轮最多一个有效初审决定；后续辅导员撤销批准是独立决定，不受初次辅导员决定唯一性阻挡。",
-        "学生初审必须本班、非本人，且决定时角色有效；管理员永不允许审核。",
-        "拒绝或撤销批准必须rejection_reason非空；活动资格变更另存版本，不能仅靠此枚举污染无效库。"
+        "UNIQUE(actor_id,idempotency_key)"
       ]
     },
     {
       "id": "application_events",
       "name": "申请状态与操作事件",
       "group": "workflow",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "application_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "applications.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "申请"
         },
         {
           "name": "round_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "submission_rounds.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "业务轮次；草稿事件可空"
         },
         {
           "name": "revision_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_revisions.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "相关内容版本"
         },
         {
           "name": "event_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "申请内递增序号"
         },
         {
           "name": "event_type",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "DRAFT_SAVED / SUBMITTED / PEER_APPROVED / COUNSELOR_APPROVED / REJECTED / WITHDRAWN / SUPERSEDED / RESTORED / MATCH_CONFIRMED"
         },
         {
           "name": "actor_type",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "USER / SYSTEM；奖项替代与恢复为SYSTEM，不伪装为人工审核；触发用户另在事件因果信息保留"
+          "unique": false,
+          "unique_groups": [],
+          "note": "USER / SYSTEM；标识人工与系统事件，兼容保存已有旧替代事件，不再新建自动竞赛替代或恢复。"
         },
         {
           "name": "actor_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "用户触发；系统派生事件可空"
         },
         {
           "name": "from_state",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "原状态"
         },
         {
           "name": "to_state",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "新状态"
         },
         {
           "name": "detail_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "审核、资格、替代原因及前后状态版本等快照"
+          "unique": false,
+          "unique_groups": [],
+          "note": "审核、资格、操作因果及前后状态快照，兼容旧历史。"
         },
         {
           "name": "occurred_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "事件时间"
         },
         {
           "name": "operation_id",
-          "type": "VARCHAR(100)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(100)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "跨新旧申请的一次原子业务操作标识"
         }
       ],
-      "constraints": [
-        "UNIQUE(application_id, event_no)；事件追加不可更新或删除。",
-        "actor_type=USER时actor_id必填；SYSTEM事件不创建伪人工review_decisions，操作发起人可记录于detail_json。",
-        "一次替代/恢复的新旧申请事件共用operation_id。",
-        "事件与当前轮次/状态投影在同一事务写入；不能只写日志却未改变业务状态。"
-      ]
+      "constraints": []
     },
     {
       "id": "award_supersessions",
-      "name": "奖项替代与恢复关联",
+      "name": "旧奖项替代记录（历史兼容）",
       "group": "workflow",
+      "legacy": true,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
-          "note": "稳定主键"
+          "unique": true,
+          "unique_groups": [],
+          "note": "稳定主键",
+          "legacy": true
         },
         {
           "name": "new_round_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "submission_rounds.id",
           "nullable": false,
-          "note": "发起更高优先级替代的新轮次"
+          "unique": false,
+          "unique_groups": [],
+          "note": "发起更高优先级替代的新轮次",
+          "legacy": true
         },
         {
           "name": "old_round_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "submission_rounds.id",
           "nullable": false,
-          "note": "被替代旧轮次"
+          "unique": false,
+          "unique_groups": [],
+          "note": "被替代旧轮次",
+          "legacy": true
         },
         {
           "name": "competition_group_key",
-          "type": "CHAR(64)",
+          "type": "VARCHAR",
+          "logical_type": "CHAR(64)",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "必须与新旧轮次同组"
+          "unique": false,
+          "unique_groups": [],
+          "note": "必须与新旧轮次同组",
+          "legacy": true
         },
         {
           "name": "old_state",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "替代前状态，含原审核阶段"
+          "unique": false,
+          "unique_groups": [],
+          "note": "替代前状态，含原审核阶段",
+          "legacy": true
         },
         {
           "name": "old_lock_version",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "替代前旧轮次状态版本"
+          "unique": false,
+          "unique_groups": [],
+          "note": "替代前旧轮次状态版本",
+          "legacy": true
         },
         {
           "name": "superseded_event_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_events.id",
           "nullable": false,
-          "note": "旧项因替代驳回的事件"
+          "unique": false,
+          "unique_groups": [],
+          "note": "旧项因替代驳回的事件",
+          "legacy": true
         },
         {
           "name": "restored_event_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "application_events.id",
           "nullable": true,
-          "note": "恢复事件；未恢复为空"
+          "unique": false,
+          "unique_groups": [],
+          "note": "恢复事件；未恢复为空",
+          "legacy": true
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "ACTIVE / RESTORED / INVALIDATED"
+          "unique": false,
+          "unique_groups": [],
+          "note": "ACTIVE / RESTORED / INVALIDATED",
+          "legacy": true
         },
         {
           "name": "comparison_snapshot_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "新旧分值、奖项层级和学生确认关联的依据"
+          "unique": false,
+          "unique_groups": [],
+          "note": "新旧分值、奖项层级和学生确认关联的依据",
+          "legacy": true
         },
         {
           "name": "created_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "替代时间"
+          "unique": false,
+          "unique_groups": [],
+          "note": "替代时间",
+          "legacy": true
         },
         {
           "name": "resolved_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
-          "note": "恢复或失效时间"
+          "unique": false,
+          "unique_groups": [],
+          "note": "恢复或失效时间",
+          "legacy": true
         }
       ],
-      "constraints": [
-        "UNIQUE(new_round_id, old_round_id)；new_round_id不得等于old_round_id。",
-        "新旧轮次必须同学生、学年、类别、项目；优先比较申请可得分，同分再比较奖项层级。",
-        "恢复前验证旧项变化仍只由本次替代造成，不能覆盖独立人工决定或新有效业务。",
-        "替代链按轮次保存并禁止成环；同一旧轮次可在恢复后被另一新轮次再次替代。"
-      ]
+      "constraints": []
     },
     {
       "id": "score_categories",
       "name": "七类评分目录",
       "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "code",
-          "type": "VARCHAR(40)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(40)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "七类稳定代码"
         },
         {
           "name": "name",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "类别名称"
         },
         {
           "name": "default_cap",
-          "type": "DECIMAL(6,2)",
+          "type": "NUMERIC(6, 2)",
+          "logical_type": "DECIMAL(6,2)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "3/3/4/10/6/4/5"
         },
         {
           "name": "aggregation_kind",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "SUM_CAP / COMPETITION_MAX_CAP / APPOINTMENT_MAX_CAP / SERVICE_MIXED_CAP"
+          "unique": false,
+          "unique_groups": [],
+          "note": "当前RESEARCH/ARTS为SUM，POST为MAX；大类封顶及年度志愿子项封顶在统一汇总中实施。"
         },
         {
           "name": "requires_eligibility_review",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "科研/文体/奖励为真"
+          "unique": false,
+          "unique_groups": [],
+          "note": "仅RESEARCH、ARTS、POST为true；其余四类不受隐藏旧活动匹配阻塞。"
         },
         {
           "name": "sort_order",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "界面及导出固定顺序"
         }
       ],
-      "constraints": [
-        "UNIQUE(code)；固定七类，不由AI创建。",
-        "本表是首版目录；历史计分采用class_years绑定规则版本中的冻结规则快照。"
-      ]
+      "constraints": []
     },
     {
       "id": "score_rule_versions",
       "name": "评分规则版本",
       "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "version_label",
-          "type": "VARCHAR(80)",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR(80)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "如XJTU-2018-DEMO-2026-V1"
         },
         {
           "name": "baseline_score",
-          "type": "DECIMAL(6,2)",
+          "type": "NUMERIC(6, 2)",
+          "logical_type": "DECIMAL(6,2)",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "本项目固定70"
         },
         {
           "name": "rounding_mode",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "HALF_UP_2_DP"
         },
         {
           "name": "source_document",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "PDF及本次对齐记录的来源引用"
         },
         {
           "name": "rules_json",
           "type": "JSON",
+          "logical_type": "JSON",
           "pk": false,
           "fk": null,
           "nullable": false,
-          "note": "七类代码、封顶、去重、任职取最高、志愿年度上限及人工核定边界的不可变配置快照"
+          "unique": false,
+          "unique_groups": [],
+          "note": "七类上限、任职MAX、志愿年度子项封顶及政策建议的版本化配置；当前竞赛重复由人工判断。"
         },
         {
           "name": "published_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "版本固定时间"
         },
         {
           "name": "published_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "配置建立人；首版可为管理员"
         },
         {
           "name": "status",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "ACTIVE / RETIRED"
         }
       ],
-      "constraints": [
-        "UNIQUE(version_label)；一经class_years/AI使用，规则内容不可原地修改。",
-        "首版只预置已确认规则，不新增在线改规则业务；七类上限合计35，总分理论最高105。",
-        "规则JSON是版本化配置值，不存放用户、申请、附件等关系事实。"
-      ]
+      "constraints": []
     },
     {
       "id": "class_publicity",
       "name": "班级学年公示开关",
-      "group": "workflow",
+      "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "class_year_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "class_years.id",
           "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_class_publicity_class_year_id"
+          ],
           "note": "唯一公示范围"
         },
         {
           "name": "is_open",
           "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "当前公示状态"
         },
         {
           "name": "lock_version",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "公示并发版本"
         },
         {
           "name": "opened_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近开启辅导员"
         },
         {
           "name": "opened_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近开启时间"
         },
         {
           "name": "closed_by",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近关闭辅导员"
         },
         {
           "name": "closed_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "最近关闭时间"
         }
       ],
       "constraints": [
-        "UNIQUE(class_year_id)。",
-        "is_open是该班级学年当前公示状态的唯一持久化真源；publicity_events仅保留历史，ClassYear中的同名领域属性为派生值。",
-        "开启时没有当前待学生审查/辅导员审核的正式申请；草稿和已撤回项不阻挡。",
-        "开启后禁止新提交/重提/奖项替代，但不冻结分数或阻止辅导员驳回通过项。"
+        "UNIQUE(class_year_id)"
       ]
     },
     {
       "id": "publicity_events",
       "name": "公示操作历史",
-      "group": "workflow",
+      "group": "catalog",
+      "legacy": false,
       "fields": [
         {
           "name": "id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": true,
           "fk": null,
           "nullable": false,
+          "unique": true,
+          "unique_groups": [],
           "note": "稳定主键"
         },
         {
           "name": "publicity_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "class_publicity.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "公示范围"
         },
         {
           "name": "event_no",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "范围内递增序号"
         },
         {
           "name": "action",
-          "type": "ENUM",
+          "type": "VARCHAR",
+          "logical_type": "ENUM",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "OPEN / CLOSE"
         },
         {
           "name": "actor_id",
-          "type": "UUID",
+          "type": "VARCHAR",
+          "logical_type": "UUID",
           "pk": false,
           "fk": "users.id",
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "操作辅导员"
         },
         {
           "name": "pending_count_checked",
           "type": "INTEGER",
+          "logical_type": "INTEGER",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "开启事务内核查的待审数量；关闭可空"
         },
         {
           "name": "occurred_at",
-          "type": "TIMESTAMP",
+          "type": "VARCHAR",
+          "logical_type": "TIMESTAMP",
           "pk": false,
           "fk": null,
           "nullable": false,
+          "unique": false,
+          "unique_groups": [],
           "note": "操作时间"
         },
         {
           "name": "note",
           "type": "TEXT",
+          "logical_type": "TEXT",
           "pk": false,
           "fk": null,
           "nullable": true,
+          "unique": false,
+          "unique_groups": [],
           "note": "操作说明"
         }
       ],
+      "constraints": []
+    },
+    {
+      "id": "system_settings",
+      "name": "系统设置与归档用量",
+      "group": "catalog",
+      "legacy": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": true,
+          "fk": null,
+          "nullable": false,
+          "unique": true,
+          "unique_groups": []
+        },
+        {
+          "name": "value_json",
+          "type": "JSON",
+          "logical_type": "JSON",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": [],
+          "note": "按设置键保存当前学年year_id、schema版本、按UTC月份/接口汇总的ocr_usage_archive及旧同步分析租约；JSON引用由服务验证。"
+        },
+        {
+          "name": "changed_by",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "users.id",
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        }
+      ],
+      "constraints": []
+    },
+    {
+      "id": "category_submissions",
+      "name": "大类申报",
+      "group": "workflow",
+      "legacy": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": true,
+          "fk": null,
+          "nullable": false,
+          "unique": true,
+          "unique_groups": []
+        },
+        {
+          "name": "enrollment_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "enrollments.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_submission_enrollment_category"
+          ]
+        },
+        {
+          "name": "category_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "score_categories.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": [
+            "uq_submission_enrollment_category"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "updated_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        }
+      ],
       "constraints": [
-        "UNIQUE(publicity_id, event_no)。",
-        "OPEN必须pending_count_checked=0，且actor当时具有本班带班范围。",
-        "公示至少三个工作日仅提示，数据库不设提前关闭禁令。"
+        "UNIQUE(enrollment_id,category_id)"
       ]
+    },
+    {
+      "id": "category_items",
+      "name": "大类小项关联",
+      "group": "workflow",
+      "legacy": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": true,
+          "fk": null,
+          "nullable": false,
+          "unique": true,
+          "unique_groups": []
+        },
+        {
+          "name": "submission_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "category_submissions.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "application_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "applications.id",
+          "nullable": false,
+          "unique": true,
+          "unique_groups": [
+            "uq_category_item_application"
+          ]
+        },
+        {
+          "name": "sort_order",
+          "type": "INTEGER",
+          "logical_type": "INTEGER",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "confirmed_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": [],
+          "note": "材料整理确认后才可进入识别与提交；NULL代表尚未确认的暂存小项。"
+        },
+        {
+          "name": "deleted_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": [],
+          "note": "允许状态下软删小项，保留版本和审核记录。"
+        },
+        {
+          "name": "created_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        }
+      ],
+      "constraints": [
+        "UNIQUE(application_id)"
+      ]
+    },
+    {
+      "id": "background_jobs",
+      "name": "后台OCR/AI任务",
+      "group": "evidence",
+      "legacy": false,
+      "fields": [
+        {
+          "name": "id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": true,
+          "fk": null,
+          "nullable": false,
+          "unique": true,
+          "unique_groups": []
+        },
+        {
+          "name": "application_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "applications.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "owner_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "users.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "kind",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "state",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": [],
+          "note": "QUEUED / RUNNING / PAUSED / SUCCEEDED / FAILED / STALE"
+        },
+        {
+          "name": "stage",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "progress",
+          "type": "INTEGER",
+          "logical_type": "INTEGER",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "total",
+          "type": "INTEGER",
+          "logical_type": "INTEGER",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "input_revision_id",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": "application_revisions.id",
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "input_fingerprint",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "result_json",
+          "type": "JSON",
+          "logical_type": "JSON",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": [],
+          "note": "结果、文件租约、AI依赖、暂停请求及可恢复检查点；均非新增物理FK"
+        },
+        {
+          "name": "error_message",
+          "type": "TEXT",
+          "logical_type": "TEXT",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "force",
+          "type": "BOOLEAN",
+          "logical_type": "BOOLEAN",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "attempts",
+          "type": "INTEGER",
+          "logical_type": "INTEGER",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "worker_token",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "heartbeat_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "created_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": false,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "started_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        },
+        {
+          "name": "finished_at",
+          "type": "VARCHAR",
+          "logical_type": "VARCHAR",
+          "pk": false,
+          "fk": null,
+          "nullable": true,
+          "unique": false,
+          "unique_groups": []
+        }
+      ],
+      "constraints": []
     }
   ],
   "relationships": [
@@ -2787,377 +4085,671 @@
       "fromField": "id",
       "toField": "user_id",
       "cardinality": "1:0..1",
-      "label": "学生档案",
-      "optional": false
+      "label": "user_id"
     },
     {
       "from": "classes",
       "to": "class_years",
       "fromField": "id",
       "toField": "class_id",
-      "cardinality": "1:N",
-      "label": "按学年组织",
-      "optional": false
+      "cardinality": "1:0..*",
+      "label": "class_id"
     },
     {
       "from": "academic_years",
       "to": "class_years",
       "fromField": "id",
       "toField": "academic_year_id",
-      "cardinality": "1:N",
-      "label": "所属学年",
-      "optional": false
-    },
-    {
-      "from": "student_profiles",
-      "to": "enrollments",
-      "fromField": "id",
-      "toField": "student_id",
-      "cardinality": "1:N",
-      "label": "学生归属",
-      "optional": false
-    },
-    {
-      "from": "class_years",
-      "to": "enrollments",
-      "fromField": "id",
-      "toField": "class_year_id",
-      "cardinality": "1:N",
-      "label": "班级成员",
-      "optional": false
-    },
-    {
-      "from": "roles",
-      "to": "role_permissions",
-      "fromField": "id",
-      "toField": "role_id",
-      "cardinality": "1:N",
-      "label": "角色矩阵",
-      "optional": false
-    },
-    {
-      "from": "permissions",
-      "to": "role_permissions",
-      "fromField": "id",
-      "toField": "permission_id",
-      "cardinality": "1:N",
-      "label": "权限配置",
-      "optional": false
-    },
-    {
-      "from": "users",
-      "to": "role_assignments",
-      "fromField": "id",
-      "toField": "user_id",
-      "cardinality": "1:N",
-      "label": "拥有角色",
-      "optional": false
-    },
-    {
-      "from": "roles",
-      "to": "role_assignments",
-      "fromField": "id",
-      "toField": "role_id",
-      "cardinality": "1:N",
-      "label": "角色授权",
-      "optional": false
-    },
-    {
-      "from": "classes",
-      "to": "role_assignments",
-      "fromField": "id",
-      "toField": "class_id",
-      "cardinality": "1:N",
-      "label": "班级范围",
-      "optional": true
-    },
-    {
-      "from": "users",
-      "to": "counselor_classes",
-      "fromField": "id",
-      "toField": "counselor_id",
-      "cardinality": "1:N",
-      "label": "辅导员带班",
-      "optional": false
-    },
-    {
-      "from": "classes",
-      "to": "counselor_classes",
-      "fromField": "id",
-      "toField": "class_id",
-      "cardinality": "1:N",
-      "label": "所带班级",
-      "optional": false
-    },
-    {
-      "from": "users",
-      "to": "file_objects",
-      "fromField": "id",
-      "toField": "uploaded_by",
-      "cardinality": "1:N",
-      "label": "上传原件",
-      "optional": false
-    },
-    {
-      "from": "file_objects",
-      "to": "file_pages",
-      "fromField": "id",
-      "toField": "file_id",
-      "cardinality": "1:N",
-      "label": "文件页面",
-      "optional": false
-    },
-    {
-      "from": "file_pages",
-      "to": "recognition_runs",
-      "fromField": "id",
-      "toField": "page_id",
-      "cardinality": "1:N",
-      "label": "识别运行",
-      "optional": false
-    },
-    {
-      "from": "recognition_runs",
-      "to": "recognition_regions",
-      "fromField": "id",
-      "toField": "run_id",
-      "cardinality": "1:N",
-      "label": "文字印章区域",
-      "optional": false
-    },
-    {
-      "from": "applications",
-      "to": "ai_analyses",
-      "fromField": "id",
-      "toField": "application_id",
-      "cardinality": "1:N",
-      "label": "生成建议",
-      "optional": false
-    },
-    {
-      "from": "ai_analyses",
-      "to": "analysis_inputs",
-      "fromField": "id",
-      "toField": "analysis_id",
-      "cardinality": "1:N",
-      "label": "输入溯源",
-      "optional": false
-    },
-    {
-      "from": "file_objects",
-      "to": "analysis_inputs",
-      "fromField": "id",
-      "toField": "file_id",
-      "cardinality": "1:N",
-      "label": "实际分析文件",
-      "optional": false
-    },
-    {
-      "from": "activities",
-      "to": "activity_aliases",
-      "fromField": "id",
-      "toField": "activity_id",
-      "cardinality": "1:N",
-      "label": "规范名称别名",
-      "optional": false
-    },
-    {
-      "from": "activities",
-      "to": "activity_eligibility_versions",
-      "fromField": "id",
-      "toField": "activity_id",
-      "cardinality": "1:N",
-      "label": "资格范围版本",
-      "optional": false
-    },
-    {
-      "from": "activities",
-      "to": "competition_projects",
-      "fromField": "id",
-      "toField": "activity_id",
-      "cardinality": "1:N",
-      "label": "具体赛事项目",
-      "optional": false
-    },
-    {
-      "from": "enrollments",
-      "to": "applications",
-      "fromField": "id",
-      "toField": "enrollment_id",
-      "cardinality": "1:N",
-      "label": "提交本人申请",
-      "optional": false
-    },
-    {
-      "from": "score_categories",
-      "to": "applications",
-      "fromField": "id",
-      "toField": "category_id",
-      "cardinality": "1:N",
-      "label": "选择填报入口",
-      "optional": false
-    },
-    {
-      "from": "applications",
-      "to": "application_revisions",
-      "fromField": "id",
-      "toField": "application_id",
-      "cardinality": "1:N",
-      "label": "内容版本",
-      "optional": false
-    },
-    {
-      "from": "ai_analyses",
-      "to": "application_revisions",
-      "fromField": "id",
-      "toField": "ai_analysis_id",
-      "cardinality": "1:N",
-      "label": "建议基线",
-      "optional": true
-    },
-    {
-      "from": "activities",
-      "to": "application_revisions",
-      "fromField": "id",
-      "toField": "activity_id",
-      "cardinality": "1:N",
-      "label": "确认规范活动",
-      "optional": true
-    },
-    {
-      "from": "competition_projects",
-      "to": "application_revisions",
-      "fromField": "id",
-      "toField": "competition_project_id",
-      "cardinality": "1:N",
-      "label": "确认项目身份",
-      "optional": true
-    },
-    {
-      "from": "applications",
-      "to": "submission_rounds",
-      "fromField": "id",
-      "toField": "application_id",
-      "cardinality": "1:N",
-      "label": "提审轮次",
-      "optional": false
-    },
-    {
-      "from": "application_revisions",
-      "to": "submission_rounds",
-      "fromField": "id",
-      "toField": "revision_id",
-      "cardinality": "1:N",
-      "label": "冻结内容",
-      "optional": false
-    },
-    {
-      "from": "application_revisions",
-      "to": "revision_files",
-      "fromField": "id",
-      "toField": "revision_id",
-      "cardinality": "1:N",
-      "label": "版本附件",
-      "optional": false
-    },
-    {
-      "from": "file_objects",
-      "to": "revision_files",
-      "fromField": "id",
-      "toField": "file_id",
-      "cardinality": "1:N",
-      "label": "使用证明原件",
-      "optional": false
-    },
-    {
-      "from": "application_revisions",
-      "to": "evidence_crops",
-      "fromField": "id",
-      "toField": "revision_id",
-      "cardinality": "1:N",
-      "label": "两类多截图",
-      "optional": false
-    },
-    {
-      "from": "file_pages",
-      "to": "evidence_crops",
-      "fromField": "id",
-      "toField": "page_id",
-      "cardinality": "1:N",
-      "label": "框选来源",
-      "optional": false
-    },
-    {
-      "from": "submission_rounds",
-      "to": "review_decisions",
-      "fromField": "id",
-      "toField": "round_id",
-      "cardinality": "1:N",
-      "label": "审核决定",
-      "optional": false
-    },
-    {
-      "from": "users",
-      "to": "review_decisions",
-      "fromField": "id",
-      "toField": "actor_id",
-      "cardinality": "1:N",
-      "label": "实际经办人",
-      "optional": false
-    },
-    {
-      "from": "applications",
-      "to": "application_events",
-      "fromField": "id",
-      "toField": "application_id",
-      "cardinality": "1:N",
-      "label": "状态历史",
-      "optional": false
-    },
-    {
-      "from": "submission_rounds",
-      "to": "award_supersessions",
-      "fromField": "id",
-      "toField": "new_round_id",
-      "cardinality": "1:N",
-      "label": "新项替代",
-      "optional": false
-    },
-    {
-      "from": "submission_rounds",
-      "to": "award_supersessions",
-      "fromField": "id",
-      "toField": "old_round_id",
-      "cardinality": "1:N",
-      "label": "旧项可恢复",
-      "optional": false
+      "cardinality": "1:0..*",
+      "label": "academic_year_id"
     },
     {
       "from": "score_rule_versions",
       "to": "class_years",
       "fromField": "id",
       "toField": "score_rule_version_id",
-      "cardinality": "1:N",
-      "label": "统一计分规则",
-      "optional": false
+      "cardinality": "1:0..*",
+      "label": "score_rule_version_id"
+    },
+    {
+      "from": "student_profiles",
+      "to": "enrollments",
+      "fromField": "id",
+      "toField": "student_id",
+      "cardinality": "1:0..*",
+      "label": "student_id"
+    },
+    {
+      "from": "class_years",
+      "to": "enrollments",
+      "fromField": "id",
+      "toField": "class_year_id",
+      "cardinality": "1:0..*",
+      "label": "class_year_id"
+    },
+    {
+      "from": "users",
+      "to": "enrollments",
+      "fromField": "id",
+      "toField": "managed_by",
+      "cardinality": "1:0..*",
+      "label": "managed_by"
+    },
+    {
+      "from": "roles",
+      "to": "role_permissions",
+      "fromField": "id",
+      "toField": "role_id",
+      "cardinality": "1:0..*",
+      "label": "role_id"
+    },
+    {
+      "from": "permissions",
+      "to": "role_permissions",
+      "fromField": "id",
+      "toField": "permission_id",
+      "cardinality": "1:0..*",
+      "label": "permission_id"
+    },
+    {
+      "from": "users",
+      "to": "role_permissions",
+      "fromField": "id",
+      "toField": "changed_by",
+      "cardinality": "1:0..*",
+      "label": "changed_by"
+    },
+    {
+      "from": "users",
+      "to": "role_assignments",
+      "fromField": "id",
+      "toField": "user_id",
+      "cardinality": "1:0..*",
+      "label": "user_id"
+    },
+    {
+      "from": "roles",
+      "to": "role_assignments",
+      "fromField": "id",
+      "toField": "role_id",
+      "cardinality": "1:0..*",
+      "label": "role_id"
+    },
+    {
+      "from": "classes",
+      "to": "role_assignments",
+      "fromField": "id",
+      "toField": "class_id",
+      "cardinality": "0..1:0..*",
+      "label": "class_id"
+    },
+    {
+      "from": "users",
+      "to": "role_assignments",
+      "fromField": "id",
+      "toField": "granted_by",
+      "cardinality": "1:0..*",
+      "label": "granted_by"
+    },
+    {
+      "from": "users",
+      "to": "counselor_classes",
+      "fromField": "id",
+      "toField": "counselor_id",
+      "cardinality": "1:0..*",
+      "label": "counselor_id"
+    },
+    {
+      "from": "classes",
+      "to": "counselor_classes",
+      "fromField": "id",
+      "toField": "class_id",
+      "cardinality": "1:0..*",
+      "label": "class_id"
+    },
+    {
+      "from": "users",
+      "to": "counselor_classes",
+      "fromField": "id",
+      "toField": "assigned_by",
+      "cardinality": "1:0..*",
+      "label": "assigned_by"
+    },
+    {
+      "from": "users",
+      "to": "file_objects",
+      "fromField": "id",
+      "toField": "uploaded_by",
+      "cardinality": "1:0..*",
+      "label": "uploaded_by"
+    },
+    {
+      "from": "file_objects",
+      "to": "file_pages",
+      "fromField": "id",
+      "toField": "file_id",
+      "cardinality": "1:0..*",
+      "label": "file_id"
+    },
+    {
+      "from": "file_pages",
+      "to": "recognition_runs",
+      "fromField": "id",
+      "toField": "page_id",
+      "cardinality": "1:0..*",
+      "label": "page_id"
+    },
+    {
+      "from": "recognition_runs",
+      "to": "recognition_regions",
+      "fromField": "id",
+      "toField": "run_id",
+      "cardinality": "1:0..*",
+      "label": "run_id"
+    },
+    {
+      "from": "applications",
+      "to": "ai_analyses",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..*",
+      "label": "application_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "ai_analyses",
+      "fromField": "id",
+      "toField": "input_revision_id",
+      "cardinality": "1:0..*",
+      "label": "input_revision_id"
+    },
+    {
+      "from": "score_rule_versions",
+      "to": "ai_analyses",
+      "fromField": "id",
+      "toField": "score_rule_version_id",
+      "cardinality": "1:0..*",
+      "label": "score_rule_version_id"
+    },
+    {
+      "from": "activities",
+      "to": "ai_analyses",
+      "fromField": "id",
+      "toField": "suggested_activity_id",
+      "cardinality": "0..1:0..*",
+      "label": "suggested_activity_id"
+    },
+    {
+      "from": "ai_analyses",
+      "to": "analysis_inputs",
+      "fromField": "id",
+      "toField": "analysis_id",
+      "cardinality": "1:0..*",
+      "label": "analysis_id"
+    },
+    {
+      "from": "file_objects",
+      "to": "analysis_inputs",
+      "fromField": "id",
+      "toField": "file_id",
+      "cardinality": "1:0..*",
+      "label": "file_id"
+    },
+    {
+      "from": "file_pages",
+      "to": "analysis_inputs",
+      "fromField": "id",
+      "toField": "page_id",
+      "cardinality": "0..1:0..*",
+      "label": "page_id"
+    },
+    {
+      "from": "recognition_runs",
+      "to": "analysis_inputs",
+      "fromField": "id",
+      "toField": "recognition_run_id",
+      "cardinality": "0..1:0..*",
+      "label": "recognition_run_id"
+    },
+    {
+      "from": "users",
+      "to": "activities",
+      "fromField": "id",
+      "toField": "maintained_by",
+      "cardinality": "1:0..*",
+      "label": "maintained_by"
+    },
+    {
+      "from": "activities",
+      "to": "activity_aliases",
+      "fromField": "id",
+      "toField": "activity_id",
+      "cardinality": "1:0..*",
+      "label": "activity_id"
+    },
+    {
+      "from": "users",
+      "to": "activity_aliases",
+      "fromField": "id",
+      "toField": "created_by",
+      "cardinality": "1:0..*",
+      "label": "created_by"
+    },
+    {
+      "from": "activities",
+      "to": "activity_eligibility_versions",
+      "fromField": "id",
+      "toField": "activity_id",
+      "cardinality": "1:0..*",
+      "label": "activity_id"
+    },
+    {
+      "from": "score_categories",
+      "to": "activity_eligibility_versions",
+      "fromField": "id",
+      "toField": "category_id",
+      "cardinality": "1:0..*",
+      "label": "category_id"
+    },
+    {
+      "from": "academic_years",
+      "to": "activity_eligibility_versions",
+      "fromField": "id",
+      "toField": "academic_year_id",
+      "cardinality": "0..1:0..*",
+      "label": "academic_year_id"
+    },
+    {
+      "from": "users",
+      "to": "activity_eligibility_versions",
+      "fromField": "id",
+      "toField": "decided_by",
+      "cardinality": "1:0..*",
+      "label": "decided_by"
+    },
+    {
+      "from": "review_decisions",
+      "to": "activity_eligibility_versions",
+      "fromField": "id",
+      "toField": "source_review_decision_id",
+      "cardinality": "0..1:0..*",
+      "label": "source_review_decision_id"
+    },
+    {
+      "from": "activities",
+      "to": "competition_projects",
+      "fromField": "id",
+      "toField": "activity_id",
+      "cardinality": "1:0..*",
+      "label": "activity_id"
+    },
+    {
+      "from": "users",
+      "to": "competition_projects",
+      "fromField": "id",
+      "toField": "confirmed_by",
+      "cardinality": "0..1:0..*",
+      "label": "confirmed_by"
+    },
+    {
+      "from": "enrollments",
+      "to": "applications",
+      "fromField": "id",
+      "toField": "enrollment_id",
+      "cardinality": "1:0..*",
+      "label": "enrollment_id"
+    },
+    {
+      "from": "score_categories",
+      "to": "applications",
+      "fromField": "id",
+      "toField": "category_id",
+      "cardinality": "1:0..*",
+      "label": "category_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "applications",
+      "fromField": "id",
+      "toField": "working_revision_id",
+      "cardinality": "0..1:0..*",
+      "label": "working_revision_id"
+    },
+    {
+      "from": "submission_rounds",
+      "to": "applications",
+      "fromField": "id",
+      "toField": "current_round_id",
+      "cardinality": "0..1:0..*",
+      "label": "current_round_id"
+    },
+    {
+      "from": "applications",
+      "to": "application_revisions",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..*",
+      "label": "application_id"
+    },
+    {
+      "from": "activities",
+      "to": "application_revisions",
+      "fromField": "id",
+      "toField": "activity_id",
+      "cardinality": "0..1:0..*",
+      "label": "activity_id"
+    },
+    {
+      "from": "competition_projects",
+      "to": "application_revisions",
+      "fromField": "id",
+      "toField": "competition_project_id",
+      "cardinality": "0..1:0..*",
+      "label": "competition_project_id"
+    },
+    {
+      "from": "ai_analyses",
+      "to": "application_revisions",
+      "fromField": "id",
+      "toField": "ai_analysis_id",
+      "cardinality": "0..1:0..*",
+      "label": "ai_analysis_id"
+    },
+    {
+      "from": "users",
+      "to": "application_revisions",
+      "fromField": "id",
+      "toField": "created_by",
+      "cardinality": "1:0..*",
+      "label": "created_by"
+    },
+    {
+      "from": "applications",
+      "to": "submission_rounds",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..*",
+      "label": "application_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "submission_rounds",
+      "fromField": "id",
+      "toField": "revision_id",
+      "cardinality": "1:0..*",
+      "label": "revision_id"
+    },
+    {
+      "from": "activity_eligibility_versions",
+      "to": "submission_rounds",
+      "fromField": "id",
+      "toField": "eligibility_version_id",
+      "cardinality": "0..1:0..*",
+      "label": "eligibility_version_id"
+    },
+    {
+      "from": "application_events",
+      "to": "submission_rounds",
+      "fromField": "id",
+      "toField": "last_event_id",
+      "cardinality": "0..1:0..*",
+      "label": "last_event_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "revision_files",
+      "fromField": "id",
+      "toField": "revision_id",
+      "cardinality": "1:0..*",
+      "label": "revision_id"
+    },
+    {
+      "from": "file_objects",
+      "to": "revision_files",
+      "fromField": "id",
+      "toField": "file_id",
+      "cardinality": "1:0..*",
+      "label": "file_id"
+    },
+    {
+      "from": "users",
+      "to": "revision_files",
+      "fromField": "id",
+      "toField": "added_by",
+      "cardinality": "1:0..*",
+      "label": "added_by"
+    },
+    {
+      "from": "application_revisions",
+      "to": "evidence_crops",
+      "fromField": "id",
+      "toField": "revision_id",
+      "cardinality": "1:0..*",
+      "label": "revision_id"
+    },
+    {
+      "from": "file_pages",
+      "to": "evidence_crops",
+      "fromField": "id",
+      "toField": "page_id",
+      "cardinality": "1:0..*",
+      "label": "page_id"
+    },
+    {
+      "from": "recognition_regions",
+      "to": "evidence_crops",
+      "fromField": "id",
+      "toField": "recognition_region_id",
+      "cardinality": "0..1:0..*",
+      "label": "recognition_region_id"
+    },
+    {
+      "from": "submission_rounds",
+      "to": "review_decisions",
+      "fromField": "id",
+      "toField": "round_id",
+      "cardinality": "1:0..*",
+      "label": "round_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "review_decisions",
+      "fromField": "id",
+      "toField": "revision_id",
+      "cardinality": "1:0..*",
+      "label": "revision_id"
+    },
+    {
+      "from": "users",
+      "to": "review_decisions",
+      "fromField": "id",
+      "toField": "actor_id",
+      "cardinality": "1:0..*",
+      "label": "actor_id"
+    },
+    {
+      "from": "role_assignments",
+      "to": "review_decisions",
+      "fromField": "id",
+      "toField": "role_assignment_id",
+      "cardinality": "0..1:0..*",
+      "label": "role_assignment_id"
+    },
+    {
+      "from": "applications",
+      "to": "application_events",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..*",
+      "label": "application_id"
+    },
+    {
+      "from": "submission_rounds",
+      "to": "application_events",
+      "fromField": "id",
+      "toField": "round_id",
+      "cardinality": "0..1:0..*",
+      "label": "round_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "application_events",
+      "fromField": "id",
+      "toField": "revision_id",
+      "cardinality": "0..1:0..*",
+      "label": "revision_id"
+    },
+    {
+      "from": "users",
+      "to": "application_events",
+      "fromField": "id",
+      "toField": "actor_id",
+      "cardinality": "0..1:0..*",
+      "label": "actor_id"
+    },
+    {
+      "from": "submission_rounds",
+      "to": "award_supersessions",
+      "fromField": "id",
+      "toField": "new_round_id",
+      "cardinality": "1:0..*",
+      "label": "new_round_id"
+    },
+    {
+      "from": "submission_rounds",
+      "to": "award_supersessions",
+      "fromField": "id",
+      "toField": "old_round_id",
+      "cardinality": "1:0..*",
+      "label": "old_round_id"
+    },
+    {
+      "from": "application_events",
+      "to": "award_supersessions",
+      "fromField": "id",
+      "toField": "superseded_event_id",
+      "cardinality": "1:0..*",
+      "label": "superseded_event_id"
+    },
+    {
+      "from": "application_events",
+      "to": "award_supersessions",
+      "fromField": "id",
+      "toField": "restored_event_id",
+      "cardinality": "0..1:0..*",
+      "label": "restored_event_id"
+    },
+    {
+      "from": "users",
+      "to": "score_rule_versions",
+      "fromField": "id",
+      "toField": "published_by",
+      "cardinality": "1:0..*",
+      "label": "published_by"
     },
     {
       "from": "class_years",
       "to": "class_publicity",
       "fromField": "id",
       "toField": "class_year_id",
-      "cardinality": "1:1",
-      "label": "公示状态",
-      "optional": false
+      "cardinality": "1:0..1",
+      "label": "class_year_id"
+    },
+    {
+      "from": "users",
+      "to": "class_publicity",
+      "fromField": "id",
+      "toField": "opened_by",
+      "cardinality": "0..1:0..*",
+      "label": "opened_by"
+    },
+    {
+      "from": "users",
+      "to": "class_publicity",
+      "fromField": "id",
+      "toField": "closed_by",
+      "cardinality": "0..1:0..*",
+      "label": "closed_by"
     },
     {
       "from": "class_publicity",
       "to": "publicity_events",
       "fromField": "id",
       "toField": "publicity_id",
-      "cardinality": "1:N",
-      "label": "公示操作历史",
-      "optional": false
+      "cardinality": "1:0..*",
+      "label": "publicity_id"
+    },
+    {
+      "from": "users",
+      "to": "publicity_events",
+      "fromField": "id",
+      "toField": "actor_id",
+      "cardinality": "1:0..*",
+      "label": "actor_id"
+    },
+    {
+      "from": "users",
+      "to": "system_settings",
+      "fromField": "id",
+      "toField": "changed_by",
+      "cardinality": "0..1:0..*",
+      "label": "changed_by"
+    },
+    {
+      "from": "enrollments",
+      "to": "category_submissions",
+      "fromField": "id",
+      "toField": "enrollment_id",
+      "cardinality": "1:0..*",
+      "label": "enrollment_id"
+    },
+    {
+      "from": "score_categories",
+      "to": "category_submissions",
+      "fromField": "id",
+      "toField": "category_id",
+      "cardinality": "1:0..*",
+      "label": "category_id"
+    },
+    {
+      "from": "category_submissions",
+      "to": "category_items",
+      "fromField": "id",
+      "toField": "submission_id",
+      "cardinality": "1:0..*",
+      "label": "submission_id"
+    },
+    {
+      "from": "applications",
+      "to": "category_items",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..1",
+      "label": "application_id"
+    },
+    {
+      "from": "applications",
+      "to": "background_jobs",
+      "fromField": "id",
+      "toField": "application_id",
+      "cardinality": "1:0..*",
+      "label": "application_id"
+    },
+    {
+      "from": "users",
+      "to": "background_jobs",
+      "fromField": "id",
+      "toField": "owner_id",
+      "cardinality": "1:0..*",
+      "label": "owner_id"
+    },
+    {
+      "from": "application_revisions",
+      "to": "background_jobs",
+      "fromField": "id",
+      "toField": "input_revision_id",
+      "cardinality": "1:0..*",
+      "label": "input_revision_id"
     }
   ]
 }

@@ -31,3 +31,8 @@ score_categories expected=7 actual=7 duplicateNames=false nameSetMatches=true
 score_rule_versions expected=9 actual=9 duplicateNames=false nameSetMatches=true
 class_publicity expected=8 actual=8 duplicateNames=false nameSetMatches=true
 publicity_events expected=8 actual=8 duplicateNames=false nameSetMatches=true
+system_settings expected=4 actual=4 duplicateNames=false nameSetMatches=true
+category_submissions expected=5 actual=5 duplicateNames=false nameSetMatches=true
+category_items expected=7 actual=7 duplicateNames=false nameSetMatches=true
+background_jobs expected=19 actual=19 duplicateNames=false nameSetMatches=true
+TOTAL tables=37 fields=333 foreignKeys=84 uniqueIndexes=18

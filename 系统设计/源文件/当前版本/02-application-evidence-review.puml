@@ -1,0 +1,83 @@
+@startuml
+skinparam defaultFontName Microsoft YaHei
+skinparam classAttributeIconSize 0
+hide empty members
+title UML：大类申报、小项、内容版本与审核
+class "Enrollment 学年归属" as Enrollment <<reference>> {
+  - id: UUID
+  - studentId / classYearId: UUID
+}
+class "ScoreCategory 加分类别" as ScoreCategory <<reference>> {
+  - id / code: String
+  - defaultCap: Decimal
+}
+class "CategorySubmission 大类申报" as CategorySubmission <<entity>> {
+  - id: UUID
+  - enrollmentId / categoryId: UUID
+  - createdAt / updatedAt
+}
+class "CategoryItem 加分小项映射" as CategoryItem <<entity>> {
+  - submissionId / applicationId: UUID
+  - sortOrder: Integer
+  - confirmedAt / deletedAt: DateTime?
+}
+class "Application 小项稳定身份" as Application <<entity>> {
+  - id: UUID
+  - workingRevisionId: UUID?
+  - currentRoundId: UUID?
+  - lockVersion: Integer
+}
+class "ApplicationRevision 内容版本" as ApplicationRevision <<entity>> {
+  - id / revisionNo
+  - title: String
+  - requestedScore: Decimal(6,2)
+  - payloadJson: JSON
+  - contentFrozenAt: DateTime?
+}
+class "SubmissionRound 提审轮次" as SubmissionRound <<entity>> {
+  - applicationId / revisionId: UUID
+  - roundNo / lockVersion: Integer
+  - state: RoundState
+  - eligibilityVersionId: UUID?
+}
+class "ReviewDecision 人工决定" as ReviewDecision <<entity>> {
+  - roundId / revisionId: UUID
+  - actorId / roleAssignmentId
+  - stage / action
+  - idempotencyKey / decidedAt
+}
+class "ApplicationEvent 操作历史" as ApplicationEvent <<entity>> {
+  - applicationId / eventNo
+  - roundId / revisionId: UUID?
+  - eventType / fromState / toState
+  - actorId / detailJson / occurredAt
+}
+class "User 操作人" as User <<reference>> {
+  - id: UUID
+  - baseIdentity: IdentityKind
+}
+class "WorkflowService 小项工作流" as WorkflowService <<service>> {
+  - expectedVersionGuard
+  - publicity / classReadyGuard
+  + update_application(expected_version)
+  + submit_application / submit_items
+  + review_application / withdraw_application
+}
+class "ActivityEligibilityService 活动资格" as ActivityEligibilityService <<reference>> {
+  - activity / category / year
+  + activity_eligibility(...)
+}
+Enrollment "1" -- "0..*" CategorySubmission : 每学年、每大类一份
+ScoreCategory "1" -- "0..*" CategorySubmission : 按类别归组
+CategorySubmission "1" *-- "0..*" CategoryItem : 包含小项
+CategoryItem "1" -- "1" Application : 一一对应
+Application "1" *-- "1..*" ApplicationRevision : 修订与冻结版本
+Application "1" *-- "0..*" SubmissionRound : 各次提审
+ApplicationRevision "1" -- "0..*" SubmissionRound : 绑定确切内容版本
+SubmissionRound "1" *-- "0..*" ReviewDecision : 学生初审 / 辅导员审查
+Application "1" *-- "0..*" ApplicationEvent : 完整业务历史
+User "1" -- "0..*" ReviewDecision : 经办人与角色快照
+WorkflowService "" ..> "" Application : 版本校验与直接提交
+WorkflowService "" ..> "" SubmissionRound : 状态推进 / 通过锁定
+WorkflowService "" ..> "" ActivityEligibilityService : 仅三类需要资格
+@enduml
