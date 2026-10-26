@@ -24,7 +24,8 @@
           300
         ],
         "masks": [],
-        "highlights": []
+        "highlights": [],
+        "participation_role": "PRIMARY"
       }
     },
     {
@@ -35,7 +36,7 @@
         "evidence_type": "VALIDITY",
         "box": [
           0,
-          28,
+          30,
           800,
           250
         ],
@@ -74,10 +75,11 @@
           250
         ],
         "masks": [],
-        "highlights": []
+        "highlights": [],
+        "participation_role": "PRIMARY"
       },
       "mock_status": 400
     }
   ],
-  "createdAt": "2026-10-26T03:34:30.448Z"
+  "createdAt": "2026-10-26T06:06:14.562Z"
 }

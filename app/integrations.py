@@ -4,6 +4,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import io
 import json
 import os
 import re
@@ -13,10 +14,12 @@ from pathlib import Path
 
 import httpx
 from dotenv import dotenv_values
+from PIL import Image, UnidentifiedImageError
 from .limits import MAX_AUTOMATIC_OCR_PAGES
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OCR_HOST = "ocr.tencentcloudapi.com"
+OCR_BASE64_BUDGET = 9_500_000
 
 
 class ProviderError(Exception):
@@ -94,14 +97,60 @@ def tencent_headers(action: str, payload: bytes, config: dict, timestamp: int | 
     }
 
 
+def prepare_ocr_image(image: bytes) -> tuple[bytes, float, float]:
+    """Bound the provider copy only; source images and evidence coordinates stay original."""
+    if 4 * ((len(image) + 2) // 3) <= OCR_BASE64_BUDGET:
+        return image, 1.0, 1.0
+    try:
+        with Image.open(io.BytesIO(image)) as original:
+            width, height = original.size
+            if width * height > 36_000_000:
+                raise ValueError("oversized raster")
+            if original.mode in ("RGBA", "LA") or "transparency" in original.info:
+                rgba = original.convert("RGBA")
+                source = Image.new("RGB", original.size, "white")
+                source.paste(rgba, mask=rgba.getchannel("A"))
+            else:
+                source = original.convert("RGB")
+        # Try a high-quality JPEG at full resolution first. Most large rendered
+        # PNGs fit without resizing; subsequent scales are a bounded fallback.
+        for scale in (1.0, .85, .70, .55, .40):
+            size = (max(1, round(width * scale)), max(1, round(height * scale)))
+            if scale != 1.0 and min(size) < 600:
+                break
+            raster = source if scale == 1.0 else source.resize(size, Image.Resampling.LANCZOS)
+            for quality in (96, 92, 86, 80):
+                output = io.BytesIO()
+                raster.save(output, format="JPEG", quality=quality, subsampling=0, optimize=True)
+                data = output.getvalue()
+                if 4 * ((len(data) + 2) // 3) <= OCR_BASE64_BUDGET:
+                    return data, width / size[0], height / size[1]
+    except (OSError, ValueError, UnidentifiedImageError, Image.DecompressionBombError):
+        pass
+    raise ProviderError("ImageTooLarge", "此页压缩后仍超过 OCR 请求上限，请手动填写和截图。")
+
+
+def _original_ocr_coordinates(value, scale_x: float, scale_y: float):
+    """Convert Tencent line/word polygons and seal rectangles to original pixels."""
+    if isinstance(value, list):
+        return [_original_ocr_coordinates(item, scale_x, scale_y) for item in value]
+    if not isinstance(value, dict):
+        return value
+    result = {key: _original_ocr_coordinates(item, scale_x, scale_y) for key, item in value.items()}
+    if isinstance(value.get("X"), (int, float)) and isinstance(value.get("Y"), (int, float)):
+        for key, scale in (("X", scale_x), ("Y", scale_y), ("Width", scale_x), ("Height", scale_y)):
+            if isinstance(value.get(key), (int, float)):
+                result[key] = round(value[key] * scale)
+    return result
+
+
 def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
     config = config or configuration()
     if action not in ("GeneralAccurateOCR", "SealOCR"):
         raise ProviderError("UnsupportedAction", "不支持的识别接口。")
     if not config["secret_id"] or not config["secret_key"]:
         raise ProviderError("NotConfigured", "腾讯云 OCR 密钥未配置，可以手动填写和截图。")
-    if len(image) * 4 / 3 > 9_500_000:
-        raise ProviderError("ImageTooLarge", "此页图片超过 OCR 请求上限，请手动填写和截图。")
+    image, scale_x, scale_y = prepare_ocr_image(image)
     parameters = {"ImageBase64": base64.b64encode(image).decode("ascii")}
     if action == "GeneralAccurateOCR":
         parameters["IsWords"] = True  # Original per-character coordinates support precise identity outlines.
@@ -129,7 +178,7 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
         else:
             message = f"腾讯云 OCR 未成功（{safe_code}），可以手动继续。"
         raise ProviderError(safe_code, message)
-    return data
+    return _original_ocr_coordinates(data, scale_x, scale_y) if (scale_x, scale_y) != (1.0, 1.0) else data
 
 
 def _suggestion_json(content: str) -> tuple[dict, dict]:
@@ -182,11 +231,15 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
         "活动名称与本人参与信息分开判断：材料已明确命名活动时，title照录具体活动名；"
         "姓名学号、时间或印章缺失只在explanation说明人工核对，不得因此抹去已有活动名称。"
         "context_excerpt声明摘选时，仅基于收到的文字提出建议，不得把未覆盖部分当作已确认。"
+        "category_cap是全年大类上限，绝不能当作单项默认分值。科研竞赛国家级一等奖10、二等奖9、三等奖8；省级8、6、4；校级4、3、2、优秀奖1。"
+        "award_level只填INTERNATIONAL/NATIONAL/PROVINCIAL/SCHOOL/LOCAL_OR_INDUSTRY等赛事级别枚举，award_grade另填SPECIAL/FIRST/SECOND/THIRD/EXCELLENT或PLACE_1至PLACE_8，不能把‘全国二等奖’混进award_level。"
+        "本人的奖项等第和考评仅采用linked_outcome中MATCHED的facts，名单中其他人的奖次、优秀或合格不能用来给本人计分。"
+        "assessment_result分别用EXCELLENT/GOOD/PASS/FAIL；任职还需岗位级别和任期，不能看到优秀就默认最高4分。科研立项/结项等级不等同竞赛奖项。"
         "从活动目录选择规范activity_id，不确定时为null，并写出match_uncertain=true。"
         "输出格式示例：{\"title\":\"仲英书院周末广场舞（2次）\",\"requested_score\":\"0.60\",\"activity_id\":null,"
         "\"match_uncertain\":false,\"explanation\":\"依据与不确定性\",\"payload_json\":{"
         "\"edition_key\":\"\",\"track_key\":\"\",\"group_key\":\"\",\"work_key\":\"\","
-        "\"award_level\":\"\",\"subtype\":\"\"}}。同一竞赛的届次、赛道、组别、作品请分别提取。"
+        "\"award_level\":\"\",\"award_grade\":\"\",\"assessment_result\":\"\",\"subtype\":\"\"}}。同一竞赛的届次、赛道、组别、作品请分别提取。"
     )
     payload = {
         "model": config["deepseek_model"],

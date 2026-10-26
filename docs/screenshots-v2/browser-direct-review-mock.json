@@ -12,7 +12,7 @@
     "迟到的批准响应不会关闭新弹窗或刷新其背景核对页面",
     "审批途中切换其它小项，迟到响应不覆盖当前详情或改变选择",
     "驳回请求发出后关闭窗口，迟到成功不关闭后来打开的新窗口",
-    "完整详情使用相同两个按钮，批准流程也直接执行"
+    "旧详情入口统一定位对照区，使用相同两个按钮直接审批"
   ],
   "errors": [],
   "mock_writes": [
@@ -21,7 +21,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "527dd4ff-5d56-41bd-b69e-f58474defe6c"
+        "idempotency_key": "b8187479-770f-42e7-adae-3c874db7a853"
       }
     },
     {
@@ -31,7 +31,7 @@
         "expected_version": 3,
         "reason": "MISSING_VALIDITY",
         "comment": "虚构材料缺少对应本人信息",
-        "idempotency_key": "e4997e5e-fb59-4624-89b1-a8331b247d04"
+        "idempotency_key": "e8515db3-dc6a-4a07-8b9a-0f3c2977c306"
       }
     },
     {
@@ -39,7 +39,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "3ad494c6-cd22-4679-8ad4-fb2991af1e0b"
+        "idempotency_key": "65dac5b5-900c-4ea6-b48c-1a730ba6ab6e"
       }
     },
     {
@@ -50,7 +50,7 @@
         "reason": "MISSING_VALIDITY",
         "comment": "",
         "activity_decision": "VALID",
-        "idempotency_key": "cd45d8a6-7aaf-4102-9962-5303c49109e3"
+        "idempotency_key": "664b9f3f-5e56-47ae-bdc7-ef9df044a823"
       }
     },
     {
@@ -58,7 +58,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "7252fabf-ff30-405d-a786-9d6e4ba24a73"
+        "idempotency_key": "f4c3edeb-b01d-4b8d-a51e-e206bbccac69"
       }
     },
     {
@@ -66,7 +66,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "97dc42b5-212c-4917-8fcd-555bfe1bdfcf"
+        "idempotency_key": "6ffd71dd-ca97-4a9b-9c91-8d627f36d4ca"
       }
     },
     {
@@ -74,7 +74,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "97dc42b5-212c-4917-8fcd-555bfe1bdfcf"
+        "idempotency_key": "6ffd71dd-ca97-4a9b-9c91-8d627f36d4ca"
       }
     },
     {
@@ -82,7 +82,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "38022e45-80f0-41db-8911-03f2a81d5e86"
+        "idempotency_key": "923c1588-9dce-43bf-a4fc-9eef312b0165"
       }
     },
     {
@@ -90,7 +90,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "7d3f75e2-7d71-4e96-8424-794ed8f321a0"
+        "idempotency_key": "3f9dd46b-b2ea-4be8-b712-0eee8202939d"
       }
     },
     {
@@ -98,7 +98,7 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "558d8c31-ecdf-4dbe-a544-340a373ff226"
+        "idempotency_key": "5af6e830-bac7-45a4-92d3-8c5a1d2ca009"
       }
     },
     {
@@ -108,7 +108,7 @@
         "expected_version": 3,
         "reason": "MISSING_VALIDITY",
         "comment": "",
-        "idempotency_key": "0845e71c-720d-4276-8a91-aa9236bab814"
+        "idempotency_key": "efb6d88f-3838-4f8c-b488-35fc4d586afb"
       }
     },
     {
@@ -116,9 +116,9 @@
       "body": {
         "action": "APPROVE",
         "expected_version": 3,
-        "idempotency_key": "87a1c8c7-4789-4920-b7c9-9bb3c38626c6"
+        "idempotency_key": "38bd7cf6-cedc-45b9-87f2-79f65980f0c0"
       }
     }
   ],
-  "createdAt": "2026-10-26T05:36:24.372Z"
+  "createdAt": "2026-10-26T06:06:05.706Z"
 }

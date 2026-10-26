@@ -10,7 +10,7 @@ await page.route('**/api/**',async route=>{const req=route.request(),path=new UR
 try{
  await page.goto((process.env.TEST_BASE_URL||'http://127.0.0.1:8000')+'/#applications');await page.locator('#submission-groups').waitFor();
  const result=await page.evaluate(()=>{const out=document.createElement('div');out.id='workspace-analysis-suggestion';document.querySelector('#page').append(out);S.workspaceItem={id:'fallback-item',can_edit:true,revision:{requested_score:'0.15'}};
-  showWorkspaceSuggestion({result_json:{auto_applied:true,needs_review:true,suggestion:{title:'具体活动名称',requested_score:'9.99'}}});const automatic={text:out.innerText,warning:Boolean(out.querySelector('.notice.warning'))};
+  showWorkspaceSuggestion({result_json:{auto_applied:true,needs_review:true,title_resolution:{status:'GROUNDED_REVIEW'},suggestion:{title:'具体活动名称',requested_score:'9.99'}}});const automatic={text:out.innerText,warning:Boolean(out.querySelector('.notice.warning'))};
   showWorkspaceSuggestion({result_json:{suggestion:{title:'具体活动名称',requested_score:'9.99',score_requires_confirmation:true}}});const retained={text:out.innerText,box:out.querySelector('.selection-box').innerText,warning:Boolean(out.querySelector('.notice.warning'))};
   showWorkspaceSuggestion({result_json:{suggestion:{title:'普通确定建议',requested_score:'0.60'}}});return {automatic,retained,ordinary:out.querySelector('.selection-box').innerText};
  });

@@ -21,6 +21,7 @@ from . import db
 from .db import add, change, money, now, one, rows, tables, uid
 from .integrations import ProviderError, configuration, deepseek_suggestion, tencent_ocr
 from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES, MAX_AUTOMATIC_OCR_PAGES, OCR_POLICY_VERSION
+from .policy_suggestions import FACT_KEYS, normalize_policy_suggestion
 from .security import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -198,6 +199,8 @@ def crop_view(record: dict, public: bool = False, conn=None) -> dict:
             evidence = {**evidence, "file_name": evidence.get("file_name") or (original_file or {}).get("original_name"),
                         "page_number": evidence.get("page_number") or (original_page or {}).get("page_index")}
         result.update({"source": record["source"], "box": polygon_box(record["polygon_json"]), "url": f"/api/crops/{record['id']}/image", "masks": metadata.get("manual", []), "file_name": evidence.get("file_name"), "page_number": evidence.get("page_number"), "highlights": evidence.get("highlights", []), "other_matches": evidence.get("other_matches", []), "validity_kind": evidence.get("validity_kind"), "layout_version": evidence.get("layout_version")})
+        if record["evidence_type"] == "PARTICIPATION":
+            result.update(participation_role=evidence.get("participation_role") or "PRIMARY", outcome_kind=evidence.get("outcome_kind"), outcome_value=evidence.get("outcome_value"), outcome_text=evidence.get("outcome_text"), result_association=evidence.get("result_association"))
         if conn is not None:
             accepted, reason = automatic_crop_policy(conn, record)
         else:
@@ -504,15 +507,22 @@ def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list,
     if evidence_type == "PARTICIPATION":
         box = quarter_page_box(page, box[1])
         metadata["layout_version"] = "context-quarter-v2"
-        # Keep one primary identity context; frozen historical revisions are never touched.
-        conn.execute(delete(tables["evidence_crops"]).where(and_(tables["evidence_crops"].c.revision_id == revision["id"], tables["evidence_crops"].c.evidence_type == "PARTICIPATION")))
+        role = metadata.get("participation_role") or "PRIMARY"
+        if role not in ("PRIMARY", "OUTCOME"):
+            raise HTTPException(400, "本人证明请选择身份信息或奖次考评。")
+        metadata["participation_role"] = role
+        # One context per role: replacing identity does not erase a separate
+        # outcome page. Legacy participation images are the primary identity.
+        for previous in rows(conn, "evidence_crops", revision_id=revision["id"]):
+            if previous["evidence_type"] == "PARTICIPATION" and ((previous.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") == role:
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == previous["id"]))
     elif metadata.get("validity_kind") not in ("NAME", "TIME", "SEAL"):
         raise HTTPException(400, "有效性证据请选择活动名称、活动时间或印章。")
     file = one(conn, "file_objects", page["file_id"])
     metadata.update(file_name=file["original_name"], page_number=page["page_index"])
     highlights = []
     for highlight in metadata.get("highlights", []):
-        if highlight.get("field") not in ("STUDENT_NUMBER", "NAME", "CLASS"):
+        if highlight.get("field") not in ("STUDENT_NUMBER", "NAME", "CLASS", "OUTCOME"):
             continue
         highlight_box = checked_box(highlight.get("box"), page["width_px"], page["height_px"])
         if _intersection(box, highlight_box):
@@ -545,7 +555,8 @@ def add_crop(application_id: str, body: dict, user: dict = Depends(current_user)
     with db.write() as conn:
         context, revision = _editable(conn, application_id, user)
         existing_crops = rows(conn, "evidence_crops", revision_id=revision["id"])
-        replacing_primary = body.get("evidence_type") == "PARTICIPATION" and any(crop["evidence_type"] == "PARTICIPATION" for crop in existing_crops)
+        participation_role = body.get("participation_role") or "PRIMARY"
+        replacing_primary = body.get("evidence_type") == "PARTICIPATION" and any(crop["evidence_type"] == "PARTICIPATION" and (((crop.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") == participation_role) for crop in existing_crops)
         if len(existing_crops) >= 30 and not replacing_primary:
             raise HTTPException(400, "每条申请最多30张证据截图。")
         if not isinstance(body.get("page_id"), str) or not body["page_id"]:
@@ -556,7 +567,7 @@ def add_crop(application_id: str, body: dict, user: dict = Depends(current_user)
         kind = str(body.get("evidence_type", ""))
         if kind not in ("VALIDITY", "PARTICIPATION"):
             raise HTTPException(400, "请选择有效性证明或本人参与证明。")
-        metadata = {"validity_kind": body.get("validity_kind"), "highlights": body.get("highlights", [])}
+        metadata = {"validity_kind": body.get("validity_kind"), "highlights": body.get("highlights", []), "participation_role": body.get("participation_role") or "PRIMARY"}
         if kind == "PARTICIPATION":
             attached_pages = [p for link in rows(conn, "revision_files", revision_id=revision["id"]) for p in rows(conn, "file_pages", file_id=link["file_id"])]
             matches = identity_matches(conn, attached_pages, context["student"], context["user"], context["class"]["name"])
@@ -1027,23 +1038,97 @@ def _resolve_activity_title(conn, revision, texts, student, student_user, sugges
     return result, {"status": "GROUNDED_REVIEW", "source": selected["source"], "candidate_count": 1, "score_policy": "PRESERVE_CURRENT_DRAFT"}
 
 
+def _activity_name_block(page: dict, regions: list[dict], activity_names: list[str]) -> tuple[dict, float] | None:
+    """One real title block, including nearby continuation lines, never a page collage."""
+    candidates = []
+    references = [_activity_title_key(name) for name in activity_names if specific_activity_title(name)]
+    seals = [polygon_box(region["polygon_json"]) for region in regions if region["kind"] == "SEAL"]
+    for region in regions:
+        if region["kind"] != "TEXT":
+            continue
+        text, key = str(region.get("text") or ""), _activity_title_key(region.get("text"))
+        if not key or re.search(r"组委会|委员会|主办|承办|协办|特此证明|特发此证|以资鼓励|学校名称|学生姓名|证件号码|证书编号|学号|班级|指导老师", text):
+            continue
+        if re.search(r"(?:19|20)\d{2}\s*(?:年|[./\-])\s*\d{1,2}|\d{1,2}\s*月\s*\d{1,2}\s*日", text) and not _name_region(text, activity_names):
+            continue
+        box = polygon_box(region["polygon_json"])
+        if box[2] < 2 or box[3] < 2:
+            continue
+        if any((overlap := _intersection(box, seal)) and overlap[2]*overlap[3] >= box[2]*box[3]*.5 for seal in seals):
+            continue
+        candidates.append({"region": region, "text": text, "key": key, "box": box, "seed": _name_region(text, activity_names)})
+    blocks = []
+    for seed in candidates:
+        if not seed["seed"]:
+            continue
+        chosen = [seed]
+        # A watermark/logo by itself must not pull unrelated body text into its
+        # image. Long named lines can include adjacent track/award continuations.
+        if len(seed["key"]) >= 8:
+            for _ in range(4):
+                added = False
+                for item in candidates:
+                    if item in chosen or len(item["key"]) < 6:
+                        continue
+                    continuation = bool(re.search(r"赛|活动|学习|服务|讲座|论坛|项目|大学.*组|[一二三特]等奖", item["text"]))
+                    if not continuation:
+                        continuation = any(len(ref) >= 8 and any(item["key"][n:n+4] in ref for n in range(max(0, len(item["key"])-3))) for ref in references)
+                    if not continuation:
+                        continue
+                    # Another independently named activity is a separate title,
+                    # not a continuation of this occurrence.
+                    if item["seed"] and not re.match(r"^(?:技术|软件|电子|视觉|设计|大学|全国|省|总决赛|赛区|暨|及|与|和)", item["text"].strip()):
+                        continue
+                    x, y, w, h = item["box"]
+                    adjacent = False
+                    for previous in chosen:
+                        px, py, pw, ph = previous["box"]
+                        overlap = max(0, min(x+w, px+pw)-max(x, px))
+                        gap = max(0, y-py-ph, py-y-h)
+                        if overlap >= min(w, pw)*.45 and gap <= min(h, ph)*1.2 + page["height_px"]*.01:
+                            adjacent = True
+                            break
+                    tops = [value["box"][1] for value in chosen] + [y]
+                    bottoms = [value["box"][1]+value["box"][3] for value in chosen] + [y+h]
+                    if adjacent and max(bottoms)-min(tops) <= page["height_px"]*.35:
+                        chosen.append(item)
+                        added = True
+                if not added:
+                    break
+        text = "".join(item["key"] for item in sorted(chosen, key=lambda value: (value["box"][1], value["box"][0])))
+        score = min(len(text), 150) + (35 if len(seed["key"]) >= 8 else 0) + (40 if re.search(r"活动名称|项目名称|赛事名称", seed["text"]) else 0)
+        score += max((sum(ref[n:n+3] in text for n in range(max(0, len(ref)-2))) for ref in references), default=0)
+        left = max(0, min(item["box"][0] for item in chosen)-10)
+        top = max(0, min(item["box"][1] for item in chosen)-8)
+        right = min(page["width_px"], max(item["box"][0]+item["box"][2] for item in chosen)+10)
+        bottom = min(page["height_px"], max(item["box"][1]+item["box"][3] for item in chosen)+8)
+        if right-left < 2 or bottom-top < 2:
+            continue
+        blocks.append(({"box": [left, top, right-left, bottom-top], "region_id": seed["region"]["id"], "layout_version": "activity-name-block-v1"}, score))
+    return max(blocks, key=lambda pair: pair[1], default=None)
+
+
 def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, activity_names: list[str] | None = None) -> list[dict]:
     result = []
     last_seals = {}
     activity_names = activity_names or []
     max_pages = _page_limit()
     policies = {file_id: _file_policy(conn, file_id, max_pages) for file_id in {page["file_id"] for page in pages}}
+    name_blocks = []
     for page in pages:
         file = one(conn, "file_objects", page["file_id"])
-        for region in _automatic_regions(conn, page, policies[page["file_id"]]):
+        regions = _automatic_regions(conn, page, policies[page["file_id"]])
+        block = _activity_name_block(page, regions, activity_names)
+        if block:
+            candidate, score = block
+            name_blocks.append(({**candidate, "page_id": page["id"], "file_name": file["original_name"], "page_number": page["page_index"], "evidence_type": "VALIDITY", "validity_kind": "NAME"}, score))
+        for region in regions:
             text = region.get("text") or ""
             kinds = []
             if region["kind"] == "SEAL":
                 kinds.append("SEAL")
             if region["kind"] == "TEXT" and re.search(r"(?:19|20)\d{2}\s*(?:年|[./\-])\s*\d{1,2}|\d{1,2}\s*月\s*\d{1,2}\s*日", text):
                 kinds.append("TIME")
-            if region["kind"] == "TEXT" and _name_region(text, activity_names):
-                kinds.append("NAME")
             for kind in kinds:
                 if kind != "SEAL" and len([item for item in result if item.get("validity_kind") == kind]) >= 4:
                     continue
@@ -1060,11 +1145,23 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
                 else:
                     result.append(suggestion)
     result.extend(value[1] for value in last_seals.values())
+    if name_blocks:
+        result.append(max(name_blocks, key=lambda pair: pair[1])[0])
     matches = identity_matches(conn, pages, student, student_user, class_name, automatic=True)
-    if matches:
-        primary = matches[0]
+    person_matches = [match for match in matches if match["field"] in ("STUDENT_NUMBER", "NAME")]
+    if person_matches:
+        from .outcome_evidence import linked_outcome
+        outcome = linked_outcome(conn, pages, student, student_user, class_name, automatic=True, identity_hits=matches)
+        primary = person_matches[0]
         page = next(p for p in pages if p["id"] == primary["page_id"])
         box = quarter_page_box(page, primary["box"][1] + primary["box"][3] / 2 - page["height_px"] / 8)
+        anchors = outcome["anchors"] if outcome["status"] == "MATCHED" else []
+        anchor = min(anchors, key=lambda item: (item["page_id"] != page["id"], item["association"] != "SAME_ROW", abs(item["box"][1]-primary["box"][1]))) if anchors else None
+        if anchor and anchor["page_id"] == page["id"]:
+            top = min(primary["box"][1], anchor["box"][1])
+            bottom = max(primary["box"][1]+primary["box"][3], anchor["box"][1]+anchor["box"][3])
+            if bottom-top <= round(page["height_px"]/4):
+                box = quarter_page_box(page, (top+bottom)/2-page["height_px"]/8)
         highlights, other = [], []
         for match in matches:
             overlap = _intersection(box, match["box"]) if match["page_id"] == page["id"] else None
@@ -1072,13 +1169,28 @@ def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: 
                 highlights.append({"box": match["box"], "field": match["field"]})
             if not overlap or overlap != match["box"]:
                 other.append(match)
-        result.append({"page_id": page["id"], "file_name": primary["file_name"], "page_number": page["page_index"], "evidence_type": "PARTICIPATION", "box": box, "region_id": primary["region_id"], "origin": primary["origin"], "highlights": highlights, "other_matches": other, "layout_version": "context-quarter-v2"})
+        suggestion = {"page_id": page["id"], "file_name": primary["file_name"], "page_number": page["page_index"], "evidence_type": "PARTICIPATION", "box": box, "region_id": primary["region_id"], "origin": primary["origin"], "highlights": highlights, "other_matches": other, "layout_version": "context-quarter-v2", "participation_role": "PRIMARY"}
+        result.append(suggestion)
+        if anchor:
+            metadata = {"outcome_kind": anchor["kind"], "outcome_value": anchor["value"], "outcome_text": anchor["text"], "result_association": anchor["association"]}
+            if anchor["page_id"] == page["id"] and _intersection(box, anchor["box"]) == anchor["box"]:
+                highlights.append({"box": anchor["box"], "field": "OUTCOME"})
+                suggestion.update(metadata)
+            else:
+                outcome_page = next(p for p in pages if p["id"] == anchor["page_id"])
+                outcome_box = quarter_page_box(outcome_page, anchor["box"][1]+anchor["box"][3]/2-outcome_page["height_px"]/8)
+                outcome_file = one(conn, "file_objects", outcome_page["file_id"])
+                region = one(conn, "recognition_regions", anchor["region_id"])
+                run = one(conn, "recognition_runs", region["run_id"]) if region else None
+                outcome_highlights = [{"box": match["box"], "field": match["field"]} for match in matches if match["page_id"] == outcome_page["id"] and _intersection(outcome_box, match["box"]) == match["box"]]
+                outcome_highlights.append({"box": anchor["box"], "field": "OUTCOME"})
+                result.append({"page_id": outcome_page["id"], "file_name": outcome_file["original_name"], "page_number": outcome_page["page_index"], "evidence_type": "PARTICIPATION", "participation_role": "OUTCOME", "box": outcome_box, "region_id": anchor["region_id"], "origin": "NATIVE_PDF_TEXT" if run and run["api_name"] == NATIVE_TEXT_API else "TENCENT_OCR", "highlights": outcome_highlights, "other_matches": [], "layout_version": "context-quarter-v2", **metadata})
     return result
 
 
 def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
     """Normalize persisted V2 results too; provider array order never defines 'last'."""
-    normalized, last = [], {}
+    normalized, last, names = [], {}, []
     for index, item in enumerate(suggestions):
         item = dict(item)
         region = one(conn, "recognition_regions", item.get("region_id")) if item.get("region_id") else None
@@ -1093,9 +1205,12 @@ def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
                 order = (page["page_index"], box[1], box[0])
                 if page["file_id"] not in last or order > last[page["file_id"]][0]:
                     last[page["file_id"]] = (order, index)
+        if item.get("evidence_type") == "VALIDITY" and item.get("validity_kind") == "NAME":
+            names.append((len(_activity_title_key((region or {}).get("text"))), index))
         normalized.append((index, item))
     selected = {value[1] for value in last.values()}
-    return [item for index, item in normalized if item.get("validity_kind") != "SEAL" or index in selected]
+    chosen_name = max(names, default=(0, None))[1]
+    return [item for index, item in normalized if (item.get("validity_kind") != "SEAL" or index in selected) and (item.get("validity_kind") != "NAME" or index == chosen_name)]
 
 
 def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[dict]:
@@ -1306,6 +1421,32 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
     existing = rows(conn, "evidence_crops", revision_id=revision["id"])
     manual_evidence = (revision.get("payload_json") or {}).get("evidence_manually_edited")
     if not manual_evidence:
+        desired_participation_roles = {item.get("participation_role") or "PRIMARY" for item in suggestions if item.get("evidence_type") == "PARTICIPATION"}
+        for crop in list(existing):
+            role = ((crop.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY")
+            if desired_participation_roles and crop["source"] == "AI" and crop["evidence_type"] == "PARTICIPATION" and role not in desired_participation_roles:
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+                existing.remove(crop)
+        def name_crop(crop):
+            return crop["evidence_type"] == "VALIDITY" and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == "NAME"
+        manual_name = any(name_crop(crop) and crop["source"] != "AI" for crop in existing)
+        desired_name = next((item for item in suggestions if item.get("validity_kind") == "NAME"), None)
+        kept_name = False
+        # Replace multiple old machine name snippets with the one current title
+        # block, while preserving independently hand-selected name evidence.
+        for crop in list(existing):
+            if not name_crop(crop) or crop["source"] != "AI":
+                continue
+            if desired_name is None and not manual_name:
+                continue  # A participation-only refresh is not a name-evidence deletion.
+            matches = desired_name and crop["page_id"] == desired_name["page_id"] and polygon_box(crop["polygon_json"]) == desired_name["box"]
+            if manual_name or not matches or kept_name:
+                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
+                existing.remove(crop)
+            else:
+                kept_name = True
+        if manual_name:
+            suggestions = [item for item in suggestions if item.get("validity_kind") != "NAME"]
         desired_seals = {}
         for suggestion in suggestions:
             if suggestion.get("validity_kind") == "SEAL":
@@ -1338,16 +1479,18 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
             continue
         if len(existing) >= 30:
             break
-        duplicate = next((crop for crop in existing if crop["page_id"] == page["id"] and crop["evidence_type"] == item["evidence_type"] and polygon_box(crop["polygon_json"]) == item["box"] and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == item.get("validity_kind")), None)
+        duplicate = next((crop for crop in existing if crop["page_id"] == page["id"] and crop["evidence_type"] == item["evidence_type"] and polygon_box(crop["polygon_json"]) == item["box"] and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == item.get("validity_kind") and (item["evidence_type"] != "PARTICIPATION" or (((crop.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") == (item.get("participation_role") or "PRIMARY")))), None)
         if duplicate:
             previous = (duplicate.get("masks_json") or {}).get("evidence", {})
-            if item["evidence_type"] != "PARTICIPATION" or all(previous.get(key, []) == item.get(key, []) for key in ("highlights", "other_matches")):
+            if item["evidence_type"] != "PARTICIPATION" or all(previous.get(key) == item.get(key) for key in ("highlights", "other_matches", "participation_role", "outcome_kind", "outcome_value", "outcome_text", "result_association")):
                 continue
             # A newly found exact number may share the old name crop's bounds.
             # Rebuild that automatic working image so its red frames update.
             existing.remove(duplicate)
-        metadata = {key: item[key] for key in ("file_name", "page_number", "highlights", "other_matches", "validity_kind", "layout_version", "origin") if key in item}
+        metadata = {key: item[key] for key in ("file_name", "page_number", "highlights", "other_matches", "validity_kind", "layout_version", "origin", "participation_role", "outcome_kind", "outcome_value", "outcome_text", "result_association") if key in item}
         crop = create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"), metadata=metadata)
+        if item["evidence_type"] == "PARTICIPATION":
+            existing = [value for value in existing if value["evidence_type"] != "PARTICIPATION" or (((value.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") != (item.get("participation_role") or "PRIMARY"))]
         existing.append(crop)
 
 
@@ -1468,7 +1611,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             return {"status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。"}
         pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
         rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
-        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2.1", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
+        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v3-policy", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
         if ocr.get("policy_version") not in (None, OCR_POLICY_VERSION):
             raise HTTPException(409, "OCR结果使用旧识别策略，请按当前策略重新排队。")
         texts, excerpt = _ai_material_excerpt(conn, ocr, context["student"], context["user"])
@@ -1479,14 +1622,18 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             page = one(conn, "file_pages", run["page_id"])
             add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index)
         activities = [{"id": a["id"], "name": a["canonical_name"], "aliases": [v["alias"] for v in rows(conn, "activity_aliases", activity_id=a["id"]) if v["status"] == "ACTIVE"]} for a in rows(conn, "activities", status="ACTIVE")][:300]
+    from .outcome_evidence import linked_outcome
+    with db.read() as conn:
+        outcome = linked_outcome(conn, pages, context["student"], context["user"], context["class"]["name"], automatic=True)
     evidence, warnings = ocr["suggested_crops"], list(ocr["warnings"])
     metadata = {key: ocr[key] for key in ("partial", "skipped_files", "manual_required_files", "file_results", "per_file_warnings", "planned_tasks", "completed_tasks", "native_text_page_count", "stopped", "stop_reason") if key in ocr}
     metadata.update(policy_version=OCR_POLICY_VERSION, context_excerpt=excerpt)
+    metadata["outcome_link"] = {"status": outcome.get("status"), "is_roster": bool(outcome.get("is_roster")), "anchor_count": len(outcome.get("anchors") or [])}
     if not excerpt["coverage_complete"]:
         warnings.append(excerpt["note"])
     if progress:
         progress("AI整理具体活动与分值", 0, 1)
-    prompt_context = {"category": context["category"]["name"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "context_excerpt": excerpt, "untrusted_materials": texts}
+    prompt_context = {"category": context["category"]["name"], "category_code": context["category"]["code"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "context_excerpt": excerpt, "linked_outcome": {"status": outcome.get("status"), "facts": outcome.get("facts") or {}, "is_roster": bool(outcome.get("is_roster"))}, "untrusted_materials": texts}
     try:
         suggestion = deepseek_suggestion(prompt_context, config)
         if not isinstance(suggestion, dict):
@@ -1499,7 +1646,14 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         with db.read() as conn:
             suggestion, resolution = _resolve_activity_title(conn, revision, texts, context["student"], context["user"], suggestion)
         metadata["title_resolution"] = resolution
-        needs_review = resolution["status"] == "GROUNDED_REVIEW"
+        title_needs_review = resolution["status"] == "GROUNDED_REVIEW"
+        suggestion, score_policy, policy_warnings = normalize_policy_suggestion(context["category"]["code"], texts, revision, suggestion, linked_outcome=outcome, student_name=context["user"]["display_name"])
+        metadata["score_policy"] = score_policy
+        warnings.extend(policy_warnings)
+        score_needs_review = bool(score_policy.get("requires_confirmation")) or (title_needs_review and score_policy["status"] != "RULE_APPLIED")
+        if title_needs_review and score_policy["status"] != "RULE_APPLIED":
+            suggestion["requested_score"] = str(revision["requested_score"])
+        needs_review = title_needs_review or score_needs_review
         metadata["needs_review"] = needs_review
         title = suggestion.get("title")
         title = title.strip()[:255] if isinstance(title, str) else ""
@@ -1518,8 +1672,8 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         if activity_id not in valid_activity_ids:
             activity_id = None
         payload = suggestion.get("payload_json") if isinstance(suggestion.get("payload_json"), dict) else {}
-        payload = {key: str(payload.get(key, ""))[:500] for key in ("edition_key", "track_key", "group_key", "work_key", "award_level", "subtype")}
-        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": needs_review, "score_requires_confirmation": needs_review, "suggested_crops": evidence}
+        payload = {key: str(payload.get(key, ""))[:500] for key in dict.fromkeys(("edition_key", "track_key", "group_key", "work_key", "award_level", "subtype", *FACT_KEYS))}
+        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": title_needs_review, "score_requires_confirmation": score_needs_review, "suggested_crops": evidence}
     except (ProviderError, InvalidOperation, ValueError, TypeError, HTTPException) as error:
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
         error_code = error.code if isinstance(error, ProviderError) else "InvalidSuggestion"
@@ -1532,7 +1686,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={**metadata, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
     if progress:
         progress("AI分析完成", 1, 1)
-    return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "已提取具体活动名，分值保留当前稿；请核对本人参与、次数和分值。" if needs_review else "建议已生成；当前填写内容尚未改变。"}
+    return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "分值保留当前稿；请核对本人结果、次数和计分依据。" if score_needs_review else ("已生成政策计分，请核对具体活动名称和证据。" if title_needs_review else "建议已生成；当前填写内容尚未改变。")}
 
 
 @router.post("/applications/{application_id}/apply-analysis")

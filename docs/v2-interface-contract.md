@@ -34,8 +34,8 @@ APIRouter(prefix='/api') in submissions.py；main会include。
 
 ## 证据（materials agent）
 
-_evidence_suggestions严格VALIDITY名称/日期/印章三种，新增meta kind NAME|TIME|SEAL；PARTICIPATION只一张、原页整宽+1/4高，优先学号，其次姓名班级，源图中坐标红框，不拼接。
-crop_view须提供 {file_name,page_number(1-based),page_id,box,highlights:[{box,field}],other_matches:[{page_id,page_number,file_name,box,field}],validity_kind?}；无需改旧evidence_crops schema，metadata存现有 masks_json，保留manual/automatic/page_hash，不被publicredact覆盖。新生成图片本身红框，页码由UI明确显示；原图页无改写。手动PARTICIPATION强制整宽1/4并可调整y、页面；已有AI参与截图替换为一张但不得动冻结批准历史图。
+_evidence_suggestions严格VALIDITY名称/日期/印章三种，meta kind NAME|TIME|SEAL；NAME只保留一张完整名称块。PARTICIPATION按participation_role=PRIMARY|OUTCOME最多两张，均原页整宽+1/4高；身份与本人结果可同框时仅PRIMARY一张，否则补OUTCOME图。身份优先准确学号、其次姓名，班级单独不够；结果须关联本人，源图坐标红框，不跨页拼接。
+crop_view须提供 {file_name,page_number(1-based),page_id,box,highlights:[{box,field}],other_matches:[{page_id,page_number,file_name,box,field}],validity_kind?,participation_role?,outcome_kind?,outcome_value?,outcome_text?}；field新增OUTCOME，旧参与图无role视PRIMARY。metadata存现有masks_json，保留manual/automatic/page_hash及公示保护。手动参与图按角色分别替换，均整宽1/4并可调整y、页面；OUTCOME单图不计作身份已齐，冻结批准历史图不改写。
 run_ocr只OCR+生成建议/可安全生成新稿截图，不调用DeepSeek；run_ai首先run_ocr缓存，再_analyze；AI具体标题拒绝泛称、不得编活动名，提示人工补全。
 
 ## 学年（root）

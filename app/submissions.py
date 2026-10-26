@@ -116,7 +116,7 @@ def _evidence_summary(conn, revision):
         view = crop_view(crop, conn=conn)
         if view.get("source") == "AI" and view.get("automatic_policy_allowed") is False:
             continue
-        if view["evidence_type"] == "PARTICIPATION":
+        if view["evidence_type"] == "PARTICIPATION" and view.get("participation_role") in (None, "", "PRIMARY"):
             summary["has_participation"] = True
         elif view["evidence_type"] == "VALIDITY":
             kind = view.get("validity_kind")

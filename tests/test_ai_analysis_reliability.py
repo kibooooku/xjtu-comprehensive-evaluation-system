@@ -87,7 +87,7 @@ def test_analyze_real_adapter_serializes_material_context_and_persists_safe_shap
     assert result["provider_diagnostics"]["parse_mode"] == "SINGLE_OBJECT"
     with db.read() as conn:
         analysis = db.one(conn, "ai_analyses", result["analysis_id"])
-        assert analysis["prompt_version"] == "moral-score-v2.1"
+        assert analysis["prompt_version"] == "moral-score-v3-policy"
         assert analysis["result_json"]["provider_diagnostics"] == result["provider_diagnostics"]
         revision = db.one(conn, "application_revisions", ocr["input_revision_id"])
         assert materials.revision_fingerprint(conn, revision) == ocr["input_fingerprint"]

@@ -1,0 +1,132 @@
+{
+  "source": "All APIs and images mocked; writes are fixtures only, no actual business/database/cloud writes",
+  "checks": [
+    "旧单项页面与完整版本入口已删除，兼容入口定位到统一对照区并保留处理记录",
+    "赛事级别和获奖等第独立显示保存，历史自由文本不会因选项不匹配被抹空",
+    "后台识别后的结构化级别、奖次和考评可局部填入原表单",
+    "文体、实践、任职与表彰按对应类别展示并保存等级、名次、考评、时长等依据",
+    "学生旧学年入口定位历史大类只读对照，审核快照和记录保留",
+    "审查员旧年待审和辅导员班级入口保留年班上下文及各自审批阶段权限",
+    "工作台最近申请和任务栏定位均跳转同一大类对照，不再产生旧页面",
+    "定位请求迟到不会抢回用户刚切换的页面",
+    "等级依据不足的短提醒与补全活动名提醒分开，计分保留原稿",
+    "可分别保存本人身份和奖次考评截图，结果红框及简短证据字幕正确",
+    "只有奖次考评补充图时仍提示补齐本人身份，不能误判参与证明已齐"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "path": "/api/applications/unified-item",
+      "body": {
+        "title": "虚构材料中的具体活动",
+        "requested_score": "0.30",
+        "activity_id": null,
+        "payload_json": {
+          "award_level": "全国总决赛二等奖",
+          "award_grade": "SECOND",
+          "research_type": "COMPETITION",
+          "subtype": "",
+          "note": "",
+          "edition_key": "",
+          "track_key": "",
+          "group_key": "",
+          "work_key": "",
+          "project_level": "",
+          "publication_level": "",
+          "author_rank": "",
+          "assessment_result": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/unified-item",
+      "body": {
+        "title": "虚构材料中的具体活动",
+        "requested_score": "0.30",
+        "activity_id": null,
+        "payload_json": {
+          "competition_kind": "SPORT",
+          "award_grade": "PLACE_2",
+          "award_level": "PROVINCIAL",
+          "record_level": "SCHOOL",
+          "subtype": "",
+          "note": "",
+          "edition_key": "",
+          "track_key": "",
+          "group_key": "",
+          "work_key": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/unified-item",
+      "body": {
+        "title": "虚构材料中的具体活动",
+        "requested_score": "0.30",
+        "activity_id": null,
+        "payload_json": {
+          "practice_type": "SCHOOL_SOCIAL_PRACTICE",
+          "assessment_result": "PASS",
+          "volunteer_hours": "16",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/unified-item",
+      "body": {
+        "title": "虚构材料中的具体活动",
+        "requested_score": "0.30",
+        "activity_id": null,
+        "payload_json": {
+          "position_tier": "TIER_3",
+          "assessment_result": "GOOD",
+          "tenure_months": "8",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/unified-item",
+      "body": {
+        "title": "虚构材料中的具体活动",
+        "requested_score": "0.30",
+        "activity_id": null,
+        "payload_json": {
+          "recognition_level": "PROVINCIAL",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/unified-item/crops",
+      "body": {
+        "page_id": "unified-page",
+        "evidence_type": "PARTICIPATION",
+        "box": [
+          0,
+          35,
+          900,
+          300
+        ],
+        "masks": [],
+        "highlights": [
+          {
+            "box": [
+              180,
+              161,
+              180,
+              36
+            ],
+            "field": "OUTCOME"
+          }
+        ],
+        "participation_role": "OUTCOME"
+      }
+    }
+  ],
+  "createdAt": "2026-10-26T06:08:38.370Z"
+}
