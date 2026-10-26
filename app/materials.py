@@ -693,8 +693,16 @@ def ocr_input_fingerprint(conn, revision: dict) -> str:
 
 def _usage(conn, action: str) -> int:
     month = now()[:7]
+    year, number = map(int, month.split('-'))
+    next_month = f'{year + 1:04d}-01' if number == 12 else f'{year:04d}-{number + 1:02d}'
     table = tables["recognition_runs"]
-    return conn.scalar(select(func.count()).select_from(table).where(and_(table.c.api_name == action, table.c.provider == "TENCENT", table.c.started_at >= month + "-01"))) or 0
+    retained = conn.scalar(select(func.count()).select_from(table).where(and_(table.c.api_name == action, table.c.provider == "TENCENT", table.c.started_at >= month + "-01", table.c.started_at < next_month + "-01"))) or 0
+    archive = (one(conn, 'system_settings', 'ocr_usage_archive') or {}).get('value_json')
+    monthly = archive.get(month) if isinstance(archive, dict) else None
+    archived = monthly.get(action) if isinstance(monthly, dict) else None
+    # Deleted private evidence must not replenish the local free-call budget.
+    # Malformed archive values can never subtract from retained attempts.
+    return retained + (archived if type(archived) is int and archived >= 0 else 0)
 
 
 @router.get("/integrations/status")
