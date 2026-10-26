@@ -1,0 +1,9 @@
+{
+  "source": "Focused rendering only; all APIs mocked, no real writes or provider calls",
+  "checks": [
+    "空标题回退自动填名与普通建议均醒目标注保留当前0.15分需核对，普通确定建议仍显示建议分值"
+  ],
+  "errors": [],
+  "writes": [],
+  "createdAt": "2026-10-26T03:07:24.707Z"
+}

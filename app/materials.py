@@ -7,6 +7,7 @@ import json
 import math
 import re
 import threading
+import unicodedata
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -784,7 +785,7 @@ def _name_region(text: str, activity_names: list[str]) -> bool:
         return False
     if any(_compact(name) in compact for name in activity_names if specific_activity_title(name)):
         return True
-    if re.search(r"杯|广场舞|夜跑|运动会|党课|社会实践|志愿服务|讲座|培训|晚会|创新创业|互联网\+|挑战杯|任职|论坛", compact):
+    if re.search(r"杯|广场舞|夜跑|[八8８]字绕绳|运动会|党课|社会实践|志愿服务|讲座|培训|晚会|创新创业|互联网\+|挑战杯|任职|论坛", compact):
         return True
     labelled = re.search(r"(?:活动名称|项目名称|赛事名称)[：:]?(.+)", compact)
     return bool(labelled and specific_activity_title(labelled.group(1)))
@@ -792,7 +793,9 @@ def _name_region(text: str, activity_names: list[str]) -> bool:
 
 def activity_title_supported(title: str, texts: list[dict], activities: list[dict]) -> bool:
     """Require some material anchor; this is not proof of authenticity or correctness."""
-    normalize = lambda value: re.sub(r"[\W_]+", "", str(value or "")).casefold()
+    def normalize(value):
+        text = re.sub(r"[\W_]+", "", unicodedata.normalize("NFKC", str(value or ""))).casefold()
+        return text.replace("8字绕绳", "八字绕绳")
     source = normalize("".join(item.get("text", "") for item in texts))
     compact = normalize(title)
     if compact and compact in source:
@@ -801,7 +804,7 @@ def activity_title_supported(title: str, texts: list[dict], activities: list[dic
         name = normalize(activity["name"])
         if len(name) >= 2 and name in compact and name in source:
             return True
-    for anchor in ("广场舞", "夜跑", "运动会", "蓝桥杯", "挑战杯", "青年大学习", "党课", "暑期社会实践", "互联网创新创业"):
+    for anchor in ("广场舞", "夜跑", "八字绕绳", "运动会", "蓝桥杯", "挑战杯", "青年大学习", "党课", "暑期社会实践", "互联网创新创业"):
         if normalize(anchor) in compact and normalize(anchor) in source:
             return True
     for fragment in re.split(r"[（()）:：，,《》“”\s]+", title):
@@ -809,6 +812,67 @@ def activity_title_supported(title: str, texts: list[dict], activities: list[dic
         if len(fragment) >= 3 and specific_activity_title(fragment) and normalize(fragment) in source:
             return True
     return False
+
+
+def _activity_title_key(value):
+    text = re.sub(r"[\W_]+", "", unicodedata.normalize("NFKC", str(value or ""))).casefold()
+    return text.replace("8字绕绳", "八字绕绳")
+
+
+def _grounded_title_candidates(conn, revision, texts, student, student_user):
+    """Find specific names supported verbatim, not arbitrary filename/night-run guesses."""
+    source = _activity_title_key("\n".join(str(item.get("text") or "") for item in texts))
+    private_tokens = [_activity_title_key(value) for value in (student.get("student_number"), student_user.get("display_name")) if value]
+    candidates = {}
+
+    def consider(value, origin, explicit=False):
+        title = unicodedata.normalize("NFKC", str(value or "")).strip().strip('《》“”"\' ')
+        title = re.sub(r"^附件\s*[\d一二三四五六七八九十]+[\s、:：._-]*", "", title)
+        title = re.sub(r"^(?:20\d{2}|\d{2})(?:\s*[-—–~～至]\s*(?:20\d{2}|\d{2}))?(?:学年|年)?(?:(?:第?[一二三四\d]+学期)|(?:春|夏|秋|冬)(?:季)?)?[\s._-]*", "", title)
+        title = re.sub(r"[（(]?\s*\d+\s*次\s*[）)]?$", "", title)
+        for _ in range(3):
+            title = re.sub(r"(?:参与|参加|合格|考核|签到|打卡)?(?:人员)?(?:名单|名册|记录|证明材料|证明|登记表|汇总表|统计表|结果表|清单)$|(?:集体活动|活动)$", "", title).strip()
+        key = _activity_title_key(title)
+        if len(key) < 3 or len(title) > 80 or not specific_activity_title(title) or key not in source:
+            return
+        if title in {"未填写", "待填写", "未知", "暂无", "待补充", "待确认", "见附件", "同上"} or re.search(r"同学|学生|本人|名单|学号|姓名|班级|参加|参与|证明", title):
+            return
+        if any(token and token in key for token in private_tokens) or re.search(r"\d{6,}", key):
+            return
+        if not explicit and not _name_region(title, []):
+            return
+        # The complete specific core, including a qualifier such as 星荧, must
+        # occur in the body. A shared generic 夜跑 substring is never sufficient.
+        if key not in candidates or origin == "EXPLICIT_BODY":
+            candidates[key] = {"title": title, "source": origin}
+
+    for item in texts:
+        text = str(item.get("text") or "")
+        for title in re.findall(r"[“《]([^”》\r\n]{2,80})[”》]", text):
+            consider(title, "EXPLICIT_BODY")
+        for title in re.findall(r"(?:活动名称|项目名称|赛事名称)\s*[:：]\s*([^\r\n，。；;]{2,80})", text):
+            consider(title, "EXPLICIT_BODY", explicit=True)
+    for link in rows(conn, "revision_files", revision_id=revision["id"]):
+        file = one(conn, "file_objects", link["file_id"])
+        if file:
+            consider(Path(file["original_name"]).stem, "FILENAME_AND_TEXT")
+    return list(candidates.values())
+
+
+def _resolve_activity_title(conn, revision, texts, student, student_user, suggestion):
+    """Read-only normalization; a title fallback never endorses the model's score."""
+    result = dict(suggestion)
+    raw_title = result.get("title")
+    if isinstance(raw_title, str) and specific_activity_title(raw_title.strip()):
+        return result, {"status": "MODEL", "source": "MODEL", "candidate_count": 0, "score_policy": "MODEL_PROPOSAL"}
+    candidates = _grounded_title_candidates(conn, revision, texts, student, student_user)
+    if len(candidates) != 1:
+        return result, {"status": "MISSING_OR_AMBIGUOUS", "source": None, "candidate_count": len(candidates), "score_policy": "NO_CHANGE"}
+    selected = candidates[0]
+    result.update(title=selected["title"], requested_score=str(revision["requested_score"]), activity_id=revision.get("activity_id"),
+                  payload_json=revision.get("payload_json") or {}, match_uncertain=True)
+    result["explanation"] = (str(result.get("explanation") or "")[:2400] + "\n已从材料正文与具名来源提取具体活动名；本人参与、活动次数和分值仍需核对，本次保留当前填报分值。 ").strip()
+    return result, {"status": "GROUNDED_REVIEW", "source": selected["source"], "candidate_count": 1, "score_policy": "PRESERVE_CURRENT_DRAFT"}
 
 
 def _evidence_suggestions(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, activity_names: list[str] | None = None) -> list[dict]:
@@ -1175,7 +1239,7 @@ def _ai_material_excerpt(conn, ocr: dict, student: dict, student_user: dict, max
                 match_pages.add((record["file_id"], record["page_number"]))
         # Reserve space for file boundaries, so a very long roster cannot crowd out
         # the activity heading/date. Match windows still receive most of the budget.
-        budget, selected_keys = 32000, set()
+        budget, selected_keys = min(32000, max(0, max_chars)), set()
         for record in matched:
             if budget <= 0:
                 break
@@ -1186,9 +1250,15 @@ def _ai_material_excerpt(conn, ocr: dict, student: dict, student_user: dict, max
         remaining = max_chars - sum(len(record["text"]) for record in selected)
         candidates = []
         for record in records:
-            if (record["page_id"], record["kind"]) in selected_keys:
+            boundary_page = record["page_number"] in boundaries[record["file_id"]]
+            if (record["page_id"], record["kind"]) in selected_keys and not boundary_page:
                 continue
-            if record["page_number"] in boundaries[record["file_id"]]:
+            if boundary_page:
+                # A personal match late on the first/last page must not exclude
+                # that same page's activity heading outside the match window.
+                heading = record["text"][:3000]
+                if any(item["page_id"] == record["page_id"] and item["kind"] == record["kind"] and heading in item["text"] for item in selected):
+                    continue
                 candidates.append((0, record))
             elif any(file_id == record["file_id"] and abs(number - record["page_number"]) == 1 for file_id, number in match_pages):
                 candidates.append((1, record))
@@ -1207,6 +1277,23 @@ def _ai_material_excerpt(conn, ocr: dict, student: dict, student_user: dict, max
     return selected, excerpt
 
 
+def _safe_ai_diagnostics(value):
+    """Persist shape/count evidence only, never model text, exception strings or keys."""
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key in ("content_characters", "content_lines", "json_error_position", "json_error_line", "json_error_column", "title_characters"):
+        if isinstance(value.get(key), int) and not isinstance(value[key], bool) and 0 <= value[key] <= 10_000_000:
+            result[key] = value[key]
+    allowed = {"content_shape": {"OBJECT", "FENCED", "ARRAY", "OTHER"}, "parse_mode": {"JSON", "SINGLE_OBJECT"}, "finish_reason": {"stop", "length"}, "title_status": {"EMPTY", "GENERIC", "SPECIFIC", "INVALID_TYPE"}, "json_error_kind": {"INVALID_ESCAPE", "CONTROL_CHARACTER", "UNTERMINATED_STRING", "EXTRA_DATA", "EXPECTING_PROPERTY", "EXPECTING_VALUE", "MISSING_DELIMITER", "OTHER"}}
+    for key, choices in allowed.items():
+        if isinstance(value.get(key), str) and value[key] in choices:
+            result[key] = value[key]
+    if isinstance(value.get("source_title_supported"), bool):
+        result["source_title_supported"] = value["source_title_supported"]
+    return result
+
+
 def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_result=None) -> dict:
     ocr = ocr_result if ocr_result is not None else run_ocr(application_id, user, progress, _config=config)
     if ocr["status"] != "SUCCEEDED":
@@ -1221,7 +1308,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             return {"status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。"}
         pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
         rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
-        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
+        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v2.1", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
         if ocr.get("policy_version") not in (None, OCR_POLICY_VERSION):
             raise HTTPException(409, "OCR结果使用旧识别策略，请按当前策略重新排队。")
         texts, excerpt = _ai_material_excerpt(conn, ocr, context["student"], context["user"])
@@ -1242,11 +1329,25 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
     prompt_context = {"category": context["category"]["name"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "context_excerpt": excerpt, "untrusted_materials": texts}
     try:
         suggestion = deepseek_suggestion(prompt_context, config)
-        title = str(suggestion.get("title", "")).strip()[:255]
+        if not isinstance(suggestion, dict):
+            raise ProviderError("OutputFormatError", "DeepSeek条目格式错误（需要JSON对象）；OCR结果已保留。")
+        diagnostics = _safe_ai_diagnostics(suggestion.pop("_provider_diagnostics", {}))
+        raw_title = suggestion.get("title")
+        title = raw_title.strip()[:255] if isinstance(raw_title, str) else ""
+        diagnostics.update(title_characters=len(title), title_status="INVALID_TYPE" if not isinstance(raw_title, str) else ("EMPTY" if not title else ("SPECIFIC" if specific_activity_title(title) else "GENERIC")))
+        metadata["provider_diagnostics"] = diagnostics
+        with db.read() as conn:
+            suggestion, resolution = _resolve_activity_title(conn, revision, texts, context["student"], context["user"], suggestion)
+        metadata["title_resolution"] = resolution
+        needs_review = resolution["status"] == "GROUNDED_REVIEW"
+        metadata["needs_review"] = needs_review
+        title = suggestion.get("title")
+        title = title.strip()[:255] if isinstance(title, str) else ""
         score = money(suggestion.get("requested_score", "0"))
         if not specific_activity_title(title):
             raise ProviderError("ActivityNameMissing", "未识别出具体活动名称，请学生按原件补充，不能只填泛称‘活动证明’。")
-        if not activity_title_supported(title, texts, activities):
+        diagnostics["source_title_supported"] = activity_title_supported(title, texts, activities)
+        if not diagnostics["source_title_supported"]:
             raise ProviderError("ActivityNameUncertain", "建议活动名未能在识别文字中找到足够对应，请按原件人工补全。")
         if score < 0 or score > 105:
             raise ValueError("invalid suggestion")
@@ -1258,10 +1359,12 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             activity_id = None
         payload = suggestion.get("payload_json") if isinstance(suggestion.get("payload_json"), dict) else {}
         payload = {key: str(payload.get(key, ""))[:500] for key in ("edition_key", "track_key", "group_key", "work_key", "award_level", "subtype")}
-        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "suggested_crops": evidence}
+        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": needs_review, "score_requires_confirmation": needs_review, "suggested_crops": evidence}
     except (ProviderError, InvalidOperation, ValueError, TypeError, HTTPException) as error:
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
         error_code = error.code if isinstance(error, ProviderError) else "InvalidSuggestion"
+        if isinstance(error, ProviderError) and error.diagnostics:
+            metadata["provider_diagnostics"] = {**metadata.get("provider_diagnostics", {}), **_safe_ai_diagnostics(error.diagnostics)}
         with db.write() as conn:
             change(conn, "ai_analyses", analysis["id"], status="FAILED", result_json={**metadata, "error_code": error_code, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence})
         return {**metadata, "status": "MANUAL_REQUIRED", "error_code": error_code, "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
@@ -1269,7 +1372,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={**metadata, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
     if progress:
         progress("AI分析完成", 1, 1)
-    return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "建议已生成；当前填写内容尚未改变。"}
+    return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "已提取具体活动名，分值保留当前稿；请核对本人参与、次数和分值。" if needs_review else "建议已生成；当前填写内容尚未改变。"}
 
 
 @router.post("/applications/{application_id}/apply-analysis")

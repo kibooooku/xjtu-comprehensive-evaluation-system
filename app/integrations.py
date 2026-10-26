@@ -22,9 +22,10 @@ OCR_HOST = "ocr.tencentcloudapi.com"
 class ProviderError(Exception):
     """A deliberately sanitized provider failure suitable for the UI."""
 
-    def __init__(self, code: str, message: str):
+    def __init__(self, code: str, message: str, *, diagnostics: dict | None = None):
         self.code = code
         self.message = message
+        self.diagnostics = diagnostics or {}
         super().__init__(message)
 
 
@@ -131,6 +132,40 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
     return data
 
 
+def _suggestion_json(content: str) -> tuple[dict, dict]:
+    """Accept a single JSON object with harmless wrapping; never repair or eval data."""
+    content = content.strip().lstrip("\ufeff")
+    diagnostic = {"content_characters": len(content), "content_lines": content.count("\n") + 1,
+                  "content_shape": "OBJECT" if content.startswith("{") else ("FENCED" if content.startswith("```") else ("ARRAY" if content.startswith("[") else "OTHER"))}
+    if content.startswith("```") and content.endswith("```"):
+        content = re.sub(r"^```(?:json)?\s*", "", content, flags=re.IGNORECASE)[:-3].strip()
+    try:
+        suggestion = json.loads(content)
+        diagnostic["parse_mode"] = "JSON"
+    except ValueError as error:
+        # Providers occasionally add a prose prefix/suffix despite JSON mode.
+        # Only the first, complete object is eligible; brackets/another object
+        # outside it make the result ambiguous and must still fail closed.
+        start = content.find("{")
+        suggestion = None
+        if start >= 0 and not re.search(r"[{}\[\]]", content[:start]):
+            try:
+                candidate, end = json.JSONDecoder().raw_decode(content, start)
+                if isinstance(candidate, dict) and "title" in candidate and "requested_score" in candidate and not re.search(r"[{}\[\]]", content[end:]):
+                    suggestion = candidate
+                    diagnostic["parse_mode"] = "SINGLE_OBJECT"
+            except ValueError:
+                pass
+        if suggestion is None:
+            diagnostic.update(json_error_position=getattr(error, "pos", 0), json_error_line=getattr(error, "lineno", 0), json_error_column=getattr(error, "colno", 0))
+            kinds = {"Invalid \\escape": "INVALID_ESCAPE", "Invalid control character": "CONTROL_CHARACTER", "Unterminated string": "UNTERMINATED_STRING", "Extra data": "EXTRA_DATA", "Expecting property name": "EXPECTING_PROPERTY", "Expecting value": "EXPECTING_VALUE", "Expecting ',' delimiter": "MISSING_DELIMITER"}
+            diagnostic["json_error_kind"] = next((kind for prefix, kind in kinds.items() if str(getattr(error, "msg", "")).startswith(prefix)), "OTHER")
+            raise ProviderError("OutputJSONError", "DeepSeek生成的条目不是完整JSON对象；OCR结果已保留，可重试或手动填写。", diagnostics=diagnostic) from None
+    if not isinstance(suggestion, dict):
+        raise ProviderError("OutputFormatError", "DeepSeek条目格式错误（需要JSON对象）；OCR结果已保留。", diagnostics=diagnostic)
+    return suggestion, diagnostic
+
+
 def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
     config = config or configuration()
     if not config["deepseek_key"]:
@@ -144,6 +179,9 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
         "分值保留两位小数；没有充分依据时给出需人工核对的提示，不能虚构活动或参与人。"
         "title必须是材料中有依据的具体活动名称（可包含次数），禁止仅写‘集体活动证明’、‘活动证明’、‘加分申请’等泛称。"
         "找不到具体活动名称时title为空字符串，并在explanation提示学生补全，不能编造名称。"
+        "活动名称与本人参与信息分开判断：材料已明确命名活动时，title照录具体活动名；"
+        "姓名学号、时间或印章缺失只在explanation说明人工核对，不得因此抹去已有活动名称。"
+        "context_excerpt声明摘选时，仅基于收到的文字提出建议，不得把未覆盖部分当作已确认。"
         "从活动目录选择规范activity_id，不确定时为null，并写出match_uncertain=true。"
         "输出格式示例：{\"title\":\"仲英书院周末广场舞（2次）\",\"requested_score\":\"0.60\",\"activity_id\":null,"
         "\"match_uncertain\":false,\"explanation\":\"依据与不确定性\",\"payload_json\":{"
@@ -191,13 +229,11 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
     content = message.get("content") if isinstance(message, dict) else None
     if not isinstance(content, str) or not content.strip():
         raise ProviderError("EmptyOutput", "DeepSeek返回了空的条目内容；OCR结果已保留，可重试或手动填写。")
-    content = content.strip()
-    if content.startswith('```') and content.endswith('```'):
-        content = re.sub(r'^```(?:json)?\s*', '', content, flags=re.IGNORECASE)[:-3].strip()
     try:
-        suggestion = json.loads(content)
-    except ValueError:
-        raise ProviderError("OutputJSONError", "DeepSeek生成的条目不是完整JSON对象；OCR结果已保留，可重试或手动填写。") from None
-    if not isinstance(suggestion, dict):
-        raise ProviderError("OutputFormatError", "DeepSeek条目格式错误（需要JSON对象）；OCR结果已保留。")
+        suggestion, diagnostic = _suggestion_json(content)
+    except ProviderError as error:
+        error.diagnostics["finish_reason"] = "stop"
+        raise
+    diagnostic["finish_reason"] = "stop"
+    suggestion["_provider_diagnostics"] = diagnostic
     return suggestion

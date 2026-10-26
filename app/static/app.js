@@ -403,5 +403,5 @@ function accountModal(){
   $('#change-password').onclick=e=>buttonTask(e.currentTarget,async()=>{const f=$('#password-form');if(!f.reportValidity())return;if(f.elements.new_password.value!==f.elements.repeat_password.value){modalError('两次输入的新密码不一致。');return;}try{const result=await api('/password',{method:'POST',body:{current_password:f.elements.current_password.value,new_password:f.elements.new_password.value}});if(result?.csrf_token)S.csrf=result.csrf_token;closeModal();toast('密码已修改，请使用新密码登录。');await api('/logout',{method:'POST',body:{}}).catch(()=>{});S.user=null;S.csrf='';renderLogin();}catch(err){modalError(err.message);}});
 }
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('#modal-root').innerHTML&&closeModal();$('.sidebar')?.classList.remove('open');}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal-root').innerHTML){closeModal();return;}if(typeof closeWorkspaceComparison==='function'&&S.selectedItem&&$('.workspace-comparison .comparison-header'))closeWorkspaceComparison();$('.sidebar')?.classList.remove('open');}});
 window.addEventListener('hashchange',()=>{if(S.user)go(location.hash.slice(1)||'dashboard',{},false);});
