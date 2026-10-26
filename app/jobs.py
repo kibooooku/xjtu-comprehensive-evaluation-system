@@ -477,7 +477,8 @@ def process_job(job_id, worker_token=None):
         if job['kind'] == 'AI' and ocr_result is not None:
             # Model adapters must not erase partial-recognition notices.
             for field in ('manual_required_files', 'skipped_files', 'partial', 'planned_tasks', 'completed_tasks',
-                          'native_text_page_count', 'file_results', 'processed_page_ids', 'per_file_warnings', 'stopped', 'stop_reason'):
+                          'native_text_page_count', 'file_results', 'processed_page_ids', 'per_file_warnings', 'stopped', 'stop_reason',
+                          'stop_code', 'stop_source', 'stop_message', 'stop_details'):
                 if field in ocr_result:
                     result[field] = ocr_result[field]
             result['warnings'] = list(dict.fromkeys([*(ocr_result.get('warnings') or []), *(result.get('warnings') or [])]))

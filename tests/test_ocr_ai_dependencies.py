@@ -369,6 +369,24 @@ def test_long_native_text_result_can_reach_ai_with_only_endpoint_seal_tasks(queu
     assert len(pipeline.ai_inputs[0]['page_ids']) == 56
 
 
+def test_ai_worker_preserves_local_stop_source_without_inventing_provider_quota(queued_item, monkeypatch):
+    client, _, _, ocr = queued_item
+    pipeline = Pipeline(monkeypatch)
+    stop = {'stop_reason': 'LocalBudgetExceeded', 'stop_code': 'LocalBudgetExceeded',
+            'stop_source': 'LOCAL_LIMIT', 'stop_message': '本地调用上限，不代表腾讯云余额。',
+            'stop_details': {'action': 'SealOCR', 'used': 100, 'limit': 100}}
+    pipeline.extra = {**stop, 'stopped': True, 'partial': True}
+    ai = bulk(client)
+    pipeline.release.set()
+    monkeypatch.setattr(materials, 'apply_ocr_evidence', lambda *args, **kwargs: {})
+    jobs.process_job(ocr['id'])
+    jobs.process_job(ai['id'])
+    completed = client.get('/api/analysis-jobs/' + ai['id']).json()
+    assert completed['state'] == 'SUCCEEDED'
+    assert {key: completed['result_json'][key] for key in stop} == stop
+    assert {key: pipeline.ai_inputs[0][key] for key in stop} == stop
+
+
 def test_old_policy_success_is_history_not_a_current_cache_hit(queued_item, monkeypatch):
     client, _, child, ocr = queued_item
     old_ai = bulk(client)

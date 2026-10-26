@@ -19,7 +19,7 @@ from sqlalchemy import and_, delete, func, select
 
 from . import db
 from .db import add, change, money, now, one, rows, tables, uid
-from .integrations import ProviderError, configuration, deepseek_suggestion, tencent_ocr
+from .integrations import ProviderError, configuration, deepseek_suggestion, ocr_stop_info, tencent_ocr
 from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES, MAX_AUTOMATIC_OCR_PAGES, OCR_POLICY_VERSION
 from .policy_suggestions import FACT_KEYS, normalize_policy_suggestion
 from .security import current_user, require
@@ -676,7 +676,9 @@ def integration_status(user: dict = Depends(current_user)):
     config = configuration()
     with db.read() as conn:
         general_used, seal_used = _usage(conn, "GeneralAccurateOCR"), _usage(conn, "SealOCR")
-    return {"enabled": config["enabled"], "tencent_configured": bool(config["secret_id"] and config["secret_key"]), "deepseek_configured": bool(config["deepseek_key"]), "deepseek_model": config["deepseek_model"], "free_only": True, "general": {"used": general_used, "limit": config["general_limit"]}, "seal": {"used": seal_used, "limit": config["seal_limit"]}, "max_analysis_pages": config["max_analysis_pages"], "message": "仅调用已开通服务，不自动重试或购买资源；本地预算不代表云端共享余额。额度不足时可手动填写和截图。"}
+    def local_usage(used, limit):
+        return {"used": used, "limit": limit, "count_basis": "LOCAL_ATTEMPTS_INCLUDING_FAILURES", "provider_balance_known": False, "provider_remaining": None}
+    return {"enabled": config["enabled"], "tencent_configured": bool(config["secret_id"] and config["secret_key"]), "deepseek_configured": bool(config["deepseek_key"]), "deepseek_model": config["deepseek_model"], "free_only": True, "general": local_usage(general_used, config["general_limit"]), "seal": local_usage(seal_used, config["seal_limit"]), "provider_balance_known": False, "provider_remaining": None, "max_analysis_pages": config["max_analysis_pages"], "message": "用量为本系统本月调用尝试次数（含失败），不是腾讯云已计费次数或免费余额；云端余额未查询。仅调用已开通服务，不自动重试或购买资源。"}
 
 
 def _ocr_page(page: dict, action: str, config: dict) -> dict:
@@ -711,8 +713,9 @@ def _ocr_page_locked(page: dict, action: str, config: dict) -> dict:
             _save_regions(conn, run, source["result_json"] or {})
             return run
         limit = config["general_limit"] if action == "GeneralAccurateOCR" else config["seal_limit"]
-        if _usage(conn, action) >= limit:
-            raise ProviderError("LocalBudgetExceeded", "本月本地 OCR 保护预算已用完，已停止调用，可手动继续。")
+        used = _usage(conn, action)
+        if used >= limit:
+            raise ProviderError("LocalBudgetExceeded", ocr_stop_info("LocalBudgetExceeded")["stop_message"], diagnostics={"action": action, "used": used, "limit": limit})
         run = add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=action, parameters_hash=param_hash, status="RUNNING", provider_request_id=None, result_json=None, started_at=now(), finished_at=None)
     try:
         data = tencent_ocr(action, asset_path(page["image_uri"]).read_bytes(), config)
@@ -1283,6 +1286,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
             if page["id"] in boundaries:
                 tasks.append((page, "SealOCR"))
     done, total, stopped, stop_reason = 0, len(tasks), False, None
+    stop_info = ocr_stop_info(None)
     if progress:
         progress("OCR准备", done, total)
     failed_tasks = []
@@ -1294,7 +1298,8 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
                 cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
             if not cached:
                 stopped, stop_reason = True, "NotConfigured"
-                warnings.append("腾讯云 OCR 未配置或已关闭，未继续云调用；可手动填写和框选。")
+                stop_info = ocr_stop_info(stop_reason)
+                warnings.append(stop_info["stop_message"])
                 break
         try:
             ocr_runs.append(_ocr_page(page, action, config))
@@ -1302,8 +1307,10 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
             warnings.append(error.message)
             failed_tasks.append((page["id"], action))
             # Stop all further cloud actions, including the other API, on quota/resource errors.
-            if error.code in ("LocalBudgetExceeded", "NotConfigured", "NetworkError", "HTTPError") or any(part in error.code for part in ("AuthFailure", "Unauthorized", "ResourcePackageRunOut", "InArrears", "ChargeStatusException", "LimitExceeded", "ResourceUnavailable", "ResourcesSoldOut", "Quota", "UnOpenError")):
+            classified = ocr_stop_info(error.code, error.diagnostics)
+            if classified["stop_source"] in {"LOCAL_LIMIT", "PROVIDER_RESOURCE", "BILLING", "RATE_LIMIT", "AUTH", "NETWORK", "CONFIGURATION", "PROVIDER_UNAVAILABLE"}:
                 stopped, stop_reason = True, error.code
+                stop_info = classified
         done += 1
         if progress:
             progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
@@ -1367,7 +1374,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
             warnings.append(f"未定位到{label}，请人工核对原件。")
     if not any(item["evidence_type"] == "PARTICIPATION" for item in evidence):
         warnings.append("未定位到账户对应的姓名、班级或学号，请人工核对并选择主截图。")
-    return {**common, "status": "SUCCEEDED" if text_pages else "MANUAL_REQUIRED", "partial": partial, "stopped": stopped, "stop_reason": stop_reason,
+    return {**common, "status": "SUCCEEDED" if text_pages else "MANUAL_REQUIRED", "partial": partial, "stopped": stopped, "stop_reason": stop_reason, **stop_info,
             "planned_tasks": total, "completed_tasks": done, "native_text_page_count": sum(len(item["native_pages"]) for item in file_results),
             "skipped_files": skipped_files, "manual_required_files": skipped_files, "file_results": file_results, "processed_files": [item for item in file_results if item["processed_page_count"]], "processed_page_ids": [page["id"] for page in pages if page["id"] in text_pages], "per_file_warnings": per_file_warnings,
             "run_ids": list(dict.fromkeys(run["id"] for run in ocr_runs)), "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": ("已取得可用文字，部分页面或印章仍需人工核对。" if partial else "文字识别已完成，请核对原页定位；识别结果不作为材料真实性结论。") if text_pages else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
@@ -1626,7 +1633,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
     with db.read() as conn:
         outcome = linked_outcome(conn, pages, context["student"], context["user"], context["class"]["name"], automatic=True)
     evidence, warnings = ocr["suggested_crops"], list(ocr["warnings"])
-    metadata = {key: ocr[key] for key in ("partial", "skipped_files", "manual_required_files", "file_results", "per_file_warnings", "planned_tasks", "completed_tasks", "native_text_page_count", "stopped", "stop_reason") if key in ocr}
+    metadata = {key: ocr[key] for key in ("partial", "skipped_files", "manual_required_files", "file_results", "per_file_warnings", "planned_tasks", "completed_tasks", "native_text_page_count", "stopped", "stop_reason", "stop_code", "stop_source", "stop_message", "stop_details") if key in ocr}
     metadata.update(policy_version=OCR_POLICY_VERSION, context_excerpt=excerpt)
     metadata["outcome_link"] = {"status": outcome.get("status"), "is_roster": bool(outcome.get("is_roster")), "anchor_count": len(outcome.get("anchors") or [])}
     if not excerpt["coverage_complete"]:

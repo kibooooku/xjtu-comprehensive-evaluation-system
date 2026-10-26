@@ -111,6 +111,21 @@ def test_analyze_bad_json_keeps_input_and_stores_only_diagnostic_counts(material
         assert materials.revision_fingerprint(conn, revision) == ocr["input_fingerprint"]
 
 
+def test_analysis_record_preserves_exact_local_limit_source(material_app, monkeypatch):
+    _, login = material_app
+    client = login("student")
+    claim, user, ocr = _input(client, monkeypatch)
+    stop = integrations.ocr_stop_info("LocalBudgetExceeded", {"action": "SealOCR", "used": 100, "limit": 100})
+    ocr.update(stop, stopped=True, stop_reason="LocalBudgetExceeded", partial=True)
+    requests = _model_response(monkeypatch, json.dumps({"title": "周末广场舞", "requested_score": "0.30", "payload_json": {}}, ensure_ascii=False))
+    result = materials.run_ai(claim["id"], user, ocr_result=ocr)
+    assert result["status"] == "SUCCEEDED" and len(requests) == 1
+    assert {key: result[key] for key in stop} == stop
+    with db.read() as conn:
+        analysis = db.one(conn, "ai_analyses", result["analysis_id"])
+        assert {key: analysis["result_json"][key] for key in stop} == stop
+
+
 @pytest.mark.parametrize("title,status", [(None, "INVALID_TYPE"), ("", "EMPTY"), ("活动证明", "GENERIC")])
 def test_missing_titles_remain_manual_with_safe_distinct_diagnostics(material_app, monkeypatch, title, status):
     _, login = material_app

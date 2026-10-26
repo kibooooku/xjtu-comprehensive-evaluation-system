@@ -146,8 +146,27 @@ def test_quota_failure_stops_both_apis_and_retains_partial_text(material_app, mo
     assert calls == ["GeneralAccurateOCR", "SealOCR"]
     assert result["status"] == "SUCCEEDED" and result["partial"] and result["stopped"]
     assert result["stop_reason"] == code and result["run_ids"]
+    assert result["stop_code"] == code
+    assert result["stop_source"] == {"LocalBudgetExceeded": "LOCAL_LIMIT", "ResourcesSoldOut.ResourcePackageRunOut": "PROVIDER_RESOURCE", "LimitExceeded.Quota": "RATE_LIMIT"}[code]
     assert result["completed_tasks"] == 2 < result["planned_tasks"] == 5
     assert progress[-1] == (2, 5) and any("部分" in warning for warning in result["warnings"])
+
+
+def test_oversized_page_is_not_rate_limit_and_does_not_stop_other_pages(material_app, monkeypatch):
+    _, login = material_app
+    client = login("student")
+    claim, _, _ = create_claim(client)
+    _pdf(client, claim["id"], 3)
+
+    def fail(action, count):
+        if count == 1:
+            raise ProviderError("LimitExceeded.TooLargeFileError", "合成文件过大，不是额度问题。")
+
+    calls = _cloud(monkeypatch, fail)
+    result = materials.run_ocr(claim["id"], _user())
+    assert len(calls) == result["completed_tasks"] == result["planned_tasks"] == 5
+    assert result["partial"] and not result["stopped"] and result["stop_source"] is None
+    assert result["run_ids"] and result["status"] == "SUCCEEDED"
 
 
 def _native_stub(monkeypatch, native_count, user_name, student_number, large=False):

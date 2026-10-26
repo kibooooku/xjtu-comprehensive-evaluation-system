@@ -32,6 +32,42 @@ class ProviderError(Exception):
         super().__init__(message)
 
 
+def ocr_stop_info(code: str | None, details: dict | None = None) -> dict:
+    """Describe a known stop without guessing a provider's remaining balance."""
+    if not code:
+        return {"stop_code": None, "stop_source": None, "stop_message": None, "stop_details": {}}
+    safe_code = code if isinstance(code, str) and re.fullmatch(r"[A-Za-z0-9_.]{1,100}", code) else "UnknownError"
+    if safe_code == "LocalBudgetExceeded":
+        source, message = "LOCAL_LIMIT", "本月本地 OCR 调用上限已达到，已暂停云调用；这不代表腾讯云免费额度不足，云端余额未查询。"
+    elif safe_code in ("LimitExceeded.TooLargeFileError", "ImageTooLarge"):
+        source, message = "INPUT_LIMIT", "当前页面超过 OCR 输入大小限制，请手动填写和框选；其它材料可继续处理，这与免费资源包余额无关。"
+    elif "ResourcePackageRunOut" in safe_code:
+        source, message = "PROVIDER_RESOURCE", "腾讯云明确返回资源包已用完，已停止云识别；请检查对应接口的免费资源包。"
+    elif any(part in safe_code for part in ("InArrears", "ChargeStatusException")):
+        source, message = "BILLING", "腾讯云返回账户或服务计费状态异常，已暂停云调用；尚未确认免费资源包余额。"
+    elif "LimitExceeded" in safe_code or "Quota" in safe_code:
+        source, message = "RATE_LIMIT", "腾讯云返回调用频率或接口配额限制，已暂停云调用；这不表示免费资源包已耗尽。"
+    elif "AuthFailure" in safe_code or "Unauthorized" in safe_code:
+        source, message = "AUTH", "腾讯云 OCR 凭据或子用户权限未通过验证，请检查后端配置。"
+    elif safe_code in ("NetworkError", "HTTPError"):
+        source, message = "NETWORK", "腾讯云 OCR 请求失败或网络暂不可用，已暂停云调用；免费资源包余额未查询。"
+    elif safe_code == "NotConfigured":
+        source, message = "CONFIGURATION", "腾讯云 OCR 未配置或已关闭，未继续云调用；可手动填写和框选。"
+    elif any(part in safe_code for part in ("ResourceUnavailable", "ResourcesSoldOut", "UnOpenError")):
+        source, message = "PROVIDER_UNAVAILABLE", "腾讯云 OCR 服务暂不可用或尚未开通，已暂停云调用；尚未确认免费资源包余额。"
+    else:
+        source, message = "UNKNOWN", "识别调用未完成，已有结果保留；尚未确认腾讯云免费资源包余额。"
+    safe_details = {}
+    if source == "LOCAL_LIMIT" and isinstance(details, dict):
+        if details.get("action") in ("GeneralAccurateOCR", "SealOCR"):
+            safe_details["action"] = details["action"]
+        for key in ("used", "limit"):
+            value = details.get(key)
+            if isinstance(value, int) and not isinstance(value, bool) and 0 <= value <= 10_000_000:
+                safe_details[key] = value
+    return {"stop_code": safe_code, "stop_source": source, "stop_message": message, "stop_details": safe_details}
+
+
 def configuration() -> dict:
     values: dict = {}
     env_file = PROJECT_ROOT / "secrets" / "tencent_ocr.env"
@@ -61,8 +97,8 @@ def configuration() -> dict:
         "region": pick("TENCENTCLOUD_REGION", "TENCENT_REGION", "TENCENT_OCR_REGION", default="ap-shanghai"),
         "deepseek_key": deepseek,
         "deepseek_model": pick("DEEPSEEK_MODEL", default="deepseek-flash"),
-        "general_limit": limit("OCR_GENERAL_MONTHLY_LIMIT", 100),
-        "seal_limit": limit("OCR_SEAL_MONTHLY_LIMIT", 100),
+        "general_limit": limit("OCR_GENERAL_MONTHLY_LIMIT", 1000),
+        "seal_limit": limit("OCR_SEAL_MONTHLY_LIMIT", 1000),
         "max_analysis_pages": max(1, min(limit("OCR_MAX_ANALYSIS_PAGES", MAX_AUTOMATIC_OCR_PAGES), MAX_AUTOMATIC_OCR_PAGES)),
         "enabled": pick("CLOUD_ANALYSIS_ENABLED", default="true").lower() not in ("0", "false", "no"),
     }
@@ -169,12 +205,11 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
     if data.get("Error"):
         code = str(data["Error"].get("Code", "UnknownError"))
         safe_code = code if re.fullmatch(r"[A-Za-z0-9_.]{1,100}", code) else "UnknownError"
-        if "ResourcePackageRunOut" in safe_code or "ChargeStatusException" in safe_code or "InArrears" in safe_code:
-            message = "OCR 免费资源包不可用或已耗尽，已停止调用，请手动填写和截图。"
-        elif "AuthFailure" in safe_code or "Unauthorized" in safe_code:
-            message = "腾讯云 OCR 凭据或子用户权限未通过验证，请检查后端配置。"
-        elif "ImageNoText" in safe_code:
+        classified = ocr_stop_info(safe_code)
+        if "ImageNoText" in safe_code:
             message = "本页未识别出文字或印章，可以手动框选证据。"
+        elif classified["stop_source"] != "UNKNOWN":
+            message = classified["stop_message"]
         else:
             message = f"腾讯云 OCR 未成功（{safe_code}），可以手动继续。"
         raise ProviderError(safe_code, message)

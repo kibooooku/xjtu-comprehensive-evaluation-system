@@ -184,6 +184,33 @@ def test_ocr_budget_reserves_failures_and_cache_avoids_second_request(material_a
     assert calls.count("SealOCR") == 1
 
 
+def test_local_limit_diagnostics_and_status_do_not_claim_tencent_balance(material_app, monkeypatch):
+    _, login = material_app
+    student = login("student")
+    claim, _, _ = create_claim(student)
+    record = upload(student, claim["id"])
+    with db.read() as conn:
+        page = db.one(conn, "file_pages", record["pages"][0]["id"])
+    calls = []
+
+    def failure(action, image, config):
+        calls.append(action)
+        raise ProviderError("FailedOperation.OcrFailed", "合成识别失败。")
+
+    monkeypatch.setattr(materials, "tencent_ocr", failure)
+    for expected in ("FailedOperation.OcrFailed", "LocalBudgetExceeded"):
+        with pytest.raises(ProviderError) as caught:
+            materials._ocr_page(page, "SealOCR", {"general_limit": 1, "seal_limit": 1})
+        assert caught.value.code == expected
+    assert caught.value.diagnostics == {"action": "SealOCR", "used": 1, "limit": 1}
+    assert calls == ["SealOCR"]
+    status = student.get("/api/integrations/status").json()
+    assert status["provider_balance_known"] is False and status["provider_remaining"] is None
+    assert status["seal"]["used"] == 1  # The failed local reservation still counts.
+    assert status["seal"]["count_basis"] == "LOCAL_ATTEMPTS_INCLUDING_FAILURES"
+    assert status["seal"]["provider_balance_known"] is False and status["seal"]["provider_remaining"] is None
+
+
 def test_first_crop_delete_after_rejection_preserves_the_frozen_evidence(material_app):
     _, login = material_app
     student = login("student")

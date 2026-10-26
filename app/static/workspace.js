@@ -11,7 +11,7 @@ const groupItems=g=>g?.items||[];
 const jobName=k=>k==='OCR'?'文字与证据识别':'AI 条目分析';
 const taskNames={QUEUED:'排队中',RUNNING:'处理中',SUCCEEDED:'已完成',FAILED:'失败，可重试',STALE:'已保留建议',MANUAL_REQUIRED:'需手动处理',SKIPPED:'待手动处理'};
 const analysisLabels={UNANALYZED:'未分析',NOT_ANALYZED:'未分析',PENDING:'未分析',RUNNING:'AI 分析中',QUEUED:'排队中',SUCCEEDED:'已分析',SUCCESS:'已分析',COMPLETED:'已分析',FAILED:'分析失败',STALE:'建议待核对'};
-function ocrPolicyNotice(){return `<div class="ocr-policy-notice"><p><strong>上传范围</strong><span>单文件≤200MB，PDF≤500页。</span></p><p><strong>先读取文字层</strong><span>PDF有可用文字层时，直接读取文字和位置供AI分析、匹配本人，不消耗文字OCR额度；印章仍只检测首末页。</span></p><p><strong>云识别范围</strong><span>扫描件≤12页时识别全部页面；长扫描件首页末页自动识别活动名称、时间等有效性内容，中间本人参与信息请手动定位框选。同项附件独立处理。</span></p><p><strong>印章查找</strong><span>所有文件均只自动检查首页和末页，单页文件只检查一次。未检出时，请自行到原件其它页寻找、框选印章。</span></p><p class="ocr-budget-note">仅使用腾讯云免费额度，额度不足即停止云识别并手工填写；不会自动切换到火山。</p></div>`;}
+function ocrPolicyNotice(){return `<div class="ocr-policy-notice"><p><strong>上传范围</strong><span>单文件≤200MB，PDF≤500页。</span></p><p><strong>先读取文字层</strong><span>PDF有可用文字层时，直接读取文字和位置供AI分析、匹配本人，不消耗文字OCR额度；印章仍只检测首末页。</span></p><p><strong>云识别范围</strong><span>扫描件≤12页时识别全部页面；长扫描件首页末页自动识别活动名称、时间等有效性内容，中间本人参与信息请手动定位框选。同项附件独立处理。</span></p><p><strong>印章查找</strong><span>所有文件均只自动检查首页和末页，单页文件只检查一次。未检出时，请自行到原件其它页寻找、框选印章。</span></p><p class="ocr-budget-note">仅使用腾讯云免费资源包，不自动购买，不会自动切换到火山；实际剩余额度以腾讯云控制台为准，本系统未实时查询。</p></div>`;}
 function filePageCount(file){return Number(file.page_count??file.pages?.length??0);}
 function itemPolicyResult(item=S.detail||S.workspaceItem){
   if(!item)return {};
@@ -36,6 +36,30 @@ function processingPhase(job){
   else {title=`OCR 识别中${progress}`;hint=job.stage||'正在识别材料文字与首页末页印章。';}
   return {title,hint,elapsed:elapsedText(job),job};
 }
+function ocrStopNotice(job,policy={}){
+  const candidates=[policyJobResult(job),job?.result_json,policy].filter(Boolean),sources=new Set(['LOCAL_LIMIT','PROVIDER_RESOURCE','BILLING','RATE_LIMIT','AUTH','NETWORK','CONFIGURATION','PROVIDER_UNAVAILABLE','INPUT_LIMIT','UNKNOWN']);
+  const report=candidates.find(value=>value.stop_code||value.stop_source)||candidates.find(value=>value.stopped)||{},stopped=candidates.some(value=>value.stopped);
+  // Old results retain an exact error code before the colon. Human warnings
+  // mentioning free resources, budgets or quota are not balance evidence.
+  const legacy=String(report.stop_reason||'').match(/^\s*([A-Za-z][A-Za-z0-9_.]{0,99})(?=[:：\s]|$)/)?.[1];
+  const code=String(report.stop_code||report.error_code||legacy||''),structured=sources.has(report.stop_source)?report.stop_source:null;
+  if(!stopped&&!structured&&!(job?.state==='FAILED'&&code))return null;
+  let source=structured;
+  if(!source){
+    if(code==='LocalBudgetExceeded')source='LOCAL_LIMIT';
+    else if(/(?:^|\.)ResourcePackageRunOut(?:\.|$)/.test(code))source='PROVIDER_RESOURCE';
+    else if(/(?:^|\.)(?:InArrears|ChargeStatusException)(?:\.|$)/.test(code))source='BILLING';
+    else if(code==='ImageTooLarge'||/(?:^|\.)TooLargeFileError$/.test(code))source='INPUT_LIMIT';
+    else if(/^RequestLimitExceeded(?:\.|$)/.test(code)||code==='LimitExceeded.Quota')source='RATE_LIMIT';
+    else if(/^(?:AuthFailure|UnauthorizedOperation)(?:\.|$)/.test(code))source='AUTH';
+    else if(['NetworkError','HTTPError'].includes(code))source='NETWORK';
+    else if(code==='NotConfigured')source='CONFIGURATION';
+    else if(/^(?:ResourceUnavailable|ResourcesSoldOut)(?:\.|$)/.test(code))source='PROVIDER_UNAVAILABLE';
+    else source='UNKNOWN';
+  }
+  const messages={LOCAL_LIMIT:'达到本地OCR调用保护上限，已停止云识别；本系统未查询腾讯云实际剩余额度。已有结果保留，请联系管理员检查本地上限，或手动补充。',PROVIDER_RESOURCE:'腾讯云返回当前OCR接口资源包不可用，已停止云识别；请到腾讯云控制台核对该接口资源包。系统未查询实时剩余额度，已有结果保留，可手动补充。',BILLING:'腾讯云返回账户计费状态异常，已停止本次调用；请核对账户状态，已有结果保留。',RATE_LIMIT:'腾讯云返回调用频率或配额限制，已停止本次云识别；已有结果保留，可稍后重试或手动补充。',AUTH:'腾讯云OCR身份验证或接口权限未通过；请检查配置后重试，已有结果保留。',NETWORK:'OCR网络请求失败或超时；已有结果保留，可稍后重试或手动补充。',CONFIGURATION:'OCR服务配置尚未就绪，未继续调用；请检查配置，已有结果保留。',PROVIDER_UNAVAILABLE:'腾讯云OCR服务暂不可用，已停止本次调用；已有结果保留，可稍后重试或手动补充。',INPUT_LIMIT:'此页或文件超出OCR输入限制；已有结果保留，请调整文件后重试或手动补充。',UNKNOWN:'云识别已停止，具体原因尚未确认；本系统未查询腾讯云实际剩余额度。已有结果保留，可重试或手动补充。'};
+  return {source,code,manual:['LOCAL_LIMIT','PROVIDER_RESOURCE'].includes(source),message:messages[source]};
+}
 function normalizeMaterialState(file=null,item=S.detail||S.workspaceItem||{},forcedJob=null){
   const ocrJobs=forcedJob?[forcedJob]:itemJobs(item,'OCR'),active=ocrJobs.find(j=>j.state==='RUNNING')||ocrJobs.find(j=>j.state==='QUEUED'),latest=active||ocrJobs[0];
   const policy=forcedJob?policyJobResult(forcedJob):itemPolicyResult(item),detail=S.detail?.id===item.id?S.detail:item,crops=policyVisibleCrops(detail.crops||[],Boolean(detail.can_edit),detail.files||[]);
@@ -46,9 +70,10 @@ function normalizeMaterialState(file=null,item=S.detail||S.workspaceItem||{},for
     const files=known||[];
     if(active){const phase=processingPhase(active);return result('PROCESSING',{method:phase.title,reason:phase.hint,phase});}
     if(files.length){const statuses=files.map(f=>normalizeMaterialState(f,item,forcedJob)),priority=['PROCESSING','ERROR','MANUAL','PENDING','CHECK'],state=priority.find(key=>statuses.some(s=>s.state===key)),chosen=statuses.find(s=>s.state===state);return result(state,{method:files.length===1?chosen.method:`${files.length}份附件 · ${statuses.filter(s=>s.state==='CHECK').length}份待核对${statuses.some(s=>s.state==='MANUAL')?' · 含手动补充':''}`,reason:chosen.reason,files:statuses,phase:chosen.phase});}
-    const raw=policyJobResult(latest),error=latest?.error_message||raw.stop_reason||latest?.stage||'',quota=Boolean(raw.stopped)&&/额度|免费|quota|budget|package|inArrears/i.test(error+' '+(raw.warnings||[]).join(' '));
+    const raw=policyJobResult(latest),error=latest?.error_message||raw.stop_reason||latest?.stage||'',stop=ocrStopNotice(latest,policy);
     if(Object.values(evidence).every(Boolean))return result('CHECK',{method:'同小项证据已补充，待人工核对'});
-    if(quota||jobNeedsManual(latest))return result('MANUAL',{method:'保留已有识别结果',reason:quota?'免费额度不足，请手动填写和框选；不会自动切换服务商。':raw.message||'请按原件补充信息与证据。'});
+    if(stop)return result(stop.manual?'MANUAL':'ERROR',{method:'保留已有识别结果',reason:stop.message});
+    if(jobNeedsManual(latest))return result('MANUAL',{method:'保留已有识别结果',reason:raw.message||'请按原件补充信息与证据。'});
     if(latest?.state==='FAILED')return result('ERROR',{reason:error||'识别未完成，可查看原件手动补充或稍后重试。'});
     if(['SUCCEEDED','STALE'].includes(latest?.state)||['SUCCEEDED','SUCCESS','COMPLETED'].includes(item.ocr_status))return result('CHECK',{method:latest?.stage||'识别结果保留，请核对'});
     return result('PENDING',{method:'等待材料识别'});
@@ -61,17 +86,17 @@ function normalizeMaterialState(file=null,item=S.detail||S.workspaceItem||{},for
   let method=nativeCount===count&&count?`直接读取全文 ${nativeCount}/${count} 页`:nativeCount?`文字层 ${nativeCount} 页 + 云识别 ${cloud.length||Math.max(0,covered-nativeCount)} 页 · 已覆盖 ${covered||nativeCount}/${count} 页`:endpoint?`${covered?'仅识别':'计划识别'}首末 ${Math.min(2,count)}/${count} 页${hasPart?' · 本人证据已补充':' · 中间本人信息手动'}`:cloud.length||covered?`云识别 ${cloud.length||covered}/${count} 页`:`文字层优先 · 共 ${count} 页`;
   if(checking)return result('PROCESSING',{method:`正在检查已有文字层，已检查${checked}/${count}页`,reason:'检测完成后决定本地读取、云OCR或手工处理；检查期间可以继续核对和填写。',phase:phase||{title:'读取材料和 PDF 文字层',hint:'本地读取较长 PDF 可能需要一些时间。'},file:f});
   if(active)return result('PROCESSING',{method,reason:phase.hint,phase,file:f});
-  const ai=itemJobs(item,'AI')[0],analyzed=['SUCCEEDED','SUCCESS','COMPLETED'].includes(item.analysis_status)||['SUCCEEDED','STALE'].includes(ai?.state),raw=policyJobResult(latest),error=latest?.error_message||raw.stop_reason||policy.stop_reason||'',quota=Boolean(raw.stopped||policy.stopped)&&/额度|免费|quota|budget|package|inArrears/i.test(error+' '+(policy.warnings||[]).join(' '));
+  const ai=itemJobs(item,'AI')[0],analyzed=['SUCCEEDED','SUCCESS','COMPLETED'].includes(item.analysis_status)||['SUCCEEDED','STALE'].includes(ai?.state),raw=policyJobResult(latest),error=latest?.error_message||raw.stop_reason||policy.stop_reason||'',stop=ocrStopNotice(latest,policy);
   const missingPart=(f.participation_mode==='MANUAL'||(endpoint&&!nativeCount)||analyzed)&&!hasPart,missingSeal=['NOT_FOUND','LIMITED'].includes(f.seal_status)&&!hasSeal,manualComplete=hasPart&&hasSeal&&evidence.name&&evidence.time;
   const actions=[];if(missingPart)actions.push({label:'定位本人信息并框选',page:pages.find(p=>missing.includes(p.page_index))?.id||pages[0]?.id});if(missingSeal)actions.push({label:'寻找并框选印章',page:pages[0]?.id});
-  const reasons=[];if(missingPart)reasons.push(endpoint?'中间本人参与信息尚未补充，请到原件定位框选。':'尚未定位本人参与信息，请核对原件并框选。');if(missingSeal)reasons.push(f.seal_message||'首页和末页未找到印章，请自行查看原件其它页并手动框选。');if(quota&&!manualComplete)reasons.unshift('腾讯云免费额度不足，已停止云识别；已有结果保留，不会自动切换服务商。');
-  if((latest?.state==='FAILED'||policy.stopped)&&!quota&&!jobNeedsManual(latest)&&!manualComplete)return result('ERROR',{method,reason:(error||policy.message||'材料识别未完成')+'；已有结果保留，可查看原件手动补充或重试。',actions:[{label:'查看原页并补充',page:pages[0]?.id}],file:f});
+  const reasons=[];if(missingPart)reasons.push(endpoint?'中间本人参与信息尚未补充，请到原件定位框选。':'尚未定位本人参与信息，请核对原件并框选。');if(missingSeal)reasons.push(f.seal_message||'首页和末页未找到印章，请自行查看原件其它页并手动框选。');if(stop&&!manualComplete)reasons.unshift(stop.message);
+  if(!manualComplete&&((stop&&!stop.manual)||((latest?.state==='FAILED'||policy.stopped)&&!stop&&!jobNeedsManual(latest))))return result('ERROR',{method,reason:stop?.message||(error||policy.message||'材料识别未完成')+'；已有结果保留，可查看原件手动补充或重试。',actions:[{label:'查看原页并补充',page:pages[0]?.id}],file:f});
   if(manualComplete)return result('CHECK',{method,reason:'小项证据已补齐，待人工核对。'+((latest?.state==='FAILED'||policy.stopped)?'此前自动识别未完成，原异常记录保留；已有手工证据可正常使用。':''),file:f,sealSatisfied:true});
   if(reasons.length)return result('MANUAL',{method,reason:reasons.join(' '),actions:actions.length?actions:[{label:'查看原页并补充',page:pages[0]?.id}],file:f,sealSatisfied:Boolean(hasSeal)});
   if(covered||f.seal_status==='FOUND'||hasPart||['COMPLETED','PARTIAL'].includes(f.automatic_ocr_status)||latest?.state==='SUCCEEDED')return result('CHECK',{method,reason:hasPart?'小项已有本人证据，名称、时间、印章可来自其它附件；请核对计分与证据，材料状态不代表审核通过。':'已有结果可核对；AI分析和正式审核分别进行。',file:f,sealSatisfied:Boolean(hasSeal)});
   return result('PENDING',{method,reason:'等待材料识别；可先核对原件和填写信息。',file:f});
 }
-function aiTask(item,forcedJob=null){const jobs=forcedJob?[forcedJob]:itemJobs(item,'AI'),job=jobs.find(j=>j.state==='RUNNING')||jobs.find(j=>j.state==='QUEUED')||jobs[0],phase=processingPhase(job),policy=policyJobResult(job);if(phase)return {label:phase.title,color:'info',busy:true,description:phase.hint,phase};if(job?.state==='FAILED')return {label:'分析异常',color:'danger',description:job.error_message||job.stage||'已有材料保留，可稍后重试。'};if(jobNeedsManual(job))return {label:'需手工填写',color:'warning',description:policy.message||'未得到可分析文字，AI未调用。'};if(policy.policy_expired)return {label:'请重新分析',color:'warning',description:'识别策略已更新，旧任务结果保留。'};if(['SUCCEEDED','STALE'].includes(job?.state)||['SUCCEEDED','SUCCESS','COMPLETED'].includes(item.analysis_status))return {label:'已分析，待核对',color:'purple',description:'AI分析不代表审核通过；请核对生成内容、计分与证据。'};return {label:'未分析',color:'',description:'材料识别完成后可分析此小项。'};}
+function aiTask(item,forcedJob=null){const jobs=forcedJob?[forcedJob]:itemJobs(item,'AI'),job=jobs.find(j=>j.state==='RUNNING')||jobs.find(j=>j.state==='QUEUED')||jobs[0],phase=processingPhase(job),policy=policyJobResult(job),stop=ocrStopNotice(job);if(phase)return {label:phase.title,color:'info',busy:true,description:phase.hint,phase};if(job?.state==='FAILED')return {label:'分析异常',color:'danger',description:stop?.message||job.error_message||job.stage||'已有材料保留，可稍后重试。'};if(jobNeedsManual(job))return {label:'需手工填写',color:'warning',description:stop?.message||policy.message||'未得到可分析文字，AI未调用。'};if(policy.policy_expired)return {label:'请重新分析',color:'warning',description:'识别策略已更新，旧任务结果保留。'};if(['SUCCEEDED','STALE'].includes(job?.state)||['SUCCEEDED','SUCCESS','COMPLETED'].includes(item.analysis_status))return {label:'已分析，待核对',color:'purple',description:'AI分析不代表审核通过；请核对生成内容、计分与证据。'};return {label:'未分析',color:'',description:'材料识别完成后可分析此小项。'};}
 function processingNotice(item){const jobs=itemJobs(item),active=jobs.filter(j=>['QUEUED','RUNNING'].includes(j.state)),job=active.find(j=>j.kind==='OCR'&&j.state==='RUNNING')||active.find(j=>j.state==='RUNNING')||active[0];if(!job)return '';const phase=processingPhase(job),waiting=active.find(j=>j.kind==='AI'&&waitingForOcr(j));return `<div class="notice processing-notice" role="status"><span class="tiny-spinner"></span><div><strong>${esc(phase.title)}</strong><p>${esc(phase.hint)}${waiting&&job.kind==='OCR'?' AI等待此识别任务完成，原OCR继续执行。':''}</p><p>材料识别／AI分析可能需要一些时间；可切换站内页面，后台继续，完成后自动更新。请勿重复点击。</p>${phase.elapsed?`<p class="processing-elapsed">${esc(phase.elapsed)}</p>`:''}</div></div>`;}
 function filePolicyHtml(file){
   const status=normalizeMaterialState(file),f=status.file||file;
@@ -105,7 +130,7 @@ function itemPolicySummary(item){
   return `<div class="notice ${state.state==='ERROR'?'':'warning'} ocr-result-notice">${icon('info')}<div>${messages.map(m=>`<p>${esc(m)}</p>`).join('')}<p>本人、活动名称、时间和印章证据可来自不同附件；可手动补充后正常审核，不会自动切换服务商。</p></div></div>`;
 }
 function jobPresentation(job){const item=findItem(job.application_id)||{id:job.application_id};const state=job.kind==='AI'?aiTask(item,job):normalizeMaterialState(null,item,job);return {...state,manual:state.state==='MANUAL',description:state.reason||state.description};}
-function jobStage(job){const phase=processingPhase(job);if(phase)return phase.title+' · '+phase.hint;const state=jobPresentation(job);return job.state==='SUCCEEDED'?(job.stage||state.description||state.label):(state.description||job.stage||state.label);}
+function jobStage(job){const phase=processingPhase(job);if(phase)return phase.title+' · '+phase.hint;const state=jobPresentation(job),stop=ocrStopNotice(job);return stop?stop.message:job.state==='SUCCEEDED'?(job.stage||state.description||state.label):(state.description||job.stage||state.label);}
 
 function setupWorkspaceShell(){
   if(isStudent()){
@@ -150,7 +175,7 @@ function drawJobs(){
   bar.classList.remove('hidden');document.body.classList.add('has-jobs');
   $('#jobs-summary').classList.toggle('hidden',!recent.length);if(!recent.length){$('#jobs-list').replaceChildren();return;}
   patchHtml($('#jobs-summary'),`<button class="jobs-summary" data-job-action="expand"><span class="row gap6">${active.length?'<span class="tiny-spinner"></span>':icon('check')}<strong>${active.length?`${active.length} 个后台任务正在进行`:'后台任务已处理'}</strong><span class="muted small">切换页面或刷新后继续运行</span></span><span class="row gap6 small">查看进度 ${icon('chevron')}</span></button>${active.length?'<p class="jobs-busy-notice">材料识别／AI分析可能需要一些时间；可切换站内页面，后台继续，完成后自动更新。请勿重复点击。</p>':''}`);
-  patchJobRows($('#jobs-list'),recent.map(j=>{const presentation=jobPresentation(j);const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row" data-job-id="${esc(j.id)}" data-job-kind="${esc(j.kind)}"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(jobStage(j))}${elapsedText(j)?' · '+esc(elapsedText(j)):''}${j.state==='RUNNING'&&Number(j.total)>0?` · ${Number(j.progress||0)}/${Number(j.total)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)&&Number(j.total)>0?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${j.error_message?`<p class="small ${presentation.manual?'muted':'danger-text'} mt8">${esc(j.error_message)}</p>`:''}</div><span class="tag ${presentation.color}">${esc(presentation.label)}</span>${j.state==='FAILED'&&!presentation.manual?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join(''));
+  patchJobRows($('#jobs-list'),recent.map(j=>{const presentation=jobPresentation(j),errorText=ocrStopNotice(j)?.message||j.error_message;const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row" data-job-id="${esc(j.id)}" data-job-kind="${esc(j.kind)}"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(jobStage(j))}${elapsedText(j)?' · '+esc(elapsedText(j)):''}${j.state==='RUNNING'&&Number(j.total)>0?` · ${Number(j.progress||0)}/${Number(j.total)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)&&Number(j.total)>0?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${errorText?`<p class="small ${presentation.manual?'muted':'danger-text'} mt8">${esc(errorText)}</p>`:''}</div><span class="tag ${presentation.color}">${esc(presentation.label)}</span>${j.state==='FAILED'&&!presentation.manual?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join(''));
   refreshProcessingStatus();
 }
 function patchHtml(element,html){if(element&&element._renderedHtml!==html){element.innerHTML=html;element._renderedHtml=html;}}
