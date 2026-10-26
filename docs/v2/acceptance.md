@@ -78,3 +78,7 @@ JavaScript两入口语法及Python模块编译均通过。测试框架仍有一�
 - [框选分页7项检查](../screenshots-v2/browser-crop-navigation-mock.json)，[界面截图](../screenshots-v2/13-crop-page-navigation-mock.png)。
 - [单项提交6组检查](../screenshots-v2/browser-comparison-submit-mock.json)，[确认截图](../screenshots-v2/14-comparison-submit-mock.png)。
 - 原轮询、焦点、滚动和关闭的14项稳定性检查全部通过；测试中消除打开详情的平滑滚动动画与滚动断言之间的竞态，生产滚动行为不变。JavaScript语法检查通过。
+
+## 证据前置、学号定位与辅导员队列（2026-10-26）
+
+本人参与证明及有效性证据调整到原件之前，隐藏模型长篇解释，保留自动填表与简短核对提示。学号匹配修正数字边界与字框位置；待审冻结证据保留，新的可编辑工作稿使用修复逻辑。辅导员工作台与队列分别显示初审、辅导员阶段数量，并解释空队列的原因。诊断依据、冻结边界与公示保护见 [修复记录](../证据展示与审核队列修复.md)。

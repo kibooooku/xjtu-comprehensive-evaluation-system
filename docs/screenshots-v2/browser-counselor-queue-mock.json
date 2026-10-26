@@ -1,0 +1,139 @@
+{
+  "source": "All APIs mocked; zero actual API/database/cloud writes",
+  "checks": [
+    "辅导员工作台只将本阶段0项标为待辅导员审核，另列7项学生初审",
+    "空队列明确区分两阶段并说明后续流转，不展示越阶段审核入口",
+    "查看班级申报保留当前学年班级，可跟踪初审项且只能只读比对",
+    "已有辅导员阶段申请时正确列入队列，同组初审项仍无辅导员审核按钮",
+    "搜索空态说明筛选无匹配，阶段计数保留且清空搜索后恢复队列",
+    "队列计数请求使用相同学年班级，学生审查员入口不额外请求辅导员统计"
+  ],
+  "errors": [],
+  "writes": [],
+  "reads": [
+    {
+      "path": "/api/session",
+      "query": {}
+    },
+    {
+      "path": "/api/bootstrap",
+      "query": {}
+    },
+    {
+      "path": "/api/dashboard",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class"
+      }
+    },
+    {
+      "path": "/api/submissions",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class",
+        "scope": "review"
+      }
+    },
+    {
+      "path": "/api/dashboard",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class"
+      }
+    },
+    {
+      "path": "/api/submissions",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class",
+        "scope": "class"
+      }
+    },
+    {
+      "path": "/api/applications/peer-1",
+      "query": {}
+    },
+    {
+      "path": "/api/activities",
+      "query": {}
+    },
+    {
+      "path": "/api/session",
+      "query": {}
+    },
+    {
+      "path": "/api/bootstrap",
+      "query": {}
+    },
+    {
+      "path": "/api/submissions",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class",
+        "scope": "review"
+      }
+    },
+    {
+      "path": "/api/dashboard",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class"
+      }
+    },
+    {
+      "path": "/api/applications/peer-1",
+      "query": {}
+    },
+    {
+      "path": "/api/activities",
+      "query": {}
+    },
+    {
+      "path": "/api/applications/counselor-1",
+      "query": {}
+    },
+    {
+      "path": "/api/activities",
+      "query": {}
+    },
+    {
+      "path": "/api/applications/counselor-1",
+      "query": {}
+    },
+    {
+      "path": "/api/activities",
+      "query": {}
+    },
+    {
+      "path": "/api/session",
+      "query": {}
+    },
+    {
+      "path": "/api/bootstrap",
+      "query": {}
+    },
+    {
+      "path": "/api/analysis-jobs",
+      "query": {
+        "active_only": "false"
+      }
+    },
+    {
+      "path": "/api/submissions",
+      "query": {
+        "year_id": "queue-year",
+        "class_id": "queue-class",
+        "scope": "review"
+      }
+    },
+    {
+      "path": "/api/applications/peer-1",
+      "query": {}
+    },
+    {
+      "path": "/api/activities",
+      "query": {}
+    }
+  ],
+  "createdAt": "2026-10-26T04:23:24.965Z"
+}

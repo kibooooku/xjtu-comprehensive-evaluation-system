@@ -391,32 +391,92 @@ def _intersection(a: list, b: list) -> list | None:
     return [x, y, right - x, bottom - y] if right > x and bottom > y else None
 
 
+def _redaction_compact(value):
+    text = unicodedata.normalize("NFKC", str(value or ""))
+    return "".join(str(unicodedata.decimal(char)) if char.isdecimal() else char for char in text if not char.isspace())
+
+
+def _public_redaction_requirements(conn, page, run=None):
+    """Find every numeric fragment to cover; joining is conservative redaction only."""
+    if run is None:
+        candidates = [r for r in rows(conn, "recognition_runs", page_id=page["id"]) if r["api_name"] in ("GeneralAccurateOCR", NATIVE_TEXT_API) and r["status"] == "SUCCEEDED" and (r["api_name"] != NATIVE_TEXT_API or (r.get("result_json") or {}).get("usable"))]
+        run = max(candidates, key=lambda item: (item["api_name"] == NATIVE_TEXT_API, item.get("finished_at") or ""), default=None)
+    if not run or run["page_id"] != page["id"] or run["status"] != "SUCCEEDED" or run["api_name"] not in ("GeneralAccurateOCR", NATIVE_TEXT_API) or (run["api_name"] == NATIVE_TEXT_API and not (run.get("result_json") or {}).get("usable")):
+        return run, [], "需要成功的文字OCR定位学号后才能生成公示截图"
+    regions = sorted(rows(conn, "recognition_regions", run_id=run["id"]), key=lambda region: region["region_no"])
+    chunks = [_redaction_compact(region.get("text")) for region in regions]
+    positioned, owners = "".join(chunks), [index for index, chunk in enumerate(chunks) for _ in chunk]
+    if not positioned:
+        return run, [], "文字OCR未检测到可靠文本，未生成公示截图"
+    if run["api_name"] == NATIVE_TEXT_API:
+        source = _redaction_compact((run.get("result_json") or {}).get("text"))
+        source_numbers = set(re.findall(r"[0-9]{6,}", source))
+        if any(positioned.count(number) < source.count(number) for number in source_numbers):
+            return run, [], "原生文字中的个人编号未全部取得可靠坐标，未生成公示截图"
+    required = set()
+    for match in re.finditer(r"[0-9]{6,}", positioned):
+        required.update(owners[match.start():match.end()])
+    for index, region in enumerate(regions):
+        if "学号" in chunks[index] or (region.get("confidence") is not None and Decimal(str(region["confidence"])) < Decimal("0.85")):
+            required.add(index)
+    boxes = []
+    for index in sorted(required):
+        try:
+            box = checked_box(polygon_box(regions[index]["polygon_json"]), page["width_px"], page["height_px"])
+        except (HTTPException, TypeError, ValueError, KeyError, OverflowError):
+            return run, [], "含个人编号的文字缺少可靠坐标，未生成公示截图"
+        boxes.append(box)
+    return run, boxes, None
+
+
+def _public_masks_cover(crop, boxes):
+    """Read-only proof that persisted masks cover all required pixels in this crop."""
+    metadata = crop.get("masks_json") or {}
+    masks = []
+    for value in list(metadata.get("manual") or []) + list(metadata.get("automatic") or []):
+        try:
+            if len(value) != 4 or any(not math.isfinite(float(n)) or float(n) != int(n) for n in value):
+                continue
+            mask = [int(n) for n in value]
+            if mask[2] > 0 and mask[3] > 0:
+                masks.append(mask)
+        except (TypeError, ValueError, OverflowError):
+            continue
+    try:
+        crop_box = polygon_box(crop["polygon_json"])
+    except (TypeError, ValueError, KeyError, OverflowError):
+        return False
+    for box in boxes:
+        target = _intersection(crop_box, box)
+        remaining = [target] if target else []
+        for mask in masks:
+            pieces = []
+            for piece in remaining:
+                covered = _intersection(piece, mask)
+                if not covered:
+                    pieces.append(piece)
+                    continue
+                x, y, w, h = piece
+                left, top, width, height = covered
+                for part in ([x, y, w, top-y], [x, top+height, w, y+h-top-height], [x, top, left-x, height], [left+width, top, x+w-left-width, height]):
+                    if part[2] > 0 and part[3] > 0:
+                        pieces.append(part)
+            remaining = pieces
+            if not remaining:
+                break
+        if remaining:
+            return False
+    return True
+
+
 def _build_public_crop(conn, crop: dict, page: dict, manual_masks: list) -> dict:
-    """Fail closed without a successful text run; never substitute a private crop."""
+    """Fail closed without reliable text geometry; never substitute a private crop."""
     metadata = dict(crop.get("masks_json") or {})
     metadata.pop("reason", None)
-    runs = [r for r in rows(conn, "recognition_runs", page_id=page["id"]) if r["api_name"] in ("GeneralAccurateOCR", NATIVE_TEXT_API) and r["status"] == "SUCCEEDED" and (r["api_name"] != NATIVE_TEXT_API or (r.get("result_json") or {}).get("usable"))]
-    if not runs:
-        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "需要成功的文字OCR定位学号后才能生成公示截图"}}
-    run = sorted(runs, key=lambda item: (item["api_name"] == NATIVE_TEXT_API, item.get("finished_at") or ""))[-1]
-    regions = rows(conn, "recognition_regions", run_id=run["id"])
-    if not any((region.get("text") or "").strip() for region in regions):
-        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "文字OCR未检测到可靠文本，未生成公示截图"}}
-    if run["api_name"] == NATIVE_TEXT_API:
-        source_numbers = re.findall(r"[0-9０-９]{6,}", _compact((run.get("result_json") or {}).get("text")))
-        positioned = _compact("".join(region.get("text") or "" for region in regions))
-        if any(number not in positioned for number in source_numbers):
-            return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "原生文字中的个人编号未全部取得可靠坐标，未生成公示截图"}}
-    automatic = []
-    for region in regions:
-        text = re.sub(r"\s+", "", region.get("text") or "")
-        # Mask every long numeric identifier, including OCR-separated digits and the whole 学号 row.
-        if re.search(r"[0-9０-９]{6,}", text) or "学号" in text or (region.get("confidence") is not None and Decimal(str(region["confidence"])) < Decimal("0.85")):
-            box = polygon_box(region["polygon_json"])
-            if box[2] <= 0 or box[3] <= 0:
-                return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": "含个人编号的文字缺少可靠坐标，未生成公示截图"}}
-            box = [max(0, box[0] - 5), max(0, box[1] - 4), box[2] + 10, box[3] + 8]
-            automatic.append(box)
+    run, boxes, reason = _public_redaction_requirements(conn, page)
+    if reason:
+        return {"public_asset_status": "BLOCKED", "public_asset_uri": None, "redaction_version": None, "masks_json": {**metadata, "manual": manual_masks, "automatic": [], "reason": reason}}
+    automatic = [[max(0, box[0]-5), max(0, box[1]-4), box[2]+10, box[3]+8] for box in boxes]
     box = polygon_box(crop["polygon_json"])
     with Image.open(asset_path(crop["private_asset_uri"])) as original:
         image = original.convert("RGB")
@@ -562,6 +622,12 @@ def get_public_crop(crop_id: str, user: dict = Depends(current_user)):
             raise HTTPException(404, "公示截图来源校验失败。")
         if not asset_path(crop["private_asset_uri"]).is_file() or hashlib.sha256(asset_path(crop["private_asset_uri"]).read_bytes()).hexdigest() != crop["source_hash"]:
             raise HTTPException(404, "公示截图来源校验失败。")
+        run = one(conn, "recognition_runs", meta.get("ocr_run_id")) if meta.get("ocr_run_id") else None
+        if not run:
+            raise HTTPException(404, "公示截图缺少可靠的脱敏来源。")
+        _, required, reason = _public_redaction_requirements(conn, page, run=run)
+        if reason or not _public_masks_cover(crop, required):
+            raise HTTPException(404, "公示截图的个人编号遮挡尚未完成。")
     return _private_response(crop["public_asset_uri"])
 
 
@@ -713,17 +779,36 @@ def _native_pages(file: dict, pages: list[dict]) -> dict:
     return cached
 
 
-def _token_box(region: dict, token: str) -> list[int]:
+def _identity_normalized(value) -> str:
+    # Keep separators until identifier boundaries have been checked. Collapsing
+    # a class number and student number first makes two fields look like one ID.
+    return unicodedata.normalize("NFKC", str(value or "")).casefold()
+
+
+def _identity_compact(value) -> str:
+    return re.sub(r"\s+", "", _identity_normalized(value))
+
+
+def _token_box(region: dict, token: str, start: int | None = None) -> list[int]:
     words = (region.get("extra_json") or {}).get("words", [])
-    text = "".join(_compact(word.get("text")) for word in words)
-    start = text.find(token)
-    if start < 0:
+    text = "".join(_identity_compact(word.get("text")) for word in words)
+    if start is None:
+        start = text.find(token)
+    # A matched occurrence must map to the same occurrence in word geometry.
+    # Incomplete word streams may only use the enclosing, known region bounds.
+    if start < 0 or text[start:start + len(token)] != token or text != _identity_compact(region.get("text")):
         return polygon_box(region["polygon_json"])
     cursor, boxes = 0, []
     for word in words:
-        end = cursor + len(_compact(word.get("text")))
-        if end > start and cursor < start + len(token) and word.get("polygon"):
-            boxes.append(polygon_box(word["polygon"]))
+        end = cursor + len(_identity_compact(word.get("text")))
+        if end > start and cursor < start + len(token):
+            try:
+                box = polygon_box(word["polygon"]) if word.get("polygon") else None
+            except (TypeError, ValueError, KeyError, OverflowError):
+                box = None
+            if not box or box[2] < 1 or box[3] < 1:
+                return polygon_box(region["polygon_json"])
+            boxes.append(box)
         cursor = end
     if not boxes:
         return polygon_box(region["polygon_json"])
@@ -732,9 +817,79 @@ def _token_box(region: dict, token: str) -> list[int]:
     return [left, top, right - left, bottom - top]
 
 
+def _spaced_number_geometry(region: dict, start: int, token: str) -> bool:
+    """Digit spaces are safe only within one positioned number, not table cells."""
+    words = (region.get("extra_json") or {}).get("words", [])
+    if not words or "".join(_identity_compact(word.get("text")) for word in words) != _identity_compact(region.get("text")):
+        return False
+    cursor, pieces = 0, []
+    for word in words:
+        value = _identity_compact(word.get("text"))
+        end = cursor + len(value)
+        if end > start and cursor < start + len(token):
+            # Do not turn a suffix/prefix of separate numeric fields into an ID.
+            if cursor < start or end > start + len(token) or not value.isascii() or not value.isdigit() or not word.get("polygon"):
+                return False
+            try:
+                box = polygon_box(word["polygon"])
+            except (TypeError, ValueError, KeyError, OverflowError):
+                return False
+            if box[2] < 1 or box[3] < 1:
+                return False
+            pieces.append(box)
+        cursor = end
+    if not pieces:
+        return False
+    for previous, current in zip(pieces, pieces[1:]):
+        previous_middle, current_middle = previous[1] + previous[3] / 2, current[1] + current[3] / 2
+        height = max(previous[3], current[3])
+        gap = current[0] - previous[0] - previous[2]
+        if abs(previous_middle - current_middle) > height * .45 or current[0] <= previous[0] or gap > max(3, height * 1.1):
+            return False
+    return True
+
+
+def _identity_boxes(region: dict, token: str, numeric: bool) -> list[list[int]]:
+    text = _identity_normalized(region.get("text"))
+    # Horizontal spacing can occur between PDF glyphs. Never join across rows.
+    separator = r"[^\S\r\n\v\f\u2028\u2029]*"
+    pattern = separator.join(re.escape(char) for char in token)
+    if numeric:
+        pattern = r"(?<![0-9])" + pattern + r"(?![0-9])"
+    result = []
+    for match in re.finditer(pattern, text):
+        start = len(_identity_compact(text[:match.start()]))
+        if numeric:
+            compact = _identity_compact(text)
+            neighbors = []
+            if re.search(r"[0-9][^\S\r\n\v\f\u2028\u2029]+$", text[:match.start()]):
+                neighbors.append((start - 1, start))
+            if re.match(r"[^\S\r\n\v\f\u2028\u2029]+[0-9]", text[match.end():]):
+                neighbors.append((start + len(token) - 1, start + len(token)))
+            if neighbors:
+                words = (region.get("extra_json") or {}).get("words", [])
+                if not words or "".join(_identity_compact(word.get("text")) for word in words) != compact:
+                    continue  # A separator with no geometry cannot prove two numeric fields.
+                extended = False
+                for left_index, right_index in neighbors:
+                    left = _token_box(region, compact[left_index], left_index)
+                    right = _token_box(region, compact[right_index], right_index)
+                    height = max(left[3], right[3])
+                    same_line = abs(left[1] + left[3] / 2 - right[1] - right[3] / 2) <= height * .45
+                    if same_line and right[0] - left[0] - left[2] <= max(3, height * 1.1):
+                        extended = True
+                        break
+                if extended:
+                    continue  # Spaced prefix/suffix digits still belong to the longer number.
+        if numeric and any(char.isspace() for char in match.group()) and not _spaced_number_geometry(region, start, token):
+            continue
+        result.append(_token_box(region, token, start))
+    return result
+
+
 def identity_matches(conn, pages: list[dict], student: dict, student_user: dict, class_name: str, automatic=False) -> list[dict]:
     matches = []
-    tokens = [("STUDENT_NUMBER", _compact(student.get("student_number"))), ("NAME", _compact(student_user.get("display_name"))), ("CLASS", _compact(class_name))]
+    tokens = [("STUDENT_NUMBER", _identity_compact(student.get("student_number"))), ("NAME", _identity_compact(student_user.get("display_name"))), ("CLASS", _identity_compact(class_name))]
     seen = set()
     max_pages = _page_limit() if automatic else None
     policies = {file_id: _file_policy(conn, file_id, max_pages) for file_id in {page["file_id"] for page in pages}} if automatic else {}
@@ -746,23 +901,20 @@ def identity_matches(conn, pages: list[dict], student: dict, student_user: dict,
                 continue
             if automatic and not policies[page["file_id"]][1] and (not native or region["run_id"] != native["id"]):
                 continue  # Long scanned files require the student to choose personal context.
-            text = _compact(region.get("text"))
             for field, token in tokens:
-                if not token or token not in text:
+                if not token:
                     continue
-                if field == "STUDENT_NUMBER" and token.isdigit() and not re.search(r"(?<![0-9])" + re.escape(token) + r"(?![0-9])", text):
-                    continue
-                box = _token_box(region, token)
-                left, top = max(0, box[0]), max(0, box[1])
-                right, bottom = min(page["width_px"], box[0] + box[2]), min(page["height_px"], box[1] + box[3])
-                box = [left, top, right - left, bottom - top]
-                if box[2] < 2 or box[3] < 2:
-                    continue
-                key = (page["id"], field, tuple(box))
-                if key in seen:
-                    continue
-                seen.add(key)
-                matches.append({"page_id": page["id"], "page_number": page["page_index"], "file_name": file["original_name"], "box": box, "field": field, "region_id": region["id"], "origin": "NATIVE_PDF_TEXT" if native and region["run_id"] == native["id"] else "TENCENT_OCR", "confidence": str(region.get("confidence") or 0), "url": f"/api/pages/{page['id']}/image"})
+                for box in _identity_boxes(region, token, field == "STUDENT_NUMBER" and token.isascii() and token.isdigit()):
+                    left, top = max(0, box[0]), max(0, box[1])
+                    right, bottom = min(page["width_px"], box[0] + box[2]), min(page["height_px"], box[1] + box[3])
+                    box = [left, top, right - left, bottom - top]
+                    if box[2] < 2 or box[3] < 2:
+                        continue
+                    key = (page["id"], field, tuple(box))
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    matches.append({"page_id": page["id"], "page_number": page["page_index"], "file_name": file["original_name"], "box": box, "field": field, "region_id": region["id"], "origin": "NATIVE_PDF_TEXT" if native and region["run_id"] == native["id"] else "TENCENT_OCR", "confidence": str(region.get("confidence") or 0), "url": f"/api/pages/{page['id']}/image"})
     order = {page["id"]: index for index, page in enumerate(pages)}
     priority = {"STUDENT_NUMBER": 0, "NAME": 1, "CLASS": 2}
     return sorted(matches, key=lambda match: (priority[match["field"]], -Decimal(match["confidence"]), order[match["page_id"]], match["box"][1]))
@@ -1179,13 +1331,21 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
     for item in sorted(suggestions, key=lambda item: item.get("evidence_type") != "PARTICIPATION")[:25]:
         if manual_evidence:
             break  # Explicitly preserve a student's additions, removals and adjustments.
+        if item.get("evidence_type") == "PARTICIPATION" and any(crop["evidence_type"] == "PARTICIPATION" and crop["source"] != "AI" for crop in existing):
+            continue  # Legacy hand-selected identity contexts are protected too.
         page = one(conn, "file_pages", item.get("page_id"))
         if not page or not one(conn, "revision_files", revision_id=revision["id"], file_id=page["file_id"]):
             continue
         if len(existing) >= 30:
             break
-        if any(crop["page_id"] == page["id"] and crop["evidence_type"] == item["evidence_type"] and polygon_box(crop["polygon_json"]) == item["box"] and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == item.get("validity_kind") for crop in existing):
-            continue
+        duplicate = next((crop for crop in existing if crop["page_id"] == page["id"] and crop["evidence_type"] == item["evidence_type"] and polygon_box(crop["polygon_json"]) == item["box"] and (crop.get("masks_json") or {}).get("evidence", {}).get("validity_kind") == item.get("validity_kind")), None)
+        if duplicate:
+            previous = (duplicate.get("masks_json") or {}).get("evidence", {})
+            if item["evidence_type"] != "PARTICIPATION" or all(previous.get(key, []) == item.get(key, []) for key in ("highlights", "other_matches")):
+                continue
+            # A newly found exact number may share the old name crop's bounds.
+            # Rebuild that automatic working image so its red frames update.
+            existing.remove(duplicate)
         metadata = {key: item[key] for key in ("file_name", "page_number", "highlights", "other_matches", "validity_kind", "layout_version", "origin") if key in item}
         crop = create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"), metadata=metadata)
         existing.append(crop)

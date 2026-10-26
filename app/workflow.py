@@ -1004,6 +1004,11 @@ def dashboard(year_id: str | None = None, class_id: str | None = None, user=Depe
                 category_scores = [{"id": c["id"], "name": c["name"], "cap": c["cap"],
                                     "score": str(db.money(sum((Decimal(m["categories"][index]["score"]) for m in members), Decimal(0)) / len(members)))}
                                    for index, c in enumerate(members[0]["categories"])]
-        return {"stats": {"applications": len(summaries), "pending": sum(s["state"] in PENDING for s in summaries),
+        pending_peer = sum(s["state"] == "PENDING_PEER" for s in summaries)
+        pending_counselor = sum(s["state"] == "PENDING_COUNSELOR" for s in summaries)
+        return {"stats": {"applications": len(summaries),
+                          "pending": pending_counselor if user["base_identity"] == "COUNSELOR" else pending_peer + pending_counselor,
+                          "pending_peer": pending_peer, "pending_counselor": pending_counselor,
+                          "pending_total": pending_peer + pending_counselor,
                           "approved": sum(s["state"] == "APPROVED" for s in summaries), "total_score": str(db.money(total)), "baseline": "70.00"},
                 "category_scores": category_scores, "recent": sorted(summaries, key=lambda s: s["updated_at"], reverse=True)[:6]}
