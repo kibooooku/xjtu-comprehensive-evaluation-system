@@ -18,6 +18,9 @@ const boot={user,years:[year],active_year:year,current_year:year,classes:[{id:'s
 const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><rect width="1200" height="900" fill="#eef4f6"/><rect x="70" y="120" width="1050" height="65" fill="white"/><text x="80" y="165" fill="#315775" font-size="28">Mock material only — no personal data</text></svg>';
 const reads=[],writes=[],errors=[],checks=[];const pass=t=>{checks.push(t);console.log('PASS '+t);};
 const browser=await chromium.launch({channel:'chrome',headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}});page.on('pageerror',e=>errors.push(e.message));
+// This suite checks polling stability; finish navigation scrolling immediately
+// so an earlier smooth opening animation cannot race the scroll assertions.
+await page.addInitScript(()=>{const scroll=Element.prototype.scrollIntoView;Element.prototype.scrollIntoView=function(options){return scroll.call(this,options&&typeof options==='object'?{...options,behavior:'instant'}:options);};});
 await page.route('**/mock-assets/**',route=>route.fulfill({status:200,contentType:'image/svg+xml',body:svg}));
 await page.route('**/api/**',async route=>{
  const req=route.request(),path=new URL(req.url()).pathname;if(req.method()!=='GET'){writes.push({method:req.method(),path});return route.fulfill({status:400,contentType:'application/json',body:'{"detail":"mock rejects all writes"}'});}reads.push(path);let data;

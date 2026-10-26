@@ -83,7 +83,7 @@ function showModal(title,body,footer='',wide=false){
   $('#modal-root').onclick=e=>{if(e.target.classList.contains('modal-backdrop') || e.target.closest('[data-action="close-modal"]'))closeModal();};
   setTimeout(()=>$('.modal input:not([type=checkbox]),.modal select,.modal textarea')?.focus(),30);
 }
-function closeModal(){if(S.uploading){toast('正在确认并上传材料，请等待本批完成。');return;}$('#modal-root').innerHTML='';document.body.style.overflow='';}
+function closeModal(){if(S.uploading){toast('正在确认并上传材料，请等待本批完成。');return;}if(typeof S.cropCloseGuard==='function'&&!S.cropCloseGuard())return;S.cropCloseGuard=null;$('#modal-root').innerHTML='';document.body.style.overflow='';}
 function modalError(message){let el=$('.modal-error');if(!el){el=document.createElement('div');el.className='modal-error';$('.modal-body')?.append(el);}el.textContent=message;el.scrollIntoView({block:'nearest'});}
 function pageTitle(title,sub,actions=''){return `<div class="page-title"><div><h1>${esc(title)}</h1><p>${esc(sub)}</p></div><div class="row wrap">${actions}</div></div>`;}
 

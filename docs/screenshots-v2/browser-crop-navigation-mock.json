@@ -1,0 +1,83 @@
+{
+  "source": "All APIs and images mocked; zero real API writes or cloud calls",
+  "checks": [
+    "同一附件按原件页序显示左右箭头、当前页和总页数，首页上一页禁用",
+    "每页独立草稿，保存准确绑定当前页；保存中锁导航，成功后继续留窗且其它页仍提示待保存",
+    "切回恢复框选、红框、遮挡和证据类型，已保存页不重复保存，全部保存后直接关闭",
+    "关闭和Esc会保护其它页未保存草稿，取消关闭后内容仍在",
+    "只读角色可以翻页而不能编辑或保存，末页和单页边界正确",
+    "快速跳过未加载页面后，迟到图片不能覆盖当前页画布或页码",
+    "保存失败保留当前页草稿、允许重试，切页回来仍完整且旧错误提示清除"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "method": "POST",
+      "path": "/api/applications/crop-item/crops",
+      "body": {
+        "page_id": "crop-page-2",
+        "evidence_type": "PARTICIPATION",
+        "box": [
+          0,
+          30,
+          900,
+          300
+        ],
+        "masks": [],
+        "highlights": []
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/crop-item/crops",
+      "body": {
+        "page_id": "crop-page-1",
+        "evidence_type": "VALIDITY",
+        "box": [
+          0,
+          28,
+          800,
+          250
+        ],
+        "masks": [
+          [
+            360,
+            120,
+            120,
+            40
+          ]
+        ],
+        "highlights": [
+          {
+            "box": [
+              120,
+              120,
+              120,
+              40
+            ],
+            "field": "CLASS"
+          }
+        ],
+        "validity_kind": "TIME"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/crop-item/crops",
+      "body": {
+        "page_id": "crop-page-1",
+        "evidence_type": "PARTICIPATION",
+        "box": [
+          0,
+          27,
+          800,
+          250
+        ],
+        "masks": [],
+        "highlights": []
+      },
+      "mock_status": 400
+    }
+  ],
+  "createdAt": "2026-10-26T03:34:30.448Z"
+}

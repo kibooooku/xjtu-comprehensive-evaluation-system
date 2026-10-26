@@ -1,0 +1,121 @@
+{
+  "source": "All APIs mocked; write entries are fixture requests only, no actual API/database/cloud writes",
+  "checks": [
+    "对照区保存与提交分开；未保存修改先保存，确认展示新名称分值，取消不会提交",
+    "名称未填写时先进行必填校验，不保存或正式提交",
+    "后端拒绝提交时保留当前稿和确认弹窗，展示具体原因并允许重试",
+    "确认仅提交当前小项并携带保存后版本；其它勾选项不受影响，成功后进入待审只读状态",
+    "只读、已批准、历史、无提交权限、非本人及辅导员查看均隐藏学生提交按钮",
+    "保存失败时停止提交并保留未保存输入"
+  ],
+  "errors": [],
+  "writes": [
+    {
+      "method": "PUT",
+      "path": "/api/applications/submit-a",
+      "body": {
+        "title": "春季周末广场舞（2次）",
+        "requested_score": "0.60",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/applications/submit-a",
+      "body": {
+        "title": "春季周末广场舞（2次）",
+        "requested_score": "0.60",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/submit-a/submit",
+      "body": {
+        "expected_version": 6
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/submit-a/submit",
+      "body": {
+        "expected_version": 6
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/applications/submit-a",
+      "body": {
+        "title": "未成功保存的修改",
+        "requested_score": "0.60",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": ""
+        }
+      }
+    }
+  ],
+  "reads": [
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/submit-a",
+    "/api/activities"
+  ],
+  "createdAt": "2026-10-26T03:34:17.626Z"
+}
