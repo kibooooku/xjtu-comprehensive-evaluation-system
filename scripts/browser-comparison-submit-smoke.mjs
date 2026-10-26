@@ -1,4 +1,4 @@
-/** Isolated confirmation flow: all APIs mocked, no business database or cloud writes. */
+/** Isolated direct submission flow: all APIs mocked, no business database or cloud writes. */
 import {chromium} from '../.tools/browser/node_modules/playwright/index.mjs';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {resolve} from 'node:path';
@@ -57,29 +57,28 @@ try{
   await open();assert.equal(await submit().count(),1);assert.equal(await page.locator('[data-action="v2-save-item"]').count(),1);
   await page.locator('[data-item-check="submit-b"]').check();
   await page.locator('#workspace-title').fill('春季周末广场舞（2次）');await page.locator('#workspace-score').fill('0.60');
-  await submit().click();await page.locator('#workspace-confirm-submit').waitFor();
-  assert.equal(writes.length,1);assert.equal(writes[0].method,'PUT');assert.equal(writes[0].path,'/api/applications/submit-a');
-  assert.match(await page.locator('.modal').innerText(),/春季周末广场舞（2次）/);assert.match(await page.locator('.modal').innerText(),/0\.60/);
+  await submit().click();await page.waitForFunction(()=>S.workspaceItem?.state==='PENDING_PEER');
+  assert.deepEqual(writes.map(value=>value.method),['PUT','POST']);assert.equal(writes[0].body.score_confirmed,true);assert.equal(writes[1].body.score_confirmed,true);
+  assert.equal(await page.locator('.modal').count(),0);assert.equal(writes.some(write=>write.path.includes('submit-b')),false);assert.equal(await page.evaluate(()=>S.checkedItems.has('submit-b')),true);
   await page.screenshot({path:resolve(out,'14-comparison-submit-mock.png'),animations:'disabled'});
-  await page.locator('.modal-footer [data-action="close-modal"]').click();assert.equal(submissions().length,0);assert.equal(await page.locator('#workspace-title').inputValue(),title);
-  pass('对照区保存与提交分开；未保存修改先保存，确认展示新名称分值，取消不会提交');
+  pass('未保存内容先保存再直接提交，使用保存后版本且不弹确认窗口，其它勾选项保留');
 
+  scenario.state='DRAFT';scenario.canEdit=true;await open();
   const beforeInvalid=writes.length;await page.locator('#workspace-title').fill('');await submit().click();
-  assert.equal(await page.locator('#workspace-confirm-submit').count(),0);assert.equal(writes.length,beforeInvalid);
+  assert.equal(await page.locator('.modal').count(),0);assert.equal(writes.length,beforeInvalid);
   pass('名称未填写时先进行必填校验，不保存或正式提交');
 
   await page.locator('#workspace-title').fill('春季周末广场舞（2次）');scenario.submitReject=true;
-  await submit().click();await page.locator('#workspace-confirm-submit').waitFor();await page.locator('#workspace-confirm-submit').click();
-  await page.locator('.modal-error').waitFor();assert.match(await page.locator('.modal-error').innerText(),/正在公示/);
-  assert.equal(await page.locator('#workspace-confirm-submit').isVisible(),true);assert.equal(await page.locator('#workspace-title').inputValue(),title);
-  pass('后端拒绝提交时保留当前稿和确认弹窗，展示具体原因并允许重试');
+  const beforeRejected=submissions().length;await submit().click();
+  await page.locator('.toast').filter({hasText:'正在公示'}).waitFor();
+  assert.equal(await page.locator('.modal').count(),0);assert.equal(await page.locator('#workspace-title').inputValue(),title);assert.equal(await submit().count(),1);
+  pass('后端拒绝直接提交时保留当前稿，以页面提示展示原因并允许重试');
 
-  scenario.submitReject=false;await page.locator('#workspace-confirm-submit').click();await page.locator('.modal').waitFor({state:'detached'});
+  scenario.submitReject=false;await submit().click();
   await page.waitForFunction(()=>S.workspaceItem?.state==='PENDING_PEER'&&!S.workspaceItem?.can_edit);
   assert.equal(await submit().count(),0);assert.equal(await page.locator('[data-action="v2-save-item"]').count(),0);
-  assert.equal(writes.some(write=>write.path.includes('submit-b')),false);assert.equal(await page.evaluate(()=>S.checkedItems.has('submit-b')),true);
-  assert.equal(submissions().length,2);assert.equal(submissions().every(write=>write.path==='/api/applications/submit-a/submit'),true);
-  pass('确认仅提交当前小项并携带保存后版本；其它勾选项不受影响，成功后进入待审只读状态');
+  assert.equal(submissions().length,beforeRejected+2);assert.equal(submissions().every(write=>write.path==='/api/applications/submit-a/submit'),true);
+  pass('失败后可直接重试当前小项，成功进入待审只读状态且没有重复确认步骤');
 
   for(const [label,changes,view] of [
     ['只读',{canEdit:false},'applications'],
@@ -96,7 +95,7 @@ try{
 
   scenario={state:'DRAFT',canEdit:true,owner:true,year:current.id,permission:true,role:'STUDENT',submitReject:false,saveReject:true};
   await open();await page.locator('#workspace-title').fill('未成功保存的修改');const beforeSaveFailure=submissions().length;await submit().click();
-  await page.locator('.toast').filter({hasText:'模拟保存冲突'}).waitFor();assert.equal(await page.locator('#workspace-confirm-submit').count(),0);
+  await page.locator('.toast').filter({hasText:'模拟保存冲突'}).waitFor();assert.equal(await page.locator('.modal').count(),0);
   assert.equal(submissions().length,beforeSaveFailure);assert.equal(await page.locator('#workspace-title').inputValue(),'未成功保存的修改');assert.equal(await page.evaluate(()=>S.workspaceDirty),true);
   pass('保存失败时停止提交并保留未保存输入');
   assert.deepEqual(errors,[]);

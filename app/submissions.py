@@ -4,7 +4,6 @@ from __future__ import annotations
 import re
 from collections import Counter
 from decimal import Decimal
-from difflib import SequenceMatcher
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
@@ -129,43 +128,6 @@ def _evidence_summary(conn, revision):
     return summary
 
 
-def _duplicate_hints(conn, entries):
-    """Human hints only: names/activities cannot prove duplicate participation."""
-    from .workflow import _display_revision, _norm
-    metadata = {}
-    for entry in entries:
-        entry["possible_duplicates"] = []
-        if entry.get("deleted_at") or not entry.get("confirmed_at"):
-            continue
-        application = db.one(conn, "applications", entry["id"])
-        revision = _display_revision(conn, application)
-        hashes = {db.one(conn, "file_objects", link["file_id"])["sha256"] for link in db.rows(conn, "revision_files", revision_id=revision["id"])}
-        metadata[entry["id"]] = (entry, revision, hashes)
-    candidates = list(metadata.values())
-    for index, (entry, revision, hashes) in enumerate(candidates):
-        for other, other_revision, other_hashes in candidates[index + 1:]:
-            title, other_title = _norm(revision["title"]), _norm(other_revision["title"])
-            if hashes & other_hashes:
-                reason = "历史小项使用了相同文件，请人工核对是否重复计分"
-            elif title and title == other_title:
-                reason = "活动名称相同，请核对是否为不同日期或不同项目"
-            elif min(len(title), len(other_title)) >= 4 and SequenceMatcher(None, title, other_title).ratio() >= .86:
-                reason = "活动名称相似，请人工核对证明与项目关系"
-            elif revision.get("activity_id") and revision["activity_id"] == other_revision.get("activity_id"):
-                facts, other_facts = revision["payload_json"] or {}, other_revision["payload_json"] or {}
-                distinct = any(facts.get(k) and other_facts.get(k) and _norm(facts[k]) != _norm(other_facts[k])
-                               for k in ("edition_key", "track_key", "group_key", "work_key"))
-                if distinct:
-                    continue
-                reason = "对应同一活动，请核对是否为同一项目或不同阶段奖项"
-            else:
-                continue
-            if len(entry["possible_duplicates"]) < 5:
-                entry["possible_duplicates"].append({"id": other["id"], "title": other["title"], "reason": reason})
-            if len(other["possible_duplicates"]) < 5:
-                other["possible_duplicates"].append({"id": entry["id"], "title": entry["title"], "reason": reason})
-
-
 def _group_view(conn, context, user, detail=False, include_deleted=False, include_staged=False):
     from .workflow import _display_revision, _summary, application_detail, class_scores
     _readable(conn, user, context)
@@ -187,11 +149,10 @@ def _group_view(conn, context, user, detail=False, include_deleted=False, includ
                      sorted(db.rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: r["sort_order"])]
             entry.update(file_count=len(files), primary_file_name=files[0]["original_name"] if files else "",
                          files=[{"id": f["id"], "original_name": f["original_name"]} for f in files])
-        entry.update(confirmed_at=item["confirmed_at"], deleted_at=item["deleted_at"], item_id=item["id"], sort_order=item["sort_order"],
+        entry.update(possible_duplicates=[], confirmed_at=item["confirmed_at"], deleted_at=item["deleted_at"], item_id=item["id"], sort_order=item["sort_order"],
                      evidence_summary=_evidence_summary(conn, revision),
                      **_job_status(conn, application["id"]))
         entries.append(entry)
-    _duplicate_hints(conn, entries)
     active = [e for e in entries if e["confirmed_at"] and not e["deleted_at"]]
     counts = dict(Counter(e["state"] for e in active))
     state = next(iter(counts)) if len(counts) == 1 else "PARTIAL" if counts else "EMPTY"
@@ -349,10 +310,14 @@ def submit_items(submission_id: str, payload: dict = Body(...), user=Depends(cur
         if any(not db.one(conn, "category_items", submission_id=submission_id, application_id=i) for i in ids):
             raise HTTPException(400, "所选小项不属于当前大类")
     results = []
-    related = payload.get("related_application_ids") or {}
+    versions = payload.get('expected_versions') or {}
+    if not isinstance(versions, dict):
+        raise HTTPException(400, '提交版本格式无效')
     for application_id in ids:
         try:
-            body = {"related_application_id": related.get(application_id)} if isinstance(related, dict) else {}
+            body = {'score_confirmed': True}
+            if application_id in versions:
+                body['expected_version'] = versions[application_id]
             result = submit_application(application_id, body, user)
             results.append({"id": application_id, "ok": True, "state": result["state"]})
         except HTTPException as error:

@@ -270,11 +270,13 @@ def deepseek_suggestion(context: dict, config: dict | None = None) -> dict:
         "award_level只填INTERNATIONAL/NATIONAL/PROVINCIAL/SCHOOL/LOCAL_OR_INDUSTRY等赛事级别枚举，award_grade另填SPECIAL/FIRST/SECOND/THIRD/EXCELLENT或PLACE_1至PLACE_8，不能把‘全国二等奖’混进award_level。"
         "本人的奖项等第和考评仅采用linked_outcome中MATCHED的facts，名单中其他人的奖次、优秀或合格不能用来给本人计分。"
         "assessment_result分别用EXCELLENT/GOOD/PASS/FAIL；任职还需岗位级别和任期，不能看到优秀就默认最高4分。科研立项/结项等级不等同竞赛奖项。"
-        "从活动目录选择规范activity_id，不确定时为null，并写出match_uncertain=true。"
+        "activity_catalog是从辅导员活动资格库按当前证明检索的最相关候选，包含有效、无效及待认定状态。"
+        "仅对科研、文体竞赛、任职三类，从候选中匹配与材料活动内容最接近的activity_id；同时核对具体活动与适用范围，不能因为候选有效就优先于更接近的无效活动。"
+        "匹配依据不足时activity_id为null并写match_uncertain=true，不能编造库中不存在的id。"
+        "竞赛重复由审查员人工判断，系统不按届次、赛道、组别或作品自动归组、替代或取最高。"
         "输出格式示例：{\"title\":\"仲英书院周末广场舞（2次）\",\"requested_score\":\"0.60\",\"activity_id\":null,"
         "\"match_uncertain\":false,\"explanation\":\"依据与不确定性\",\"payload_json\":{"
-        "\"edition_key\":\"\",\"track_key\":\"\",\"group_key\":\"\",\"work_key\":\"\","
-        "\"award_level\":\"\",\"award_grade\":\"\",\"assessment_result\":\"\",\"subtype\":\"\"}}。同一竞赛的届次、赛道、组别、作品请分别提取。"
+        "\"award_level\":\"\",\"award_grade\":\"\",\"assessment_result\":\"\",\"subtype\":\"\"}}。"
     )
     payload = {
         "model": config["deepseek_model"],

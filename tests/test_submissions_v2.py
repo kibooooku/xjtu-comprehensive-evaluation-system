@@ -185,7 +185,7 @@ def test_batch_confirmation_is_atomic_and_submission_is_per_item(v2):
     assert results[1]["status_code"] == 409
 
 
-def test_explicitly_deleted_superseded_item_is_not_resurrected(v2):
+def test_new_competition_item_does_not_make_approved_item_deletable(v2):
     v2["login"]("counselor")
     client = v2["client"]
     activity = client.post("/api/activities", json={"canonical_name": "V2具体竞赛", "category_id": v2["categories"]["RESEARCH"], "decision": "VALID"}).json()
@@ -193,20 +193,18 @@ def test_explicitly_deleted_superseded_item_is_not_resurrected(v2):
     parent = v2["group"]("RESEARCH")
     facts = {"edition_key": "2026", "track_key": "算法", "work_key": "项目A"}
     old = v2["item"](parent, title="V2具体竞赛省赛一等奖", score="2", facts=facts, activity_id=activity["id"])
-    v2["confirm"](parent, [old])
-    v2["submit"](parent, [old])
+    v2["confirm"](parent, [old]);v2["submit"](parent, [old])
     assert v2["review"](old)["state"] == "APPROVED"
     new = v2["item"](parent, title="V2具体竞赛国赛一等奖", score="4", facts=facts, activity_id=activity["id"])
-    v2["confirm"](parent, [new])
-    assert v2["submit"](parent, [new])["submitted"] == 1
-    assert client.get(f"/api/applications/{old['id']}").json()["state"] == "REJECTED"
-    assert client.delete(f"/api/submissions/{parent['id']}/items/{old['id']}").status_code == 200
+    v2["confirm"](parent, [new]);assert v2["submit"](parent, [new])["submitted"] == 1
+    assert client.get(f"/api/applications/{old['id']}").json()["state"] == "APPROVED"
+    assert client.delete(f"/api/submissions/{parent['id']}/items/{old['id']}").status_code == 409
     assert client.post(f"/api/applications/{new['id']}/withdraw", json={}).status_code == 200
     with db.read() as conn:
         old_app = db.one(conn, "applications", old["id"])
-        assert old_app["archived_at"]
-        assert db.one(conn, "submission_rounds", old_app["current_round_id"])["state"] == "REJECTED"
-        assert db.rows(conn, "award_supersessions")[0]["status"] == "SKIPPED"
+        assert not old_app["archived_at"]
+        assert db.one(conn, "submission_rounds", old_app["current_round_id"])["state"] == "APPROVED"
+        assert not db.rows(conn, "award_supersessions")
 
 
 def test_partial_group_cannot_bypass_publication_gate_or_lock(v2):
@@ -292,7 +290,7 @@ def test_legacy_group_migration_preserves_round_revision_score_and_flags_duplica
     v2["login"]()
     group = v2["client"].get("/api/submissions").json()[0]
     assert group["approved_total"] == "0.30"
-    assert all(item["possible_duplicates"] for item in group["items"])
+    assert all(item["possible_duplicates"] == [] for item in group["items"])
 
 
 def test_list_evidence_summary_tracks_current_cross_file_manual_crops_not_old_jobs(v2, monkeypatch):

@@ -7,7 +7,11 @@ import json
 import math
 import re
 import threading
+import time
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
@@ -23,6 +27,8 @@ from .integrations import ProviderError, configuration, deepseek_suggestion, ocr
 from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES, MAX_AUTOMATIC_OCR_PAGES, OCR_POLICY_VERSION
 from .policy_suggestions import FACT_KEYS, normalize_policy_suggestion
 from .score_resolution import from_policy as policy_score_resolution
+from .result_labels import result_label
+from .activity_matching import retrieve_activity_candidates
 from .security import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -32,9 +38,28 @@ MAX_PAGE_PIXELS = 36_000_000
 REDACTION_VERSION = "student-number-v1"
 PDF_LOCK = threading.Lock()
 ANALYSIS_LOCK = threading.Lock()
-OCR_CALL_LOCK = threading.Lock()
+OCR_FILES_PER_USER = 3
+OCR_FILES_GLOBAL = 12
+_OCR_SCOPE = threading.local()
+_OCR_LOCK_GUARD = threading.Lock()
+_OCR_CACHE_LOCKS = {}
+_OCR_LOCAL_CONDITION = threading.Condition()
+_OCR_LOCAL_ACTIVE = {}
 Image.MAX_IMAGE_PIXELS = MAX_PAGE_PIXELS
 NATIVE_TEXT_API = "NativePDFText"
+
+
+class RecognitionInterrupted(Exception):
+    """Graceful server shutdown; retain recognised pages for queue recovery."""
+
+
+@router.get('/reference/scoring-standard')
+def scoring_standard(user: dict = Depends(current_user)):
+    path = Path(__file__).resolve().parent / 'resources/scoring-standard.pdf'
+    if not path.is_file():
+        raise HTTPException(404, '评分标准文件暂不可用')
+    return FileResponse(path, media_type='application/pdf', filename='西安交通大学本科生综合素质测评成绩评定办法.pdf',
+                        content_disposition_type='inline')
 
 
 def _page_limit(config=None):
@@ -682,9 +707,87 @@ def integration_status(user: dict = Depends(current_user)):
     return {"enabled": config["enabled"], "tencent_configured": bool(config["secret_id"] and config["secret_key"]), "deepseek_configured": bool(config["deepseek_key"]), "deepseek_model": config["deepseek_model"], "free_only": True, "general": local_usage(general_used, config["general_limit"]), "seal": local_usage(seal_used, config["seal_limit"]), "provider_balance_known": False, "provider_remaining": None, "max_analysis_pages": config["max_analysis_pages"], "message": "用量为本系统本月调用尝试次数（含失败），不是腾讯云已计费次数或免费余额；云端余额未查询。仅调用已开通服务，不自动重试或购买资源。"}
 
 
-def _ocr_page(page: dict, action: str, config: dict) -> dict:
-    with OCR_CALL_LOCK:
-        return _ocr_page_locked(page, action, config)
+def _ocr_page(page: dict, action: str, config: dict, stop_event=None) -> dict:
+    # Equal rendered bytes share a result, while unrelated files may call the
+    # provider concurrently. The database transaction reserves quota separately.
+    key = (db.engine, page['render_sha256'], action)
+    with _OCR_LOCK_GUARD:
+        lock, users = _OCR_CACHE_LOCKS.get(key, (threading.Lock(), 0))
+        _OCR_CACHE_LOCKS[key] = (lock, users + 1)
+    acquired = False
+    try:
+        while not acquired:
+            if stop_event and stop_event.is_set():
+                raise RecognitionInterrupted()
+            acquired = lock.acquire(timeout=.05)
+        return _ocr_page_locked(page, action, config, stop_event)
+    finally:
+        if acquired:
+            lock.release()
+        with _OCR_LOCK_GUARD:
+            lock, users = _OCR_CACHE_LOCKS[key]
+            if users == 1:
+                del _OCR_CACHE_LOCKS[key]
+            else:
+                _OCR_CACHE_LOCKS[key] = (lock, users - 1)
+
+
+@contextmanager
+def ocr_job_scope(job_id, worker_token, stop_event=None):
+    previous = getattr(_OCR_SCOPE, 'job', None)
+    _OCR_SCOPE.job = (job_id, worker_token, stop_event)
+    try:
+        yield
+    finally:
+        _OCR_SCOPE.job = previous
+
+
+@contextmanager
+def _ocr_file_slot(owner_id, file_id, scope=None):
+    """File leases count across items and server processes, not page HTTP calls."""
+    if not scope:
+        # The legacy synchronous endpoint has no durable job. Keep its slots
+        # owner-scoped too, without holding a database writer during provider IO.
+        key = (db.engine, owner_id)
+        with _OCR_LOCAL_CONDITION:
+            _OCR_LOCAL_CONDITION.wait_for(lambda: _OCR_LOCAL_ACTIVE.get(key, 0) < OCR_FILES_PER_USER
+                                          and sum(_OCR_LOCAL_ACTIVE.values()) < OCR_FILES_GLOBAL)
+            _OCR_LOCAL_ACTIVE[key] = _OCR_LOCAL_ACTIVE.get(key, 0) + 1
+        try:
+            yield
+        finally:
+            with _OCR_LOCAL_CONDITION:
+                _OCR_LOCAL_ACTIVE[key] -= 1
+                if not _OCR_LOCAL_ACTIVE[key]:
+                    del _OCR_LOCAL_ACTIVE[key]
+                _OCR_LOCAL_CONDITION.notify_all()
+        return
+    job_id, worker_token = scope[:2]
+    stop_event = scope[2] if len(scope) > 2 else None
+    while True:
+        if stop_event and stop_event.is_set():
+            raise RecognitionInterrupted()
+        with db.write() as conn:
+            job = one(conn, 'background_jobs', job_id)
+            if not job or job['state'] != 'RUNNING' or job.get('worker_token') != worker_token:
+                raise HTTPException(409, '后台识别任务已变更，停止启动新的文件识别')
+            running = rows(conn, 'background_jobs', kind='OCR', state='RUNNING')
+            counts = [(other['owner_id'], len((other.get('result_json') or {}).get('active_file_ids') or [])) for other in running]
+            if sum(n for owner, n in counts if owner == owner_id) < OCR_FILES_PER_USER and sum(n for _, n in counts) < OCR_FILES_GLOBAL:
+                metadata = dict(job.get('result_json') or {})
+                metadata['active_file_ids'] = [*(metadata.get('active_file_ids') or []), file_id]
+                change(conn, 'background_jobs', job_id, result_json=metadata, heartbeat_at=now())
+                break
+        time.sleep(.05)
+    try:
+        yield
+    finally:
+        with db.write() as conn:
+            latest = one(conn, 'background_jobs', job_id)
+            if latest and latest.get('worker_token') == worker_token:
+                metadata = dict(latest.get('result_json') or {})
+                metadata['active_file_ids'] = [value for value in metadata.get('active_file_ids', []) if value != file_id]
+                change(conn, 'background_jobs', job_id, result_json=metadata, heartbeat_at=now())
 
 
 def _save_regions(conn, run: dict, data: dict):
@@ -701,28 +804,53 @@ def _save_regions(conn, run: dict, data: dict):
             add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="SEAL", text=str(item.get("SealBody", "")), confidence=None, polygon_json=_rect_polygon(item.get("Location") or {}), extra_json={"shape": item.get("SealShape"), "other_texts": item.get("OtherTexts", [])})
 
 
-def _ocr_page_locked(page: dict, action: str, config: dict) -> dict:
+def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None) -> dict:
     param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
-    with db.write() as conn:
-        cached = [r for r in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash) if r["status"] == "SUCCEEDED"]
-        if cached:
-            own = [r for r in cached if r["page_id"] == page["id"]]
-            if own:
-                return own[-1]
-            source = cached[-1]
-            run = add(conn, "recognition_runs", page_id=page["id"], provider="CACHE", api_name=action, parameters_hash=param_hash, status="SUCCEEDED", provider_request_id=source.get("provider_request_id"), result_json=source["result_json"], started_at=None, finished_at=now())
-            _save_regions(conn, run, source["result_json"] or {})
-            return run
-        limit = config["general_limit"] if action == "GeneralAccurateOCR" else config["seal_limit"]
-        used = _usage(conn, action)
-        if used >= limit:
-            raise ProviderError("LocalBudgetExceeded", ocr_stop_info("LocalBudgetExceeded")["stop_message"], diagnostics={"action": action, "used": used, "limit": limit})
-        run = add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=action, parameters_hash=param_hash, status="RUNNING", provider_request_id=None, result_json=None, started_at=now(), finished_at=None)
+    while True:
+        if stop_event and stop_event.is_set():
+            raise RecognitionInterrupted()
+        # BEGIN IMMEDIATE makes lookup/reservation/counting one atomic decision,
+        # including calls in another server process. HTTP never holds this lock.
+        with db.write() as conn:
+            cached = [r for r in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash) if r["status"] == "SUCCEEDED"]
+            if cached:
+                own = [r for r in cached if r["page_id"] == page["id"]]
+                if own:
+                    return own[-1]
+                source = cached[-1]
+                run = add(conn, "recognition_runs", page_id=page["id"], provider="CACHE", api_name=action, parameters_hash=param_hash, status="SUCCEEDED", provider_request_id=source.get("provider_request_id"), result_json=source["result_json"], started_at=None, finished_at=now())
+                _save_regions(conn, run, source["result_json"] or {})
+                return run
+            pending = rows(conn, 'recognition_runs', api_name=action, parameters_hash=param_hash, status='RUNNING')
+            waiting = False
+            for existing in pending:
+                from .jobs import _process_alive
+                pid = (existing.get('result_json') or {}).get('worker_pid')
+                fresh = (existing.get('started_at') or '') > (datetime.now(timezone.utc) - timedelta(minutes=3)).isoformat()
+                if (pid and _process_alive(f'{pid}:ocr-cache')) or (not pid and fresh):
+                    waiting = True
+                else:
+                    change(conn, 'recognition_runs', existing['id'], status='FAILED',
+                           result_json={'error_code': 'Interrupted', 'message': '此前识别调用中断，保留调用次数记录'}, finished_at=now())
+            if not waiting:
+                limit = config["general_limit"] if action == "GeneralAccurateOCR" else config["seal_limit"]
+                used = _usage(conn, action)
+                if used >= limit:
+                    raise ProviderError("LocalBudgetExceeded", ocr_stop_info("LocalBudgetExceeded")["stop_message"], diagnostics={"action": action, "used": used, "limit": limit})
+                import os
+                run = add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=action, parameters_hash=param_hash, status="RUNNING", provider_request_id=None, result_json={'worker_pid': os.getpid()}, started_at=now(), finished_at=None)
+                break
+        time.sleep(.05)
     try:
         data = tencent_ocr(action, asset_path(page["image_uri"]).read_bytes(), config)
     except ProviderError as error:
         with db.write() as conn:
             change(conn, "recognition_runs", run["id"], status="FAILED", result_json={"error_code": error.code, "message": error.message}, finished_at=now())
+        raise
+    except Exception:
+        with db.write() as conn:
+            change(conn, 'recognition_runs', run['id'], status='FAILED',
+                   result_json={'error_code': 'UnexpectedError', 'message': '识别调用未完成，原始材料已保留'}, finished_at=now())
         raise
     with db.write() as conn:
         run = change(conn, "recognition_runs", run["id"], status="SUCCEEDED", provider_request_id=data.get("RequestId"), result_json=data, finished_at=now())
@@ -1026,11 +1154,22 @@ def _grounded_title_candidates(conn, revision, texts, student, student_user):
     return list(candidates.values())
 
 
-def _resolve_activity_title(conn, revision, texts, student, student_user, suggestion):
+def _resolve_activity_title(conn, revision, texts, student, student_user, suggestion, activities=None):
     """Read-only normalization; a title fallback never endorses the model's score."""
     result = dict(suggestion)
     raw_title = result.get("title")
     if isinstance(raw_title, str) and specific_activity_title(raw_title.strip()):
+        if activities and not activity_title_supported(raw_title, texts, []):
+            source = _activity_title_key('\n'.join(str(item.get('text') or '') for item in texts))
+            for activity in activities:
+                if _activity_title_key(activity['name']) != _activity_title_key(raw_title):
+                    continue
+                aliases = [str(value.get('alias') if isinstance(value, dict) else value) for value in activity.get('aliases') or []]
+                aliases = [value for value in aliases if len(_activity_title_key(value)) >= 3
+                           and _activity_title_key(value) in source and specific_activity_title(value)]
+                if aliases:
+                    result['title'] = max(aliases, key=lambda value: len(_activity_title_key(value)))
+                    return result, {'status': 'MATERIAL_ALIAS', 'source': 'MATERIAL_ALIAS', 'candidate_count': len(aliases), 'score_policy': 'MODEL_PROPOSAL'}
         return result, {"status": "MODEL", "source": "MODEL", "candidate_count": 0, "score_policy": "MODEL_PROPOSAL"}
     candidates = _grounded_title_candidates(conn, revision, texts, student, student_user)
     if len(candidates) != 1:
@@ -1236,10 +1375,40 @@ def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[
 def analyze(application_id: str, body: dict | None = None, user: dict = Depends(current_user)):
     if not ANALYSIS_LOCK.acquire(blocking=False):
         raise HTTPException(409, "已有识别任务正在进行，请稍后重试。")
+    lease_id = f'synchronous-analysis:{user["id"]}'
+    token = uid()
+    reserved = False
     try:
+        # The compatibility endpoint must never become a fourth OCR/AI slot.
+        # Claim its exclusive owner lease atomically with the worker's check.
+        with db.write() as conn:
+            if synchronous_analysis_active(conn, user['id']) or any(job['state'] in {'QUEUED', 'RUNNING'} for job in rows(conn, 'background_jobs', owner_id=user['id'])):
+                raise HTTPException(409, '后台识别正在排队或执行，请等待完成后再重试')
+            import os
+            value = {'token': token, 'pid': os.getpid(), 'started_at': now(), 'active': True}
+            if one(conn, 'system_settings', lease_id):
+                change(conn, 'system_settings', lease_id, value_json=value)
+            else:
+                add(conn, 'system_settings', id=lease_id, value_json=value)
+            reserved = True
         return run_ai(application_id, user)
     finally:
+        if reserved:
+            with db.write() as conn:
+                lease = one(conn, 'system_settings', lease_id)
+                if lease and (lease.get('value_json') or {}).get('token') == token:
+                    change(conn, 'system_settings', lease_id, value_json={'active': False})
         ANALYSIS_LOCK.release()
+
+
+def synchronous_analysis_active(conn, owner_id):
+    lease = one(conn, 'system_settings', f'synchronous-analysis:{owner_id}')
+    value = (lease or {}).get('value_json') or {}
+    if not value.get('active'):
+        return False
+    from .jobs import _process_alive
+    # A dead server cannot keep a user's durable background queue blocked.
+    return _process_alive(f'{value.get("pid")}:sync')
 
 
 def _recognition_snapshot(conn, application_id: str, user: dict, config: dict):
@@ -1263,9 +1432,13 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
         files = {page["file_id"]: one(conn, "file_objects", page["file_id"]) for page in pages}
     common = {"policy_version": OCR_POLICY_VERSION, "application_id": application_id, "input_revision_id": revision["id"], "input_fingerprint": fingerprint, "ocr_fingerprint": source_fingerprint, "page_ids": [p["id"] for p in pages]}
     warnings, ocr_runs, tasks, file_results = [], [], [], []
+    scope = getattr(_OCR_SCOPE, 'job', None)
+    worker_stop = scope[2] if scope and len(scope) > 2 else None
     if progress:
         progress("检查PDF已有文字层", 0, 0)
     for file_id, file in files.items():
+        if worker_stop and worker_stop.is_set():
+            raise RecognitionInterrupted()
         file_pages = [page for page in pages if page["file_id"] == file_id]
         native = _native_pages(file, file_pages)
         native_ids = {page_id for page_id, run in native.items() if (run.get("result_json") or {}).get("usable")}
@@ -1291,32 +1464,54 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
     if progress:
         progress("OCR准备", done, total)
     failed_tasks = []
-    for page, action in tasks:
-        # Disabling cloud access still permits explicitly cached results and local PDF text.
-        if not config["enabled"] or not config["secret_id"] or not config["secret_key"]:
-            param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
-            with db.read() as conn:
-                cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
-            if not cached:
-                stopped, stop_reason = True, "NotConfigured"
-                stop_info = ocr_stop_info(stop_reason)
-                warnings.append(stop_info["stop_message"])
-                break
-        try:
-            ocr_runs.append(_ocr_page(page, action, config))
-        except ProviderError as error:
-            warnings.append(error.message)
-            failed_tasks.append((page["id"], action))
-            # Stop all further cloud actions, including the other API, on quota/resource errors.
-            classified = ocr_stop_info(error.code, error.diagnostics)
-            if classified["stop_source"] in {"LOCAL_LIMIT", "PROVIDER_RESOURCE", "BILLING", "RATE_LIMIT", "AUTH", "NETWORK", "CONFIGURATION", "PROVIDER_UNAVAILABLE"}:
-                stopped, stop_reason = True, error.code
-                stop_info = classified
-        done += 1
-        if progress:
-            progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
-        if stopped:
-            break
+    result_lock, stop_event = threading.Lock(), threading.Event()
+
+    def process_file(file_id, file_tasks):
+        nonlocal done, stopped, stop_reason, stop_info
+        with _ocr_file_slot(user['id'], file_id, scope):
+            for page, action in file_tasks:
+                if worker_stop and worker_stop.is_set():
+                    raise RecognitionInterrupted()
+                if stop_event.is_set():
+                    break
+                # Disabled cloud access still permits cached and native text.
+                if not config["enabled"] or not config["secret_id"] or not config["secret_key"]:
+                    param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
+                    with db.read() as conn:
+                        cached = any(run["status"] == "SUCCEEDED" for run in rows(conn, "recognition_runs", api_name=action, parameters_hash=param_hash))
+                    if not cached:
+                        with result_lock:
+                            if not stopped:
+                                stopped, stop_reason = True, "NotConfigured"
+                                stop_info = ocr_stop_info(stop_reason)
+                                warnings.append(stop_info["stop_message"])
+                            stop_event.set()
+                        break
+                try:
+                    run = _ocr_page(page, action, config, worker_stop)
+                    with result_lock:
+                        ocr_runs.append(run)
+                except ProviderError as error:
+                    with result_lock:
+                        warnings.append(error.message)
+                        failed_tasks.append((page["id"], action))
+                        classified = ocr_stop_info(error.code, error.diagnostics)
+                        if classified["stop_source"] in {"LOCAL_LIMIT", "PROVIDER_RESOURCE", "BILLING", "RATE_LIMIT", "AUTH", "NETWORK", "CONFIGURATION", "PROVIDER_UNAVAILABLE"}:
+                            if not stopped:
+                                stopped, stop_reason, stop_info = True, error.code, classified
+                            # Already in-flight files may finish; no subsequent
+                            # page or seal call starts after observing this flag.
+                            stop_event.set()
+                with result_lock:
+                    done += 1
+                    if progress:
+                        progress("识别文字" if action == "GeneralAccurateOCR" else "识别印章", done, total)
+
+    file_tasks = [(file_id, [(page, action) for page, action in tasks if page['file_id'] == file_id]) for file_id in files]
+    with ThreadPoolExecutor(max_workers=min(OCR_FILES_PER_USER, max(len(file_tasks), 1)), thread_name_prefix='ocr-file') as executor:
+        futures = [executor.submit(process_file, file_id, planned) for file_id, planned in file_tasks if planned]
+        for future in futures:
+            future.result()
     with db.write() as conn:
         text_pages, cloud_text_pages, seal_pages = set(), set(), set()
         for run in ocr_runs:
@@ -1629,7 +1824,8 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             run = one(conn, "recognition_runs", run_id)
             page = one(conn, "file_pages", run["page_id"])
             add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index)
-        activities = [{"id": a["id"], "name": a["canonical_name"], "aliases": [v["alias"] for v in rows(conn, "activity_aliases", activity_id=a["id"]) if v["status"] == "ACTIVE"]} for a in rows(conn, "activities", status="ACTIVE")][:300]
+        activities = retrieve_activity_candidates(conn, texts, context['category']['id'], context['year']['id'],
+            limit=30, current_activity_id=revision.get('activity_id')) if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'} else []
     from .outcome_evidence import linked_outcome
     with db.read() as conn:
         outcome = linked_outcome(conn, pages, context["student"], context["user"], context["class"]["name"], automatic=True)
@@ -1652,7 +1848,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         diagnostics.update(title_characters=len(title), title_status="INVALID_TYPE" if not isinstance(raw_title, str) else ("EMPTY" if not title else ("SPECIFIC" if specific_activity_title(title) else "GENERIC")))
         metadata["provider_diagnostics"] = diagnostics
         with db.read() as conn:
-            suggestion, resolution = _resolve_activity_title(conn, revision, texts, context["student"], context["user"], suggestion)
+            suggestion, resolution = _resolve_activity_title(conn, revision, texts, context["student"], context["user"], suggestion, activities)
         metadata["title_resolution"] = resolution
         title_needs_review = resolution["status"] == "GROUNDED_REVIEW"
         suggestion, score_policy, policy_warnings = normalize_policy_suggestion(context["category"]["code"], texts, revision, suggestion, linked_outcome=outcome, student_name=context["user"]["display_name"])
@@ -1679,10 +1875,17 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], [activity["name"] for activity in activities] + [title])
         valid_activity_ids = {activity["id"] for activity in activities}
         activity_id = suggestion.get("activity_id")
-        if activity_id not in valid_activity_ids:
+        if not isinstance(activity_id, str) or activity_id not in valid_activity_ids:
             activity_id = None
+        match_source = 'MODEL' if activity_id else None
+        exact = [activity for activity in activities if activity.get('exact_match')]
+        if len(exact) == 1 and activity_id != exact[0]['id']:
+            activity_id, match_source = exact[0]['id'], 'TEXT_EXACT'
+        metadata['activity_match'] = {'source': match_source, 'activity_id': activity_id, 'candidate_count': len(activities)}
         payload = suggestion.get("payload_json") if isinstance(suggestion.get("payload_json"), dict) else {}
-        payload = {key: str(payload.get(key, ""))[:500] for key in dict.fromkeys(("edition_key", "track_key", "group_key", "work_key", "award_level", "subtype", *FACT_KEYS))}
+        payload = {key: str(payload.get(key, ""))[:500] for key in dict.fromkeys(("award_level", "subtype", *FACT_KEYS))}
+        if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'}:
+            payload['result_label'] = result_label(score_policy.get('facts'), explicit=False, category_code=context['category']['code'])
         suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": title_needs_review, "score_requires_confirmation": score_needs_review, "score_resolution": resolution_score, "suggested_crops": evidence}
     except (ProviderError, InvalidOperation, ValueError, TypeError, HTTPException) as error:
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
@@ -1703,6 +1906,10 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
 def apply_analysis(application_id: str, body: dict, user: dict = Depends(current_user)):
     from .workflow import application_detail
     with db.write() as conn:
+        if body.get('_background_job_id'):
+            background = one(conn, 'background_jobs', body['_background_job_id'])
+            if not background or background['application_id'] != application_id or background['owner_id'] != user['id'] or background['state'] != 'RUNNING' or background.get('worker_token') != body.get('_worker_token'):
+                raise HTTPException(409, '后台任务已变更，不再应用旧任务结果')
         context, revision = _editable(conn, application_id, user)
         if not isinstance(body.get("analysis_id"), str) or not body["analysis_id"]:
             raise HTTPException(400, "请选择分析记录。")
@@ -1712,7 +1919,10 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
         if analysis["input_revision_id"] != revision["id"] or analysis["input_fingerprint"] != revision_fingerprint(conn, revision):
             raise HTTPException(409, "分析后内容或附件已变更，请重新分析；已有填写不会被覆盖。")
         suggestion = (analysis.get("result_json") or {}).get("suggestion", {})
-        payload = {**(revision.get("payload_json") or {}), **suggestion.get("payload_json", {})}
+        incoming = dict(suggestion.get('payload_json') or {})
+        if not incoming.get('result_label') and (revision.get('payload_json') or {}).get('result_label'):
+            incoming.pop('result_label', None)
+        payload = {**(revision.get("payload_json") or {}), **incoming}
         scoring = policy_score_resolution((analysis.get('result_json') or {}).get('score_policy'), revision['requested_score'], suggestion.get('requested_score'))
         pending_score = scoring['status'] == 'NEEDS_REVIEW'
         amount = money(revision['requested_score'] if pending_score else suggestion['requested_score'])
@@ -1722,7 +1932,11 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
             payload.pop('_score_confirmation', None)
         payload["ai_match_uncertain"] = suggestion.get("match_uncertain", False)
         payload["ai_explanation"] = suggestion.get("explanation", "")
-        revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=amount, activity_id=suggestion.get("activity_id"), payload_json=payload, ai_analysis_id=analysis["id"])
+        activity_id = suggestion.get('activity_id') if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'} else revision.get('activity_id')
+        selected_activity = one(conn, 'activities', activity_id) if isinstance(activity_id, str) and activity_id else None
+        if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'} and (not selected_activity or selected_activity['status'] != 'ACTIVE'):
+            activity_id = None
+        revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=amount, activity_id=activity_id, payload_json=payload, ai_analysis_id=analysis["id"])
         _apply_evidence(conn, revision, suggestion.get("suggested_crops", []))
         _touch(conn, context["application"])
         return application_detail(conn, one(conn, "applications", application_id), user)
@@ -1761,7 +1975,7 @@ def export_workbook(scores: dict) -> bytes:
         category_cols = [6, 7, 8, 10, 11, 12, 13]
         max_lines = 1
         for category, col in zip(categories, category_cols):
-            lines = [f"{i + 1}、{item.get('title', '')}（{money(item.get('score', item.get('requested_score', 0)))}分）" + ("〔同项目/兼任职务取最高，本项不重复计入〕" if item.get("counted") is False else "") for i, item in enumerate(category.get("items", []))]
+            lines = [f"{i + 1}、{item.get('title', '')}（{money(item.get('score', item.get('requested_score', 0)))}分）" + ("〔兼任职务取最高，本项不重复计入〕" if item.get("counted") is False else "") for i, item in enumerate(category.get("items", []))]
             lines.append(f"合计：{money(category['score'])}分")
             max_lines = max(max_lines, len(lines))
             sheet.cell(row_no, col, excel_text("\n".join(lines)))

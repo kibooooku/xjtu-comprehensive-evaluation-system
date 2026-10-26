@@ -87,11 +87,13 @@ def create_app(database_url=None, storage_dir=None, seed_demo=True, start_worker
         return {'status': 'ok', 'version': '2.0.0'}
 
     from .organization import router as organization_router
+    from .activity_matching import router as activity_matching_router
     from .workflow import router as workflow_router
     from .materials import router as materials_router
     from .submissions import router as submissions_router
     from .jobs import router as jobs_router
     application.include_router(organization_router)
+    application.include_router(activity_matching_router)
     application.include_router(workflow_router)
     application.include_router(materials_router)
     application.include_router(submissions_router)

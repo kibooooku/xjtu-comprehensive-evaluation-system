@@ -62,7 +62,11 @@ def initialize_v2():
     with db.read() as conn:
         is_initial = not db.one(conn, 'system_settings', 'schema_version')
         has_original_data = bool(db.rows(conn, 'applications'))
-    if is_initial and has_original_data:
+        competition_sum_upgrade = any(category['code'].upper() in {'RESEARCH', 'ARTS'} and category['aggregation_kind'] != 'SUM'
+                                      for category in db.rows(conn, 'score_categories'))
+        qualification_routing_upgrade = any(bool(category['requires_eligibility_review']) != (category['code'].upper() in {'RESEARCH', 'ARTS', 'POST'})
+                                            for category in db.rows(conn, 'score_categories'))
+    if has_original_data and (is_initial or competition_sum_upgrade or qualification_routing_upgrade):
         _backup_existing()
     with db.write() as conn:
         year = active_year(conn)
@@ -70,5 +74,11 @@ def initialize_v2():
             db.add(conn, 'system_settings', id='active_academic_year', value_json={'year_id': year['id']})
         for application in db.rows(conn, 'applications'):
             ensure_group(conn, application, confirmed=True)
+        for category in db.rows(conn, 'score_categories'):
+            if category['code'].upper() in {'RESEARCH', 'ARTS'} and category['aggregation_kind'] != 'SUM':
+                db.change(conn, 'score_categories', category['id'], aggregation_kind='SUM')
+            requires_qualification = category['code'].upper() in {'RESEARCH', 'ARTS', 'POST'}
+            if bool(category['requires_eligibility_review']) != requires_qualification:
+                db.change(conn, 'score_categories', category['id'], requires_eligibility_review=requires_qualification)
         if is_initial:
             db.add(conn, 'system_settings', id='schema_version', value_json={'version': 2, 'migration': 'category-groups-preserve-rounds'})

@@ -6,7 +6,6 @@ award replacement with submissions (see db.write).
 """
 from __future__ import annotations
 
-import hashlib
 import json
 import re
 from decimal import Decimal, InvalidOperation
@@ -19,11 +18,12 @@ from . import db
 from .migrations import active_year, assert_current_year, ensure_group
 from .security import active_grants, allowed, class_context, current_user, require, student_enrollment
 from .score_resolution import current as resolve_current_score
+from .result_labels import result_label
+from .activity_eligibility import simplified_eligibility
 
 router = APIRouter(prefix="/api", tags=["applications and evaluation"])
 PENDING = {"PENDING_PEER", "PENDING_COUNSELOR"}
 LIVE = PENDING | {"APPROVED"}
-COMPETITION_CODES = {"RESEARCH", "ARTS", "ART", "SPORT", "SPORTS", "REWARD"}
 SCOPE_FIELDS = ("edition_key", "track_key", "group_key", "academic_year_id")
 
 
@@ -162,6 +162,7 @@ def _summary(conn, application, context=None):
         "year_id": context["year"]["id"], "year_name": context["year"]["name"],
         "student_modified_score": revision["student_modified_score"],
         "score_resolution": _score_resolution(conn, revision),
+        "result_label": result_label(revision.get('payload_json'), category_code=context['category']['code']),
         "round_id": current["id"] if current else None, "revision_id": revision["id"],
         "lock_version": application["lock_version"], "created_at": application["created_at"],
         "updated_at": current["submitted_at"] if current else revision["created_at"],
@@ -184,7 +185,7 @@ def application_detail(conn, application, user, revision_id=None, include_delete
     result = _summary(conn, application, context)
     result.update(title=revision["title"], requested_score=str(db.money(revision["requested_score"])),
                   revision_id=revision["id"], student_modified_score=revision["student_modified_score"],
-                  score_resolution=_score_resolution(conn, revision))
+                  score_resolution=_score_resolution(conn, revision), result_label=result_label(revision.get('payload_json'), category_code=context['category']['code']))
     files = []
     for attachment in sorted(db.rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: r["sort_order"]):
         file = db.one(conn, "file_objects", attachment["file_id"])
@@ -338,7 +339,11 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
             facts = payload["payload_json"]
             if not isinstance(facts, dict) or len(json.dumps(facts, ensure_ascii=False)) > 12000:
                 raise HTTPException(400, "活动信息格式不正确或过长")
-            facts = {**{key: value for key, value in facts.items() if key not in ('_score_confirmation', '_score_resolution_stale', 'policy_revalidation')}, **protected_flags}
+            if 'result_label' in facts and (not isinstance(facts['result_label'], str) or len(facts['result_label']) > 200):
+                raise HTTPException(400, '获奖/评定等级不能超过200字')
+            facts = {**original_facts, **{key: value for key, value in facts.items() if key not in ('_score_confirmation', '_score_resolution_stale', 'policy_revalidation')}, **protected_flags}
+            if len(json.dumps(facts, ensure_ascii=False)) > 12000:
+                raise HTTPException(400, '活动信息过长')
             from .policy_suggestions import FACT_KEYS
             def comparable_fact(key, value):
                 normalized = '' if value is None else str(value).strip()
@@ -407,23 +412,9 @@ def activity_eligibility(conn, activity_id, category_id, year_id, facts):
     activity = db.one(conn, "activities", activity_id)
     if not activity or activity["status"] != "ACTIVE":
         return {"decision": "UNKNOWN", "version_id": None}
-    candidates = []
-    actual = {**(facts or {}), "academic_year_id": year_id}
-    for version in _latest_eligibilities(conn, activity_id):
-        if version["category_id"] != category_id:
-            continue
-        restrictions = {key: version.get(key) for key in SCOPE_FIELDS if version.get(key)}
-        if all(_norm(actual.get(key)) == _norm(value) for key, value in restrictions.items()):
-            candidates.append((len(restrictions), version))
-    if not candidates:
-        return {"decision": "UNKNOWN", "version_id": None}
-    specificity = max(c[0] for c in candidates)
-    matched = [v for score, v in candidates if score == specificity]
-    if len({v["decision"] for v in matched}) > 1:
-        return {"decision": "UNKNOWN", "version_id": None, "conflict": True,
-                "message": "同等范围资格冲突，需辅导员人工认定"}
-    chosen = max(matched, key=lambda v: (v["effective_at"], v["version_no"]))
-    return {"decision": chosen["decision"], "version_id": chosen["id"], "reason": chosen.get("reason")}
+    # Legacy facts remain in immutable snapshots, but their now-hidden scope
+    # inputs cannot change the qualification selected by the current form.
+    return simplified_eligibility(_latest_eligibilities(conn, activity_id), category_id, year_id)
 
 
 def _set_eligibility(conn, user, activity, payload, review_id=None):
@@ -443,102 +434,6 @@ def _set_eligibility(conn, user, activity, payload, review_id=None):
                   scope_key=scope_key, **scopes, version_no=max((v["version_no"] for v in existing), default=0) + 1,
                   decision=decision, effective_at=db.now(), decided_by=user["id"],
                   source_review_decision_id=review_id, reason=_text(payload.get("reason"), 2000))
-
-
-def _competition(conn, context, revision, user, related_id=None):
-    """Return (identity key, priority). Category/owner/year form the boundary."""
-    category = context["category"]
-    facts = revision["payload_json"] or {}
-    if category["code"].upper() not in COMPETITION_CODES and not category["requires_eligibility_review"]:
-        return None, None
-    if not revision.get("activity_id") and not facts.get("competition_name") and not facts.get("edition_key") and not related_id:
-        return None, None
-    edition = _norm(facts.get("edition_key"))
-    track = _norm(facts.get("track_key"))
-    group = _norm(facts.get("group_key"))
-    work = _norm(facts.get("work_key"))
-    activity = revision.get("activity_id") or _norm(facts.get("competition_name") or revision["title"])
-    if related_id:
-        old_context = app_context(conn, related_id)
-        if old_context["user"]["id"] != user["id"] or old_context["year"]["id"] != context["year"]["id"] or old_context["category"]["id"] != category["id"]:
-            raise HTTPException(400, "关联的旧申请必须属于本人、同一学年及同一类别")
-        old_round = _round(conn, old_context["application"])
-        if not old_round or not old_round.get("competition_group_key"):
-            raise HTTPException(400, "旧申请尚未形成可关联的竞赛项目")
-        key = old_round["competition_group_key"]
-        old_revision = db.one(conn, "application_revisions", old_round["revision_id"])
-        project_id = old_revision.get("competition_project_id")
-    else:
-        # Insufficient identity is not guessed from similar titles. Require a
-        # concrete edition and track/group/work, or explicit old-item confirmation.
-        related = []
-        for old in db.rows(conn, "applications", enrollment_id=context["enrollment"]["id"], category_id=category["id"]):
-            if old["id"] == context["application"]["id"]:
-                continue
-            old_round = _round(conn, old)
-            if not old_round or old_round["state"] not in LIVE:
-                continue
-            old_revision = db.one(conn, "application_revisions", old_round["revision_id"])
-            old_facts = old_revision["payload_json"] or {}
-            same_activity = old_revision.get("activity_id") == revision.get("activity_id") and revision.get("activity_id")
-            same_free_name = _norm(old_facts.get("competition_name")) == _norm(facts.get("competition_name")) and facts.get("competition_name")
-            if not (same_activity or same_free_name):
-                continue
-            # Known distinct values establish distinct projects. Missing identity
-            # on either claim is ambiguous even if the newer claim is complete.
-            pairs = [(facts.get(k), old_facts.get(k)) for k in ("edition_key", "track_key", "group_key", "work_key")]
-            known_difference = any(a and b and _norm(a) != _norm(b) for a, b in pairs)
-            old_complete = bool(old_facts.get("edition_key") and any(old_facts.get(k) for k in ("track_key", "group_key", "work_key")))
-            if not known_difference and (not edition or not (track or group or work) or not old_complete):
-                related.append({"id": old["id"], "title": old_revision["title"]})
-        if related:
-            raise HTTPException(409, {"message": "比赛项目信息不足，请补充届次及赛道／组别／作品，或确认关联的旧申请", "related_applications": related})
-        if not edition or not (track or group or work):
-            # First submission may still proceed, but uses an explicit unknown
-            # identity so later same-activity incomplete claims require confirmation.
-            edition = edition or "未注明届次"
-        identity = [user["id"], context["year"]["id"], category["id"], activity, edition, track, group, work]
-        key = hashlib.sha256(json.dumps(identity, ensure_ascii=False).encode()).hexdigest()
-        project_id = None
-        if revision.get("activity_id"):
-            fingerprint = hashlib.sha256(json.dumps(identity[3:], ensure_ascii=False).encode()).hexdigest()
-            project = next((p for p in db.rows(conn, "competition_projects") if p.get("identity_fingerprint") == fingerprint), None)
-            if not project:
-                project = db.add(conn, "competition_projects", activity_id=revision["activity_id"], edition_key=edition,
-                                 track_key=track, group_key=group, work_key=work, identity_fingerprint=fingerprint,
-                                 status="CONFIRMED", confirmed_by=user["id"], confirmed_at=db.now())
-            project_id = project["id"]
-    if project_id:
-        db.change(conn, "application_revisions", revision["id"], competition_project_id=project_id)
-        revision["competition_project_id"] = project_id
-    return key, (db.money(revision["requested_score"]), _award_rank(facts.get("award_level")))
-
-
-def _award_rank(value):
-    text = str(value or "").upper()
-    ranks = {"INTERNATIONAL": 5, "国际": 5, "NATIONAL": 4, "国家": 4, "国赛": 4,
-             "PROVINCIAL": 3, "省级": 3, "省赛": 3, "UNIVERSITY": 2, "SCHOOL": 2, "校级": 2,
-             "COLLEGE": 1, "院级": 1}
-    if text.isdigit():
-        return min(int(text), 100)
-    return next((rank for name, rank in ranks.items() if name in text), 0)
-
-
-def _restore(conn, failed_round):
-    """Restore only the transition caused by this supersession, never human work."""
-    for replacement in db.rows(conn, "award_supersessions", new_round_id=failed_round["id"], status="ACTIVE"):
-        old_round = db.one(conn, "submission_rounds", replacement["old_round_id"])
-        old_app = db.one(conn, "applications", old_round["application_id"])
-        if (not old_app.get("archived_at") and old_app["current_round_id"] == old_round["id"] and old_round["state"] == "REJECTED"
-                and old_round.get("last_event_id") == replacement["superseded_event_id"]):
-            event = _event(conn, old_app, "AWARD_RESTORED", round_=old_round, from_state="REJECTED",
-                           to_state=replacement["old_state"], detail={"supersession_id": replacement["id"], "failed_round_id": failed_round["id"]})
-            db.change(conn, "submission_rounds", old_round["id"], is_current_candidate=True)
-            db.change(conn, "award_supersessions", replacement["id"], status="RESTORED",
-                      restored_event_id=event["id"], resolved_at=db.now())
-            _bump(conn, old_app)
-        else:
-            db.change(conn, "award_supersessions", replacement["id"], status="SKIPPED", resolved_at=db.now())
 
 
 def _assert_class_ready(conn, context):
@@ -572,51 +467,31 @@ def submit_application(application_id: str, payload: dict = Body(default={}), us
         _assert_class_ready(conn, context)
         publication = db.one(conn, "class_publicity", class_year_id=context["class_year"]["id"])
         if publication and publication["is_open"]:
-            raise HTTPException(409, "本班本学年正在公示，允许保存草稿，暂停正式提交及奖项替代")
+            raise HTTPException(409, "本班本学年正在公示，允许保存草稿，暂停正式提交")
         revision = editable_revision(conn, application, user)
         if not revision["title"].strip():
             raise HTTPException(400, "请填写加分条目名称")
         _amount(revision["requested_score"])
-        if _score_resolution(conn, revision)['status'] in ('NEEDS_REVIEW', 'UNANALYZED'):
-            raise HTTPException(400, '分值尚未核定，请补充计分依据或手动确认当前分值后再提交；允许确认0分，无需理由。')
         if not db.rows(conn, "revision_files", revision_id=revision["id"]):
             raise HTTPException(400, "每条申请至少上传一个原文件")
-        eligibility = activity_eligibility(conn, revision.get("activity_id"), application["category_id"], context["year"]["id"], revision["payload_json"])
+        eligibility = (activity_eligibility(conn, revision.get("activity_id"), application["category_id"], context["year"]["id"], revision["payload_json"])
+                       if context['category']['requires_eligibility_review'] else {'decision': 'UNKNOWN', 'version_id': None})
         if eligibility["decision"] == "INVALID":
             raise HTTPException(400, "所选活动在当前适用范围被认定无加分资格，请核对活动匹配")
-        key, priority = _competition(conn, context, revision, user, payload.get("related_application_id"))
-        competitors = []
-        if key:
-            for old_round in db.rows(conn, "submission_rounds", competition_group_key=key):
-                old_app = db.one(conn, "applications", old_round["application_id"])
-                if old_app["id"] == application_id or old_app["current_round_id"] != old_round["id"] or old_round["state"] not in LIVE:
-                    continue
-                old_revision = db.one(conn, "application_revisions", old_round["revision_id"])
-                old_priority = (db.money(old_revision["requested_score"]), _award_rank((old_revision["payload_json"] or {}).get("award_level")))
-                if priority <= old_priority:
-                    raise HTTPException(409, "同一比赛项目已有更高或同等优先级申请，不能重复申报")
-                competitors.append((old_app, old_round, old_revision, old_priority))
-        db.change(conn, "application_revisions", revision["id"], content_frozen_at=db.now())
+        # Submission is the student's explicit confirmation of the current amount.
+        facts = dict(revision.get("payload_json") or {})
+        facts["_score_confirmation"] = {"confirmed": True, "value": str(db.money(revision["requested_score"])),
+                                        "confirmed_by": user["id"], "confirmed_at": db.now(), "via": "SUBMIT"}
+        db.change(conn, "application_revisions", revision["id"], payload_json=facts, content_frozen_at=db.now())
         previous = _round(conn, application)
         if previous:
             db.change(conn, "submission_rounds", previous["id"], is_current_candidate=False)
         round_ = db.add(conn, "submission_rounds", application_id=application_id, revision_id=revision["id"],
                         round_no=max((r["round_no"] for r in db.rows(conn, "submission_rounds", application_id=application_id)), default=0) + 1,
-                        state="PENDING_PEER", eligibility_version_id=eligibility["version_id"], competition_group_key=key,
+                        state="PENDING_PEER", eligibility_version_id=eligibility["version_id"], competition_group_key=None,
                         is_current_candidate=True, lock_version=0, submitted_at=db.now(), last_event_id=None)
         application.update(db.change(conn, "applications", application_id, current_round_id=round_["id"]))
         _event(conn, application, "SUBMITTED", user, round_=round_, to_state="PENDING_PEER")
-        for old_app, old_round, old_revision, old_priority in competitors:
-            old_state, old_version = old_round["state"], old_round["lock_version"]
-            event = _event(conn, old_app, "AWARD_SUPERSEDED", round_=old_round, from_state=old_state,
-                           to_state="REJECTED", detail={"new_round_id": round_["id"], "new_application_id": application_id})
-            db.change(conn, "submission_rounds", old_round["id"], is_current_candidate=False)
-            db.add(conn, "award_supersessions", new_round_id=round_["id"], old_round_id=old_round["id"],
-                   competition_group_key=key, old_state=old_state, old_lock_version=old_version,
-                   superseded_event_id=event["id"], restored_event_id=None, status="ACTIVE",
-                   comparison_snapshot_json={"old_score": str(old_priority[0]), "old_rank": old_priority[1],
-                                             "new_score": str(priority[0]), "new_rank": priority[1]}, created_at=db.now(), resolved_at=None)
-            _bump(conn, old_app)
         _bump(conn, application)
         return application_detail(conn, application, user)
 
@@ -636,7 +511,6 @@ def withdraw_application(application_id: str, payload: dict = Body(default={}), 
             raise HTTPException(409, "只有待审申请可以撤回")
         _event(conn, application, "WITHDRAWN", user, round_=round_, from_state=round_["state"], to_state="WITHDRAWN")
         db.change(conn, "submission_rounds", round_["id"], is_current_candidate=False)
-        _restore(conn, round_)
         _bump(conn, application)
         return application_detail(conn, application, user)
 
@@ -673,14 +547,6 @@ def review_application(application_id: str, payload: dict = Body(...), user=Depe
                 raise HTTPException(409, "已通过申请只允许辅导员驳回")
             require(conn, user, "review.revoke" if previous_state == "APPROVED" else "review.counselor", class_id=context["class"]["id"])
             stage, role_code = ("REVOCATION" if previous_state == "APPROVED" else "COUNSELOR"), "COUNSELOR"
-        elif previous_state == "REJECTED" and user["base_identity"] == "COUNSELOR" and action == "REJECT":
-            # An independent human rejection of a superseded round is meaningful:
-            # it prevents a later failed replacement restoring invalid material.
-            active = db.rows(conn, "award_supersessions", old_round_id=round_["id"], status="ACTIVE")
-            if not active:
-                raise HTTPException(409, "该申请本轮已审核结束")
-            require(conn, user, "review.revoke", class_id=context["class"]["id"])
-            stage, role_code = "REVOCATION", "COUNSELOR"
         else:
             raise HTTPException(409, "该申请本轮已审核结束或不在可审核阶段")
         reason = _text(payload.get("reason"), 100)
@@ -714,7 +580,9 @@ def review_application(application_id: str, payload: dict = Body(...), user=Depe
                                       status="ACTIVE", maintained_by=user["id"], description="审核时认定", organizer="")
                 # Submitted revision remains immutable: this link belongs in the
                 # review/event and eligibility snapshot, not patched into content.
-            scope_payload = {**(revision["payload_json"] or {}), "academic_year_id": context["year"]["id"],
+            # New recognition follows the visible activity/category/year fields.
+            # Historical scope facts remain frozen in the submitted revision.
+            scope_payload = {"academic_year_id": context["year"]["id"],
                              "category_id": application["category_id"], "decision": qualification,
                              "reason": payload.get("comment") or reason}
             eligibility_version = _set_eligibility(conn, user, activity, scope_payload, decision["id"])
@@ -722,7 +590,8 @@ def review_application(application_id: str, payload: dict = Body(...), user=Depe
         if action == "REJECT":
             target = "REJECTED"
         elif stage == "PEER":
-            eligibility = activity_eligibility(conn, revision.get("activity_id"), application["category_id"], context["year"]["id"], revision["payload_json"])
+            eligibility = (activity_eligibility(conn, revision.get("activity_id"), application["category_id"], context["year"]["id"], revision["payload_json"])
+                           if context['category']['requires_eligibility_review'] else {'decision': 'UNKNOWN', 'version_id': None})
             if eligibility["decision"] == "INVALID":
                 raise HTTPException(409, "活动现已被认定无加分资格，请驳回或交由辅导员复核")
             target = "PENDING_COUNSELOR" if context["category"]["requires_eligibility_review"] and eligibility["decision"] != "VALID" else "APPROVED"
@@ -733,7 +602,6 @@ def review_application(application_id: str, payload: dict = Body(...), user=Depe
                                       "reason": reason, "activity_decision": qualification or None})
         if target == "REJECTED":
             db.change(conn, "submission_rounds", round_["id"], is_current_candidate=False)
-            _restore(conn, round_)
         _bump(conn, application)
         return application_detail(conn, application, user)
 
@@ -896,23 +764,14 @@ def class_scores(conn, class_id, year_id, public=False):
             grouped[application["category_id"]].append({"id": application["id"], "title": _safe_public_text(revision["title"], student_numbers) if public else revision["title"],
                                                         "score": str(db.money(revision["requested_score"])), "requested_score": str(db.money(revision["requested_score"])),
                                                         "reviewer_name": peer_name, "student_modified_score": revision["student_modified_score"],
-                                                        "crops": crops, "counted": True,
-                                                        "_group": current.get("competition_group_key"), "_facts": revision["payload_json"] or {}})
+                                                        "crops": crops, "counted": True, "_facts": revision["payload_json"] or {}})
         category_results = []
         total = baseline
         for category in categories:
             items = grouped[category["id"]]
-            groups = {}
-            for item in items:
-                group = item["_group"] or item["id"]
-                if group not in groups or db.money(item["score"]) > db.money(groups[group]["score"]):
-                    if group in groups:
-                        groups[group]["counted"] = False
-                    groups[group] = item
-                else:
-                    item["counted"] = False
-            chosen = list(groups.values())
-            is_post = category["code"].upper() in {"POST", "POSITION", "ORGANIZATION"} or category["aggregation_kind"].upper() in {"MAX", "HIGHEST", "MAXIMUM"}
+            chosen = list(items)
+            code = category['code'].upper()
+            is_post = code in {"POST", "POSITION", "ORGANIZATION"} or (code not in {'RESEARCH', 'ARTS'} and category["aggregation_kind"].upper() in {"MAX", "HIGHEST", "MAXIMUM"})
             if is_post and chosen:
                 highest = max(chosen, key=lambda i: db.money(i["score"]))
                 for item in chosen:
@@ -933,7 +792,6 @@ def class_scores(conn, class_id, year_id, public=False):
             score = min(db.money(raw), cap)
             total += score
             for item in items:
-                item.pop("_group", None)
                 item.pop("_facts", None)
             category_results.append({"id": category["id"], "code": category["code"], "name": category["name"],
                                      "raw": str(db.money(raw)), "score": str(db.money(score)), "cap": str(cap), "items": items})

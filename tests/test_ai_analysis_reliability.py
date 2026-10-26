@@ -213,7 +213,8 @@ def test_empty_model_title_gets_correlated_specific_name_but_never_model_score(m
     suggestion = result["suggestion"]
     assert suggestion["title"] == "星荧夜跑" and suggestion["title_source"] == "FILENAME_AND_TEXT"
     assert suggestion["title_requires_confirmation"] and suggestion["score_requires_confirmation"] and suggestion["match_uncertain"]
-    assert suggestion["requested_score"] == "0.90" and suggestion["payload_json"]["edition_key"] == "current-draft"
+    assert suggestion["requested_score"] == "0.90"
+    assert "edition_key" not in suggestion["payload_json"]
     assert suggestion["activity_id"] is None
     assert result["provider_diagnostics"]["title_status"] == "EMPTY"
     with db.read() as conn:

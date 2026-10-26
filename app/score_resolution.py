@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+import re
 
 
 def _valid_amount(value):
@@ -38,9 +39,10 @@ def from_policy(policy, retained_value, proposed_value=None):
         missing = [{'code': 'SCORING_BASIS', 'label': '可对应本人的完整计分依据'}]
     message = policy.get('message')
     if policy.get('status') == 'RULE_APPLIED' and proposed is None:
-        message = '未取得有效的自动计分结果，请重新分析或手动填写并确认分值。'
+        message = '未取得有效的自动分值，请直接填写分值。'
     if not message:
-        message = '已按材料事实和计分规则生成分值，请核对。' if applied else ('分值待核定：请核对' + '、'.join(item['label'] for item in missing) + '；也可手动填写并确认分值，无需理由。')
+        message = '已生成建议分值。' if applied else '自动计分依据不足，可直接填写分值。'
+    message = re.sub(r'[，,]?\s*无需(?:填写)?理由[。.]?', '', str(message)).strip()
     return {'status': 'RULE_APPLIED' if applied else 'NEEDS_REVIEW',
             'value': proposed if applied else None,
             'retained_value': _amount(retained_value), 'missing_facts': missing,
@@ -56,12 +58,12 @@ def current(revision, analysis=None, *, material_changed=False):
     frozen = bool(revision.get('content_frozen_at'))
     if frozen or revision.get('student_modified_score') or explicitly_confirmed:
         return {'status': 'MANUAL', 'value': value, 'retained_value': value, 'missing_facts': [],
-                'message': '已提交或审核的分值。' if frozen else '学生已手动填写或确认分值，无需填写理由。',
+                'message': '已提交或审核的分值。' if frozen else '',
                 'rule': '', 'source': 'FROZEN' if frozen else 'STUDENT'}
     if material_changed or payload.get('_score_resolution_stale'):
         return {'status': 'NEEDS_REVIEW', 'value': None, 'retained_value': value,
                 'missing_facts': [{'code': 'UPDATED_BASIS', 'label': '材料或计分依据更新后的分值'}],
-                'message': '材料或计分依据已更新，请重新分析，或手动填写并确认分值。', 'rule': '', 'source': 'STALE'}
+                'message': '材料已更新，可重新分析或直接填写分值。', 'rule': '', 'source': 'STALE'}
     corrected = payload.get('policy_revalidation') or {}
     if corrected.get('status') == 'RULE_APPLIED':
         return from_policy(corrected, value, value)
@@ -70,7 +72,7 @@ def current(revision, analysis=None, *, material_changed=False):
             return {'status': 'MANUAL', 'value': value, 'retained_value': value, 'missing_facts': [],
                     'message': '当前已填写分值，请核对。', 'rule': '', 'source': 'EXISTING_DRAFT'}
         return {'status': 'UNANALYZED', 'value': None, 'retained_value': value, 'missing_facts': [],
-                'message': '尚未生成分值，可分析材料或手动填写并确认。', 'rule': '', 'source': 'DRAFT'}
+                'message': '可分析材料或直接填写分值。', 'rule': '', 'source': 'DRAFT'}
     result = analysis.get('result_json') or {}
     suggestion = result.get('suggestion') or {}
     policy = result.get('score_policy') or {}
@@ -78,5 +80,5 @@ def current(revision, analysis=None, *, material_changed=False):
     if resolution['status'] == 'RULE_APPLIED' and resolution['value'] != value:
         return {'status': 'NEEDS_REVIEW', 'value': None, 'retained_value': value,
                 'missing_facts': [{'code': 'CURRENT_AMOUNT', 'label': '当前填写分值与识别建议的对应关系'}],
-                'message': '当前分值与识别建议不同，请核对后手动确认当前分值。', 'rule': policy.get('rule') or '', 'source': 'DRAFT'}
+                'message': '当前填写与识别建议不同，可直接保存或提交。', 'rule': policy.get('rule') or '', 'source': 'DRAFT'}
     return resolution

@@ -108,7 +108,9 @@ def test_each_category_without_personal_participation_keeps_pending_not_calculat
         assert value['retained_value'] == '0.00' and value['missing_facts']
     assert_views(client, claim, status='NEEDS_REVIEW', value=None, retained='0.00')
     submit = client.post(f"/api/applications/{claim['id']}/submit", json={})
-    assert submit.status_code == 400 and '分值尚未核定' in submit.json()['detail']
+    assert submit.status_code == 200
+    assert submit.json()['score_resolution']['status'] == 'MANUAL'
+    assert submit.json()['score_resolution']['value'] == '0.00'
 
 
 @pytest.mark.parametrize('category,title,body,expected', [

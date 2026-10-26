@@ -516,4 +516,4 @@ def normalize_policy_suggestion(category_code, texts, revision, suggestion, link
     missing = _missing_facts(issues, facts)
     return result, {"status": "NEEDS_REVIEW", "version": POLICY_VERSION, "rule": rule, "facts": facts, "requires_confirmation": True,
                     'value': None, 'retained_value': result['requested_score'], 'missing_facts': missing, 'reason_codes': [item['code'] for item in missing],
-                    'message': '分值待核定：请核对' + '、'.join(item['label'] for item in missing) + '；也可手动填写并确认，无需理由。'}, issues
+                    'message': '自动计分依据不足，可直接填写分值。'}, issues

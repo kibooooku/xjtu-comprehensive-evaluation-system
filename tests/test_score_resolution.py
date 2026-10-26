@@ -18,7 +18,8 @@ def test_unresolved_score_never_reports_a_zero_as_calculated():
     result = from_policy({'status': 'NEEDS_REVIEW', 'requires_confirmation': True,
                           'missing_facts': [{'code': 'AWARD_LEVEL', 'label': '赛事级别'}]}, '0', '0')
     assert result['status'] == 'NEEDS_REVIEW' and result['value'] is None
-    assert result['retained_value'] == '0.00' and '赛事级别' in result['message']
+    assert result['retained_value'] == '0.00'
+    assert result['missing_facts'] == [{'code': 'AWARD_LEVEL', 'label': '赛事级别'}]
 
 
 @pytest.mark.parametrize('invalid', [None, 'NaN', 'Infinity', '-1', 'not-a-number'])
@@ -73,8 +74,6 @@ def test_note_save_does_not_confirm_pending_zero_but_explicit_zero_confirmation_
     assert detail['score_resolution']['status'] == 'NEEDS_REVIEW'
     note = client.put('/api/applications/' + claim['id'], json={'payload_json': {'note': '学生补充说明'}})
     assert note.status_code == 200 and note.json()['score_resolution']['status'] == 'NEEDS_REVIEW'
-    denied = client.post('/api/applications/' + claim['id'] + '/submit', json={})
-    assert denied.status_code == 400 and '分值尚未核定' in denied.json()['detail']
     confirmed = client.put('/api/applications/' + claim['id'], json={'requested_score': '0', 'score_confirmed': True})
     assert confirmed.status_code == 200
     assert confirmed.json()['score_resolution']['status'] == 'MANUAL' and confirmed.json()['score_resolution']['value'] == '0.00'
@@ -95,14 +94,16 @@ def test_client_cannot_implicitly_mark_pending_zero_confirmed_inside_generic_pay
     assert '_score_confirmation' not in response.json()['revision']['payload_json']
 
 
-def test_unanalyzed_default_zero_cannot_be_submitted_as_an_intentional_zero(material_app):
+def test_direct_submission_itself_confirms_the_students_current_zero(material_app):
     _, login = material_app
     client = login('student')
     claim, _, _ = create_claim(client)
     assert client.put('/api/applications/' + claim['id'], json={'title': '虚构活动'}).status_code == 200
     upload(client, claim['id'])
-    rejected = client.post('/api/applications/' + claim['id'] + '/submit', json={})
-    assert rejected.status_code == 400 and '分值尚未核定' in rejected.json()['detail']
+    submitted = client.post('/api/applications/' + claim['id'] + '/submit', json={})
+    assert submitted.status_code == 200
+    assert submitted.json()['requested_score'] == submitted.json()['score_resolution']['value'] == '0.00'
+    assert submitted.json()['revision']['payload_json']['_score_confirmation']['via'] == 'SUBMIT'
 
 
 def test_stale_form_cannot_overwrite_a_newer_confirmed_score(material_app):

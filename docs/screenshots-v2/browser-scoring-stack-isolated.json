@@ -1,10 +1,12 @@
 {
   "mode": "ISOLATED_STACK",
-  "source": "真实HTTP、独立SQLite、原生后台worker和浏览器；全部材料/账号为演示，OCR与模型为受控离线替身，不接触生产8000或真实数据",
+  "source": "真实HTTP、独立SQLite、原生后台worker自动OCR→AI和浏览器；受控离线provider闸门仅观察真实并发，不模拟调度，不接触生产8000或真实数据",
   "checks": [
     "仅连接独立8767端口，正常HTTP登录；配置不读真实私钥，出网硬阻断",
-    "8份虚构PNG经真实上传整理和后台上传，七类及缺本人案例进入真实OCR任务队列",
-    "真实后台队列在切换站内页面后继续完成OCR和AI，固定错误模型99由政策层替换或标待核定",
+    "9份虚构PNG经真实上传整理和后台上传，七类及两个缺本人案例进入真实OCR任务队列",
+    "确认上传即自动排OCR，真实后台最多同时处理3文件，其余排队，整个流程未请求手动分析",
+    "OCR完成后自动衔接AI，3个AI小项并发满额时其余排队，独立OCR池继续完成所有文件",
+    "无需手动分析，切换站内页面后真实后台仍每项仅自动完成一次OCR→AI，固定错误模型99由政策层替换或标待核定",
     "COLLECTIVE真实API和对照表格均为0.60分，模型99未透传",
     "IDEOLOGY真实API和对照表格均为1.00分，模型99未透传",
     "SERVICE真实API和对照表格均为0.50分，模型99未透传",
@@ -13,10 +15,12 @@
     "POST真实API和对照表格均为1.50分，模型99未透传",
     "REWARD真实API和对照表格均为2.00分，模型99未透传",
     "无本人材料在真实API及页面均标待核定、给具体原因，保留0不冒充已计分",
-    "后端拒绝提交未核定0分，页面提示和API保护一致",
-    "浏览器明确确认人工0分后，真实保存与刷新持续显示已核定0，无需理由",
-    "人工确认0分可正常提交到真实隔离审核流程，冻结后仍为0",
-    "真实submissions与详情、表格分值一致，8次受控模型/文字/印章调用，实际云调用0"
+    "无本人材料在真实API及页面均标待核定、给具体原因，保留0不冒充已计分",
+    "全部七类只展示核心输入，只有科研、文体和任职可填等级与搜索活动；三类真实AI均匹配到有效库",
+    "真实活动搜索返回有效和无效认定，选择状态清楚显示，改回有效匹配后直接保存",
+    "普通保存即核定当前0分，真实HTTP和刷新持续保留，无需额外确认动作",
+    "未核定默认0可直接点击提交，单次POST带版本且冻结0分，没有先保存、确认弹窗或浏览器确认",
+    "真实submissions与详情、表格分值一致，9次受控模型/文字/印章调用，3/3并发上限全程保持，实际云调用0"
   ],
   "errors": [],
   "applications": [
@@ -26,8 +30,8 @@
       "title": "虚构青禾春季集体活动",
       "body": "参加本次集体活动2次。",
       "score": "0.60",
-      "applicationId": "d48268a1-66d1-490f-a335-277cca003b00",
-      "groupId": "ab524439-0051-4e34-9c3d-e26e11e7ad73",
+      "applicationId": "790ade8d-789b-49b7-afcf-befe98acaf3f",
+      "groupId": "0a46085c-322e-48f6-a415-6aab0f193820",
       "actualScore": "0.60",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -45,8 +49,8 @@
       "title": "虚构青年党团理论研修班",
       "body": "参加党团理论学习培训1次并完成结业。",
       "score": "1.00",
-      "applicationId": "2ffe9efe-9782-445c-a352-fc65a36d06c1",
-      "groupId": "db4831eb-a965-4b62-9dd2-3c28f6c10297",
+      "applicationId": "cb773865-7951-4a1e-953c-58913ff6a9fe",
+      "groupId": "dd499922-a38b-4d91-9284-abab5182539d",
       "actualScore": "1.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -64,8 +68,8 @@
       "title": "虚构青禾社区志愿服务",
       "body": "参加志愿服务，服务工时16小时。",
       "score": "0.50",
-      "applicationId": "4bfa0b3f-9c63-4c21-978e-0c347907a8b7",
-      "groupId": "d3cbd109-1bd5-4e3f-80e6-ce486c889ff2",
+      "applicationId": "77ed26b8-0e79-42da-97dc-61464755380b",
+      "groupId": "734170c9-8baa-4612-b4b3-b82f61d7046a",
       "actualScore": "0.50",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -83,8 +87,9 @@
       "title": "虚构大学生工程设计竞赛",
       "body": "荣获省级竞赛二等奖。",
       "score": "6.00",
-      "applicationId": "858334b0-b7b4-4f2e-acf6-111ff7c47bbf",
-      "groupId": "6051ccbf-0a00-476d-b277-a2df5511671a",
+      "matched_activity_id": "aae61d57-7564-4b05-b828-74976fd531a7",
+      "applicationId": "c9e000bb-58b9-47b8-9aec-eabfeda6c3ed",
+      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
       "actualScore": "6.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -102,8 +107,10 @@
       "title": "虚构校园星光长跑文体竞赛",
       "body": "校级文体竞赛，设一、二、三等奖。本人获得三等奖。",
       "score": "1.00",
-      "applicationId": "2cd84160-d6af-4f9a-975b-82f25e4aeef0",
-      "groupId": "682450ea-8ddb-4b0f-b351-1f675e94f5d7",
+      "matched_activity_id": "09379e30-8509-4304-9c56-1f84bac4f1bf",
+      "invalid_activity_id": "173a2b39-b923-499b-99de-b34efd2c27b8",
+      "applicationId": "41b7ed2e-4c01-40a3-b791-d814886b3440",
+      "groupId": "3cb56868-eb8f-407d-bfee-835541d5f11f",
       "actualScore": "1.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -121,8 +128,9 @@
       "title": "虚构班级学生干部任职考评",
       "body": "担任班长，任期满一年，考评良好。",
       "score": "1.50",
-      "applicationId": "2daa3a9c-c73b-4425-8f14-b18b637d0dc1",
-      "groupId": "3ac4e858-ead6-450b-a028-b7689d89f7ee",
+      "matched_activity_id": "74a82331-f89e-4541-9483-3f0aa2d876f1",
+      "applicationId": "8f986533-bcd7-42fb-8bc2-a7d09277d31a",
+      "groupId": "cae40d71-6c60-4d52-9f60-a87e0c2797fa",
       "actualScore": "1.50",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -140,8 +148,8 @@
       "title": "虚构文明学生表彰活动",
       "body": "获得校级精神文明先进个人荣誉称号。",
       "score": "2.00",
-      "applicationId": "23b3a812-612f-46ad-b0f2-d7f4b315e3da",
-      "groupId": "bb1fc23b-e32d-4602-9739-33af38e53ea6",
+      "applicationId": "1630588d-3843-4347-97ee-5e5be0dad27c",
+      "groupId": "a6b2be8f-8098-4351-bf3b-94f57bf4fe68",
       "actualScore": "2.00",
       "resolution": {
         "status": "RULE_APPLIED",
@@ -159,8 +167,8 @@
       "title": "虚构电子设计竞赛待核对材料",
       "body": "省级电子设计竞赛二等奖，尚未列明参与学生。",
       "score": null,
-      "applicationId": "7cfcd2b0-15bb-4295-9109-b0c50b84cb07",
-      "groupId": "6051ccbf-0a00-476d-b277-a2df5511671a",
+      "applicationId": "b517a3ea-829c-43e1-88df-2f27f563a5f1",
+      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
       "actualScore": "0.00",
       "resolution": {
         "status": "NEEDS_REVIEW",
@@ -176,7 +184,35 @@
             "label": "可明确对应本人的记录"
           }
         ],
-        "message": "分值待核定：请核对科研成果类型、可明确对应本人的记录；也可手动填写并确认，无需理由。",
+        "message": "自动计分依据不足，可直接填写分值。",
+        "rule": "",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 9,
+      "category": "RESEARCH",
+      "title": "虚构创新编程竞赛零分直接提交材料",
+      "body": "省级创新编程竞赛三等奖，尚未列明参与学生。",
+      "score": null,
+      "applicationId": "d07c91c6-b0d0-4e61-8747-6293a1f9ff69",
+      "groupId": "e512a49f-d83e-4cb9-a395-da810bcdc8de",
+      "actualScore": "0.00",
+      "resolution": {
+        "status": "NEEDS_REVIEW",
+        "value": null,
+        "retained_value": "0.00",
+        "missing_facts": [
+          {
+            "code": "RESEARCH_TYPE",
+            "label": "科研成果类型"
+          },
+          {
+            "code": "IDENTITY",
+            "label": "可明确对应本人的记录"
+          }
+        ],
+        "message": "自动计分依据不足，可直接填写分值。",
         "rule": "",
         "source": "POLICY"
       }
@@ -184,18 +220,365 @@
   ],
   "fixture": {
     "mode": "ISOLATED_STACK",
-    "fake_general": 8,
-    "fake_seal": 8,
-    "fake_model": 8,
+    "fake_general": 9,
+    "fake_seal": 9,
+    "fake_model": 9,
     "network_blocked": 0,
     "actual_cloud_calls": 0,
     "actual_business_writes": 0,
     "model_always_proposes": "99",
-    "configuration_reads_private_keys": false
+    "configuration_reads_private_keys": false,
+    "active_ocr_files": 0,
+    "peak_ocr_files": 3,
+    "active_ai_items": 0,
+    "peak_ai_items": 3,
+    "provider_events": [
+      {
+        "kind": "OCR",
+        "case_id": 1,
+        "state": "START",
+        "active": 1,
+        "time": 1793022116.5915132
+      },
+      {
+        "kind": "OCR",
+        "case_id": 2,
+        "state": "START",
+        "active": 2,
+        "time": 1793022117.449078
+      },
+      {
+        "kind": "OCR",
+        "case_id": 3,
+        "state": "START",
+        "active": 3,
+        "time": 1793022123.7785776
+      },
+      {
+        "kind": "OCR",
+        "case_id": 1,
+        "state": "END",
+        "active": 2,
+        "time": 1793022146.2897549
+      },
+      {
+        "kind": "OCR",
+        "case_id": 2,
+        "state": "END",
+        "active": 1,
+        "time": 1793022146.3368468
+      },
+      {
+        "kind": "OCR",
+        "case_id": 5,
+        "state": "START",
+        "active": 2,
+        "time": 1793022147.605899
+      },
+      {
+        "kind": "OCR",
+        "case_id": 4,
+        "state": "START",
+        "active": 3,
+        "time": 1793022147.6504471
+      },
+      {
+        "kind": "AI",
+        "case_id": 1,
+        "state": "START",
+        "active": 1,
+        "time": 1793022147.6723225
+      },
+      {
+        "kind": "OCR",
+        "case_id": 5,
+        "state": "END",
+        "active": 2,
+        "time": 1793022147.7138963
+      },
+      {
+        "kind": "OCR",
+        "case_id": 4,
+        "state": "END",
+        "active": 1,
+        "time": 1793022147.7429807
+      },
+      {
+        "kind": "AI",
+        "case_id": 2,
+        "state": "START",
+        "active": 2,
+        "time": 1793022147.9409554
+      },
+      {
+        "kind": "AI",
+        "case_id": 4,
+        "state": "START",
+        "active": 3,
+        "time": 1793022148.5393198
+      },
+      {
+        "kind": "OCR",
+        "case_id": 6,
+        "state": "START",
+        "active": 2,
+        "time": 1793022148.6516726
+      },
+      {
+        "kind": "OCR",
+        "case_id": 6,
+        "state": "END",
+        "active": 1,
+        "time": 1793022148.7148757
+      },
+      {
+        "kind": "OCR",
+        "case_id": 3,
+        "state": "END",
+        "active": 0,
+        "time": 1793022148.7454495
+      },
+      {
+        "kind": "OCR",
+        "case_id": 9,
+        "state": "START",
+        "active": 1,
+        "time": 1793022150.5877202
+      },
+      {
+        "kind": "OCR",
+        "case_id": 8,
+        "state": "START",
+        "active": 2,
+        "time": 1793022150.6685734
+      },
+      {
+        "kind": "OCR",
+        "case_id": 9,
+        "state": "END",
+        "active": 1,
+        "time": 1793022150.718969
+      },
+      {
+        "kind": "OCR",
+        "case_id": 7,
+        "state": "START",
+        "active": 2,
+        "time": 1793022150.7743757
+      },
+      {
+        "kind": "OCR",
+        "case_id": 7,
+        "state": "END",
+        "active": 1,
+        "time": 1793022150.8865952
+      },
+      {
+        "kind": "OCR",
+        "case_id": 8,
+        "state": "END",
+        "active": 0,
+        "time": 1793022151.6856494
+      },
+      {
+        "kind": "AI",
+        "case_id": 4,
+        "state": "END",
+        "active": 2,
+        "time": 1793022152.2163782
+      },
+      {
+        "kind": "AI",
+        "case_id": 2,
+        "state": "END",
+        "active": 1,
+        "time": 1793022152.2299237
+      },
+      {
+        "kind": "AI",
+        "case_id": 1,
+        "state": "END",
+        "active": 0,
+        "time": 1793022152.2438223
+      },
+      {
+        "kind": "AI",
+        "case_id": 6,
+        "state": "START",
+        "active": 1,
+        "time": 1793022152.8326612
+      },
+      {
+        "kind": "AI",
+        "case_id": 6,
+        "state": "END",
+        "active": 0,
+        "time": 1793022152.8435526
+      },
+      {
+        "kind": "AI",
+        "case_id": 5,
+        "state": "START",
+        "active": 1,
+        "time": 1793022153.13388
+      },
+      {
+        "kind": "AI",
+        "case_id": 5,
+        "state": "END",
+        "active": 0,
+        "time": 1793022153.1451457
+      },
+      {
+        "kind": "AI",
+        "case_id": 3,
+        "state": "START",
+        "active": 1,
+        "time": 1793022153.4235227
+      },
+      {
+        "kind": "AI",
+        "case_id": 3,
+        "state": "END",
+        "active": 0,
+        "time": 1793022153.4336803
+      },
+      {
+        "kind": "AI",
+        "case_id": 9,
+        "state": "START",
+        "active": 1,
+        "time": 1793022153.61929
+      },
+      {
+        "kind": "AI",
+        "case_id": 9,
+        "state": "END",
+        "active": 0,
+        "time": 1793022153.630253
+      },
+      {
+        "kind": "AI",
+        "case_id": 8,
+        "state": "START",
+        "active": 1,
+        "time": 1793022154.5345337
+      },
+      {
+        "kind": "AI",
+        "case_id": 8,
+        "state": "END",
+        "active": 0,
+        "time": 1793022154.5861588
+      },
+      {
+        "kind": "AI",
+        "case_id": 7,
+        "state": "START",
+        "active": 1,
+        "time": 1793022154.8620338
+      },
+      {
+        "kind": "AI",
+        "case_id": 7,
+        "state": "END",
+        "active": 0,
+        "time": 1793022154.872322
+      }
+    ]
   },
+  "provider_errors": "",
   "external_requests": [],
+  "manual_analysis_requests": [],
+  "dialogs": [],
+  "transitions": [
+    {
+      "path": "/api/applications/41b7ed2e-4c01-40a3-b791-d814886b3440",
+      "method": "PUT",
+      "body": {
+        "expected_version": 3,
+        "title": "虚构校园星光长跑文体竞赛",
+        "requested_score": "1.00",
+        "activity_id": "09379e30-8509-4304-9c56-1f84bac4f1bf",
+        "payload_json": {
+          "award_level": "SCHOOL",
+          "subtype": "",
+          "award_grade": "THIRD",
+          "competition_kind": "SPORT",
+          "research_type": "",
+          "project_level": "",
+          "publication_level": "",
+          "author_rank": "",
+          "assessment_result": "",
+          "position_tier": "",
+          "tenure_months": "",
+          "practice_type": "",
+          "volunteer_hours": "",
+          "record_level": "",
+          "recognition_level": "",
+          "recognition_kind": "",
+          "activity_count": "",
+          "theory_level": "",
+          "excellent_trainee": "",
+          "award_system": "PRIZE",
+          "placement_level": "",
+          "result_label": "校级三等奖",
+          "ai_match_uncertain": false,
+          "ai_explanation": "依据已关联本人的材料事实及评定办法，按PDF7_8_PRIZE_BAND建议1.00分，请核对原件。",
+          "note": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/b517a3ea-829c-43e1-88df-2f27f563a5f1",
+      "method": "PUT",
+      "body": {
+        "expected_version": 3,
+        "title": "虚构电子设计竞赛待核对材料",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "award_level": "",
+          "subtype": "",
+          "award_grade": "",
+          "competition_kind": "",
+          "research_type": "",
+          "project_level": "",
+          "publication_level": "",
+          "author_rank": "",
+          "assessment_result": "",
+          "position_tier": "",
+          "tenure_months": "",
+          "practice_type": "",
+          "volunteer_hours": "",
+          "record_level": "",
+          "recognition_level": "",
+          "recognition_kind": "",
+          "activity_count": "",
+          "theory_level": "",
+          "excellent_trainee": "",
+          "award_system": "",
+          "placement_level": "",
+          "result_label": "",
+          "ai_match_uncertain": true,
+          "ai_explanation": "需核对科研成果类型或竞赛获奖依据；未能将计分依据明确关联到本人，请人工核对本人记录。分值保留当前稿，请核对。",
+          "note": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/d07c91c6-b0d0-4e61-8747-6293a1f9ff69/submit",
+      "method": "POST",
+      "body": {
+        "expected_version": 3,
+        "score_confirmed": true
+      }
+    }
+  ],
   "temporary_server_stopped": true,
   "actual_cloud_calls": 0,
   "actual_business_writes": 0,
-  "createdAt": "2026-10-26T12:24:55.687Z"
+  "createdAt": "2026-10-26T13:42:47.582Z"
 }

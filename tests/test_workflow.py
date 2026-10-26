@@ -140,52 +140,45 @@ def test_publication_gate_submission_lock_and_live_revocation(flow):
     assert all(m["total"] == "70.00" for m in client.get("/api/publicity", params={"class_id": body["class_id"], "year_id": body["year_id"]}).json()["members"])
 
 
-def test_higher_award_immediate_replacement_and_exact_revision_restoration(flow):
+def test_same_competition_new_item_does_not_reject_an_existing_approval(flow):
     activity = flow["activity"]()
     facts = {"edition_key": "2026", "track_key": "软件赛道", "group_key": "本科组", "work_key": "作品甲", "award_level": "PROVINCIAL"}
     old = flow["review"](flow["submit"](flow["draft"]("2", "RESEARCH", "省赛原件", facts, activity["id"])))
-    assert old["state"] == "APPROVED"
-    old_frozen_id = old["revision"]["id"]
     new = flow["submit"](flow["draft"]("4", "RESEARCH", "国赛原件", {**facts, "award_level": "NATIONAL"}, activity["id"]))
     client = flow["client"]
-    assert client.get(f"/api/applications/{old['id']}").json()["state"] == "REJECTED"
-    edited = client.put(f"/api/applications/{old['id']}", json={"title": "未提交的另一份工作稿", "requested_score": "9"})
-    assert edited.status_code == 200
-    draft_id = edited.json()["revision"]["id"]
-    assert draft_id != old_frozen_id
+    before = client.get(f"/api/applications/{old['id']}").json()
+    assert before["state"] == "APPROVED" and before["revision_id"] == old["revision_id"]
     assert client.post(f"/api/applications/{new['id']}/withdraw", json={}).status_code == 200
-    restored = client.get(f"/api/applications/{old['id']}").json()
-    assert restored["state"] == "APPROVED" and restored["title"] == "省赛原件" and restored["requested_score"] == "2.00"
+    after = client.get(f"/api/applications/{old['id']}").json()
+    assert after["state"] == "APPROVED" and after["lock_version"] == before["lock_version"]
     with db.read() as conn:
-        application = db.one(conn, "applications", old["id"])
-        assert application["working_revision_id"] == draft_id
-        assert db.one(conn, "application_revisions", draft_id)["title"] == "未提交的另一份工作稿"
+        assert not db.rows(conn, 'award_supersessions')
+        assert not db.rows(conn, 'competition_projects')
 
 
-def test_higher_score_wins_even_when_award_level_lower_and_equal_is_blocked(flow):
+def test_same_competition_lower_equal_and_higher_scores_can_all_be_submitted(flow):
     activity = flow["activity"]()
     facts = {"edition_key": "2026", "track_key": "组A", "award_level": "NATIONAL"}
-    old = flow["submit"](flow["draft"]("4", "RESEARCH", facts=facts, activity_id=activity["id"]))
-    lower = flow["draft"]("3", "RESEARCH", facts={**facts, "award_level": "INTERNATIONAL"}, activity_id=activity["id"])
-    assert flow["client"].post(f"/api/applications/{lower['id']}/submit", json={}).status_code == 409
-    higher = flow["submit"](flow["draft"]("5", "RESEARCH", facts={**facts, "award_level": "PROVINCIAL"}, activity_id=activity["id"]))
-    assert higher["state"] == "PENDING_PEER"
-    assert flow["client"].get(f"/api/applications/{old['id']}").json()["state"] == "REJECTED"
+    applications = [flow["submit"](flow["draft"](score, "RESEARCH", facts=facts, activity_id=activity["id"]))
+                    for score in ("4", "3", "4", "5")]
+    for application in applications:
+        detail = flow["client"].get(f"/api/applications/{application['id']}").json()
+        assert detail['state'] == 'PENDING_PEER'
+        assert detail['round']['competition_group_key'] is None
 
 
-def test_replacement_chain_and_independent_human_rejection_guard(flow):
+def test_rejecting_or_withdrawing_one_competition_item_leaves_others_alone(flow):
     activity = flow["activity"]()
     facts = {"edition_key": "2026", "track_key": "组A"}
     a = flow["review"](flow["submit"](flow["draft"]("1", "RESEARCH", facts=facts, activity_id=activity["id"])))
     b = flow["submit"](flow["draft"]("2", "RESEARCH", facts=facts, activity_id=activity["id"]))
     c = flow["submit"](flow["draft"]("3", "RESEARCH", facts=facts, activity_id=activity["id"]))
     client = flow["client"]
-    client.post(f"/api/applications/{c['id']}/withdraw", json={})
-    assert client.get(f"/api/applications/{b['id']}").json()["state"] == "PENDING_PEER"
-    flow["review"](a, "counselor", "REJECT", reason="INVALID_PERSONAL_MATERIAL")
-    flow["login"]("student")
-    client.post(f"/api/applications/{b['id']}/withdraw", json={})
-    assert client.get(f"/api/applications/{a['id']}").json()["state"] == "REJECTED"
+    assert client.post(f"/api/applications/{c['id']}/withdraw", json={}).status_code == 200
+    assert client.get(f"/api/applications/{b['id']}").json()['state'] == 'PENDING_PEER'
+    flow["review"](b, action="REJECT", reason="DUPLICATE_COMPETITION")
+    assert client.get(f"/api/applications/{a['id']}").json()['state'] == 'APPROVED'
+    assert client.get(f"/api/applications/{c['id']}").json()['state'] == 'WITHDRAWN'
 
 
 def test_caps_post_max_volunteer_annual_cap_and_all_class_members(flow):
@@ -193,7 +186,9 @@ def test_caps_post_max_volunteer_annual_cap_and_all_class_members(flow):
                                    ("2", "POST", {}), ("3", "POST", {}),
                                    ("0.60", "SERVICE", {"subtype": "VOLUNTEER", "volunteer_hours": 16}),
                                    ("0.60", "SERVICE", {"subtype": "VOLUNTEER", "volunteer_hours": 16})]:
-        flow["review"](flow["submit"](flow["draft"](score, category, facts=facts)))
+        reviewed = flow["review"](flow["submit"](flow["draft"](score, category, facts=facts)))
+        if reviewed['state'] == 'PENDING_COUNSELOR':
+            flow['review'](reviewed, 'counselor')
     flow["login"]("monitor")
     result = flow["client"].get("/api/scores", params={"class_id": flow["class"]["id"], "year_id": flow["year"]["id"]}).json()
     mine = next(m for m in result["members"] if m["user_id"] == flow["users"]["student"]["id"])
@@ -223,8 +218,8 @@ def test_scope_specificity_and_conflicts_require_human_decision(flow):
     client = flow["client"]
     assert client.put(f"/api/activities/{activity['id']}", json={"category_id": flow["cats"]["RESEARCH"], "decision": "INVALID", "edition_key": "2026"}).status_code == 200
     with db.read() as conn:
-        assert workflow.activity_eligibility(conn, activity["id"], flow["cats"]["RESEARCH"], flow["year"]["id"], {"edition_key": "2026"})["decision"] == "INVALID"
-        assert workflow.activity_eligibility(conn, activity["id"], flow["cats"]["RESEARCH"], flow["year"]["id"], {"edition_key": "2025"})["decision"] == "VALID"
+        assert workflow.activity_eligibility(conn, activity["id"], flow["cats"]["RESEARCH"], flow["year"]["id"], {"edition_key": "2026"})["decision"] == "UNKNOWN"
+        assert workflow.activity_eligibility(conn, activity["id"], flow["cats"]["RESEARCH"], flow["year"]["id"], {"edition_key": "2025"})["decision"] == "UNKNOWN"
     client.put(f"/api/activities/{activity['id']}", json={"category_id": flow["cats"]["RESEARCH"], "decision": "VALID", "track_key": "组A"})
     with db.read() as conn:
         result = workflow.activity_eligibility(conn, activity["id"], flow["cats"]["RESEARCH"], flow["year"]["id"], {"edition_key": "2026", "track_key": "组A"})

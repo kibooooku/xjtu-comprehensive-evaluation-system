@@ -1,0 +1,253 @@
+{
+  "source": "All APIs mocked; fixture-only writes; no actual business/cloud calls",
+  "checks": [
+    "集体活动仅显示规定的核心字段，评分标准新标签链接存在",
+    "思想政治理论学习仅显示规定的核心字段，评分标准新标签链接存在",
+    "社会服务仅显示规定的核心字段，评分标准新标签链接存在",
+    "学术科研及创新创业仅显示规定的核心字段，评分标准新标签链接存在",
+    "文体竞赛仅显示规定的核心字段，评分标准新标签链接存在",
+    "学生组织社团任职仅显示规定的核心字段，评分标准新标签链接存在",
+    "奖励分仅显示规定的核心字段，评分标准新标签链接存在",
+    "自由等级和备注可保存，旧结构化事实保留但不形成多余输入框",
+    "任职也可按名称或别名搜索活动，候选展示三种认定状态并可选用",
+    "活动匹配可清除更正，不自动选择候选",
+    "活动检索的迟到响应不覆盖新关键词结果",
+    "活动检索按接口限制截断超长关键词，避免已选长名称或粘贴触发422",
+    "不显示等级和匹配的四类保存时不清空历史隐藏数据",
+    "单项点击直接提交未决0，无确认或关联弹窗，连续点击只发一次提交",
+    "未保存的名称和分值先保存，再按保存后的版本直接提交",
+    "批量直接提交全部选中项，携带逐项版本与当前分值确认，无额外弹窗",
+    "批量部分冲突时成功项完成、失败项保留勾选和草稿，不追加确认窗口",
+    "旧版本保存返回409并保留输入，不覆盖另一页面的新分值",
+    "学生审查员和辅导员审核页也可在新标签查看评分标准"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "path": "/api/applications/RESEARCH-a",
+      "method": "PUT",
+      "body": {
+        "expected_version": 1,
+        "title": "学术科研及创新创业虚构活动a",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "备注中写作品与特殊计分",
+          "result_label": "国际赛事金奖"
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/POST-a",
+      "method": "PUT",
+      "body": {
+        "expected_version": 1,
+        "title": "学生组织社团任职虚构活动a",
+        "requested_score": "0.00",
+        "activity_id": "matched-valid",
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "GOOD",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "原备注",
+          "result_label": "良好"
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/POST-a",
+      "method": "PUT",
+      "body": {
+        "expected_version": 2,
+        "title": "学生组织社团任职虚构活动a",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "GOOD",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "原备注",
+          "result_label": "良好"
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/REWARD-a",
+      "method": "PUT",
+      "body": {
+        "expected_version": 1,
+        "title": "奖励分虚构活动a",
+        "requested_score": "0.00",
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "仅改奖励备注",
+          "result_label": "历史等级保留"
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/COLLECTIVE-a/submit",
+      "method": "POST",
+      "body": {
+        "expected_version": 1,
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/ARTS-b",
+      "method": "PUT",
+      "body": {
+        "expected_version": 1,
+        "title": "保存后立即提交的文体条目",
+        "requested_score": "1.25",
+        "activity_id": null,
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "原备注",
+          "result_label": "省级二等奖"
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/ARTS-b/submit",
+      "method": "POST",
+      "body": {
+        "expected_version": 2,
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/submissions/group-SERVICE/submit",
+      "method": "POST",
+      "body": {
+        "item_ids": [
+          "SERVICE-a",
+          "SERVICE-b"
+        ],
+        "score_confirmed": true,
+        "expected_versions": {
+          "SERVICE-a": 1,
+          "SERVICE-b": 1
+        }
+      }
+    },
+    {
+      "path": "/api/submissions/group-RESEARCH/submit",
+      "method": "POST",
+      "body": {
+        "item_ids": [
+          "RESEARCH-a",
+          "RESEARCH-b"
+        ],
+        "score_confirmed": true,
+        "expected_versions": {
+          "RESEARCH-a": 2,
+          "RESEARCH-b": 1
+        }
+      }
+    },
+    {
+      "path": "/api/applications/IDEOLOGY-a",
+      "method": "PUT",
+      "body": {
+        "expected_version": 1,
+        "title": "冲突时保留的输入",
+        "requested_score": "0.00",
+        "payload_json": {
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "assessment_result": "",
+          "edition_key": "旧届次保留",
+          "track_key": "旧赛道保留",
+          "group_key": "旧组别保留",
+          "work_key": "旧作品保留",
+          "record_level": "SCHOOL",
+          "note": "原备注"
+        },
+        "score_confirmed": true
+      }
+    }
+  ],
+  "searches": [
+    {
+      "q": "",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-POST",
+      "limit": "20"
+    },
+    {
+      "q": "青禾",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-POST",
+      "limit": "20"
+    },
+    {
+      "q": "",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-ARTS",
+      "limit": "20"
+    },
+    {
+      "q": "慢",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-ARTS",
+      "limit": "20"
+    },
+    {
+      "q": "快",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-ARTS",
+      "limit": "20"
+    },
+    {
+      "q": "",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-ARTS",
+      "limit": "20"
+    },
+    {
+      "q": "长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长长",
+      "year_id": "minimal-year",
+      "category_id": "minimal-cat-ARTS",
+      "limit": "20"
+    }
+  ],
+  "createdAt": "2026-10-26T13:31:10.356Z"
+}

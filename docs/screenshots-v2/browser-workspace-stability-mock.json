@@ -24,7 +24,6 @@
     "/api/analysis-jobs",
     "/api/submissions",
     "/api/applications/stability-item",
-    "/api/activities",
     "/api/analysis-jobs",
     "/api/analysis-jobs",
     "/api/analysis-jobs",
@@ -44,12 +43,9 @@
     "/api/applications/stability-item",
     "/api/analysis-jobs",
     "/api/applications/stability-item",
-    "/api/activities",
-    "/api/applications/stability-item",
-    "/api/activities",
-    "/api/applications/stability-item",
-    "/api/activities",
     "/api/analysis-jobs",
+    "/api/applications/stability-item",
+    "/api/applications/stability-item",
     "/api/applications/stability-item",
     "/api/analysis-jobs",
     "/api/submissions",
@@ -57,5 +53,5 @@
     "/api/submissions",
     "/api/analysis-jobs"
   ],
-  "createdAt": "2026-10-26T12:13:26.286Z"
+  "createdAt": "2026-10-26T13:31:07.703Z"
 }

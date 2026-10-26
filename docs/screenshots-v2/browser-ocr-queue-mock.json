@@ -1,20 +1,35 @@
 {
-  "source": "Every /api request intercepted by browser fixture; no real API writes or provider calls",
+  "source": "UI-only: every /api request intercepted by browser fixture; actual automatic scheduling is checked separately by scoring-stack; no real API writes or provider calls",
   "checks": [
     "已有OCR用统一处理中主状态，并保留真实3/18次级进度",
-    "一键分析后OCR进度不变，独立AI列显示等待材料且明确原OCR继续",
+    "列表和上传窗口说明自动识别后分析及3文件/3小项上限，整理窗口不发任务请求",
+    "自动后台任务直接显示进度，无需点击分析；忙时仅有一个禁用的重新分析入口并保留OCR重试",
+    "可选批量重试不改变原OCR进度，独立AI列显示等待材料且明确原OCR继续",
     "存在6条更新历史任务时，运行OCR和等待AI仍同时保留且OCR优先",
     "轮询将同一OCR从3/18推进到8/18，不被等待AI覆盖",
-    "未修改表单的一键分析仅POST bulk，没有PUT保存或取消任务",
-    "忙提示含真实已耗时和站内切页继续，切页不销毁任务",
+    "未修改表单的可选批量重试仅POST bulk，没有PUT保存或取消任务",
+    "忙提示含自动衔接、3/3上限、已耗时和站内切页继续，切页不销毁任务",
+    "OCR已完成但AI等并发名额时显示AI排队，保留依赖ID不会误报等OCR，也不重建人工表单",
     "OCR完成后AI进入独立运行阶段，刷新等待说明不会丢未保存表单",
-    "全部空闲后移除忙提示，AI完成仍待核对且审核仍草稿，人工填写保留"
+    "全部空闲后移除忙提示并启用重新分析，AI完成仍待核对且审核仍草稿，人工填写保留",
+    "用户仍可显式重新分析，提交force=true且入队后原按钮禁用，不请求取消OCR或再次上传",
+    "同一对照页面的重新分析按钮随忙闲状态更新，无需关闭重开"
   ],
   "errors": [],
   "writes": [
     {
       "method": "POST",
       "path": "/api/analysis-jobs/bulk"
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/mock-item/jobs"
+    }
+  ],
+  "jobBodies": [
+    {
+      "kind": "AI",
+      "force": true
     }
   ],
   "reads": [
@@ -23,20 +38,27 @@
     "/api/analysis-jobs",
     "/api/submissions",
     "/api/applications/mock-item",
-    "/api/activities",
     "/api/analysis-jobs",
     "/api/analysis-jobs",
     "/api/activities",
     "/api/submissions",
     "/api/applications/mock-item",
-    "/api/activities",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
     "/api/analysis-jobs",
     "/api/analysis-jobs",
     "/api/submissions",
     "/api/applications/mock-item",
+    "/api/session",
+    "/api/bootstrap",
+    "/api/analysis-jobs",
+    "/api/submissions",
+    "/api/applications/mock-item",
+    "/api/analysis-jobs",
     "/api/analysis-jobs",
     "/api/submissions",
     "/api/applications/mock-item"
   ],
-  "createdAt": "2026-10-26T02:59:35.467Z"
+  "createdAt": "2026-10-26T13:36:50.015Z"
 }

@@ -16,10 +16,10 @@ CATEGORIES = [
     ('COLLECTIVE', '集体活动', 3, 'SUM', False),
     ('IDEOLOGY', '思想政治理论学习', 3, 'SUM', False),
     ('SERVICE', '社会服务', 4, 'VOLUNTEER_CAPPED_SUM', False),
-    ('RESEARCH', '学术科研及创新创业', 10, 'PROJECT_MAX', True),
-    ('ARTS', '文体竞赛', 6, 'PROJECT_MAX', True),
-    ('POST', '学生组织社团任职', 4, 'MAX', False),
-    ('REWARD', '奖励分', 5, 'SUM', True),
+    ('RESEARCH', '学术科研及创新创业', 10, 'SUM', True),
+    ('ARTS', '文体竞赛', 6, 'SUM', True),
+    ('POST', '学生组织社团任职', 4, 'MAX', True),
+    ('REWARD', '奖励分', 5, 'SUM', False),
 ]
 
 PERMISSIONS = {
