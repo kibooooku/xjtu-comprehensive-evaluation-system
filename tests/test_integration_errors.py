@@ -1,8 +1,10 @@
 """Provider failures must be distinguishable without exposing keys or document text."""
 import json
+import io
 
 import httpx
 import pytest
+from PIL import Image
 
 from app import integrations
 from app.integrations import ProviderError
@@ -133,8 +135,10 @@ def test_no_stop_returns_explicit_null_metadata():
                                  'RequestLimitExceeded', 'LimitExceeded.TooLargeFileError'])
 def test_tencent_error_messages_preserve_stop_source_instead_of_claiming_free_exhaustion(monkeypatch, code):
     use_response(monkeypatch, httpx.Response(200, json={'Response': {'Error': {'Code': code, 'Message': 'private-provider-message'}}}))
+    image = io.BytesIO()
+    Image.new('RGB', (40, 40), 'white').save(image, 'PNG')
     with pytest.raises(ProviderError) as caught:
-        integrations.tencent_ocr('SealOCR', b'synthetic-image', {'secret_id': 'test-id', 'secret_key': 'test-key', 'region': 'ap-shanghai'})
+        integrations.tencent_ocr('SealOCR', image.getvalue(), {'secret_id': 'test-id', 'secret_key': 'test-key', 'region': 'ap-shanghai'})
     assert caught.value.code == code
     assert caught.value.message == integrations.ocr_stop_info(code)['stop_message']
     assert 'private-provider-message' not in caught.value.message

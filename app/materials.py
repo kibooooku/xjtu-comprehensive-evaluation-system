@@ -47,10 +47,27 @@ _OCR_LOCAL_CONDITION = threading.Condition()
 _OCR_LOCAL_ACTIVE = {}
 Image.MAX_IMAGE_PIXELS = MAX_PAGE_PIXELS
 NATIVE_TEXT_API = "NativePDFText"
+EVIDENCE_LAYOUT_VERSION = 'identity-outcome-v3'
 
 
 class RecognitionInterrupted(Exception):
     """Graceful server shutdown; retain recognised pages for queue recovery."""
+
+
+def _check_background_control(scope=None, owner_id=None):
+    scope = scope or getattr(_OCR_SCOPE, 'job', None)
+    if not scope:
+        if owner_id:
+            from . import jobs
+            with db.read() as conn:
+                if jobs._control(conn, owner_id).get('paused'):
+                    raise HTTPException(409, '任务已暂停，请先继续处理')
+        return
+    from . import jobs
+    if hasattr(jobs, 'raise_if_pause_requested'):
+        jobs.raise_if_pause_requested(*scope[:2])
+    if len(scope) > 2 and scope[2] and scope[2].is_set():
+        raise RecognitionInterrupted()
 
 
 @router.get('/reference/scoring-standard')
@@ -71,8 +88,20 @@ def _page_limit(config=None):
 
 
 def asset_path(relative: str) -> Path:
-    root = Path(db.storage_root).resolve()
-    path = (root / relative).resolve()
+    def resolved(value):
+        path = Path(value).resolve()
+        text = str(path)
+        # Windows may retain an extended-length prefix while another thread
+        # atomically creates/replaces the target. Compare canonical paths with
+        # the same prefix form, after resolving junctions/symlinks as usual.
+        if text.startswith('\\\\?\\UNC\\'):
+            return Path('\\\\' + text[8:])
+        if text.startswith('\\\\?\\'):
+            return Path(text[4:])
+        return path
+
+    root = resolved(db.storage_root)
+    path = resolved(root / relative)
     if not path.is_relative_to(root):
         raise HTTPException(404, "文件不存在。")
     return path
@@ -525,11 +554,9 @@ def quarter_page_box(page: dict, y: float) -> list[int]:
     return [0, max(0, min(int(round(y)), page["height_px"] - height)), page["width_px"], height]
 
 
-def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list, manual_masks: list | None = None, source: str = "STUDENT", region_id: str | None = None, metadata: dict | None = None) -> dict:
+def _crop_inputs(conn, page, evidence_type, box, manual_masks=None, metadata=None):
     box = checked_box(box, page["width_px"], page["height_px"])
     metadata = dict(metadata or {})
-    if revision.get("content_frozen_at"):
-        raise HTTPException(409, "已提交的冻结证据不能改写。")
     if evidence_type == "PARTICIPATION":
         box = quarter_page_box(page, box[1])
         metadata["layout_version"] = "context-quarter-v2"
@@ -537,11 +564,6 @@ def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list,
         if role not in ("PRIMARY", "OUTCOME"):
             raise HTTPException(400, "本人证明请选择身份信息或奖次考评。")
         metadata["participation_role"] = role
-        # One context per role: replacing identity does not erase a separate
-        # outcome page. Legacy participation images are the primary identity.
-        for previous in rows(conn, "evidence_crops", revision_id=revision["id"]):
-            if previous["evidence_type"] == "PARTICIPATION" and ((previous.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") == role:
-                conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == previous["id"]))
     elif metadata.get("validity_kind") not in ("NAME", "TIME", "SEAL"):
         raise HTTPException(400, "有效性证据请选择活动名称、活动时间或印章。")
     file = one(conn, "file_objects", page["file_id"])
@@ -558,11 +580,21 @@ def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list,
     if len(manual_masks) > 100:
         raise HTTPException(400, "手动遮挡区域过多。")
     manual_masks = [checked_box(mask, page["width_px"], page["height_px"]) for mask in manual_masks]
+    return box, manual_masks, metadata
+
+
+def _crop_asset_key(page, evidence_type, box, manual_masks, metadata):
+    return hashlib.sha256(json.dumps([page['id'], page['render_sha256'], evidence_type, box, manual_masks, metadata], sort_keys=True, default=str).encode()).hexdigest()
+
+
+def _render_crop_assets(conn, page, evidence_type, box, manual_masks, metadata):
+    """CPU/image IO runs before acquiring the final SQLite writer transaction."""
+    _check_background_control()
     with Image.open(asset_path(page["image_uri"])) as image:
         x, y, w, h = box
         cropped = image.convert("RGB").crop((x, y, x + w, y + h))
         draw = ImageDraw.Draw(cropped)
-        for highlight in highlights:
+        for highlight in metadata.get('highlights', []):
             overlap = _intersection(box, highlight["box"])
             if overlap:
                 hx, hy, hw, hh = overlap
@@ -571,9 +603,29 @@ def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list,
     crop_id = uid()
     uri = f"private-crops/{crop_id}.png"
     _write_asset(uri, content)
+    crop = {'id': crop_id, 'polygon_json': _polygon(box), 'private_asset_uri': uri,
+            'masks_json': {'manual': manual_masks, 'evidence': metadata}}
+    public = _build_public_crop(conn, crop, page, manual_masks)
+    return {'id': crop_id, 'private_asset_uri': uri, 'source_hash': hashlib.sha256(content).hexdigest(),
+            'asset_key': _crop_asset_key(page, evidence_type, box, manual_masks, metadata), 'public': public}
+
+
+def create_crop(conn, revision: dict, page: dict, evidence_type: str, box: list, manual_masks: list | None = None, source: str = "STUDENT", region_id: str | None = None, metadata: dict | None = None, prepared=None) -> dict:
+    if revision.get('content_frozen_at'):
+        raise HTTPException(409, '已提交的冻结证据不能改写。')
+    box, manual_masks, metadata = _crop_inputs(conn, page, evidence_type, box, manual_masks, metadata)
+    if evidence_type == 'PARTICIPATION':
+        role = metadata['participation_role']
+        for previous in rows(conn, 'evidence_crops', revision_id=revision['id']):
+            if previous['evidence_type'] == 'PARTICIPATION' and (((previous.get('masks_json') or {}).get('evidence') or {}).get('participation_role') or 'PRIMARY') == role:
+                conn.execute(delete(tables['evidence_crops']).where(tables['evidence_crops'].c.id == previous['id']))
+    if prepared is None:
+        prepared = _render_crop_assets(conn, page, evidence_type, box, manual_masks, metadata)
+    if prepared['asset_key'] != _crop_asset_key(page, evidence_type, box, manual_masks, metadata):
+        raise HTTPException(409, '截图来源或选区已变化，请重新核对')
     existing = rows(conn, "evidence_crops", revision_id=revision["id"])
-    crop = add(conn, "evidence_crops", id=crop_id, revision_id=revision["id"], page_id=page["id"], evidence_type=evidence_type, source=source, recognition_region_id=region_id, polygon_json=_polygon(box), private_asset_uri=uri, source_hash=hashlib.sha256(content).hexdigest(), redaction_version=None, masks_json={"manual": manual_masks, "evidence": metadata}, public_asset_uri=None, public_asset_status="BLOCKED", sort_order=len(existing))
-    return change(conn, "evidence_crops", crop_id, **_build_public_crop(conn, crop, page, manual_masks))
+    crop = add(conn, "evidence_crops", id=prepared['id'], revision_id=revision["id"], page_id=page["id"], evidence_type=evidence_type, source=source, recognition_region_id=region_id, polygon_json=_polygon(box), private_asset_uri=prepared['private_asset_uri'], source_hash=prepared['source_hash'], redaction_version=None, masks_json={"manual": manual_masks, "evidence": metadata}, public_asset_uri=None, public_asset_status="BLOCKED", sort_order=len(existing))
+    return change(conn, "evidence_crops", crop['id'], **prepared['public'])
 
 
 @router.post("/applications/{application_id}/crops")
@@ -715,7 +767,7 @@ def integration_status(user: dict = Depends(current_user)):
     return {"enabled": config["enabled"], "tencent_configured": bool(config["secret_id"] and config["secret_key"]), "deepseek_configured": bool(config["deepseek_key"]), "deepseek_model": config["deepseek_model"], "free_only": True, "general": local_usage(general_used, config["general_limit"]), "seal": local_usage(seal_used, config["seal_limit"]), "provider_balance_known": False, "provider_remaining": None, "max_analysis_pages": config["max_analysis_pages"], "message": "用量为本系统本月调用尝试次数（含失败），不是腾讯云已计费次数或免费余额；云端余额未查询。仅调用已开通服务，不自动重试或购买资源。"}
 
 
-def _ocr_page(page: dict, action: str, config: dict, stop_event=None) -> dict:
+def _ocr_page(page: dict, action: str, config: dict, stop_event=None, scope=None, owner_id=None) -> dict:
     # Equal rendered bytes share a result, while unrelated files may call the
     # provider concurrently. The database transaction reserves quota separately.
     key = (db.engine, page['render_sha256'], action)
@@ -725,10 +777,11 @@ def _ocr_page(page: dict, action: str, config: dict, stop_event=None) -> dict:
     acquired = False
     try:
         while not acquired:
+            _check_background_control(scope, owner_id)
             if stop_event and stop_event.is_set():
                 raise RecognitionInterrupted()
             acquired = lock.acquire(timeout=.05)
-        return _ocr_page_locked(page, action, config, stop_event)
+        return _ocr_page_locked(page, action, config, stop_event, scope, owner_id)
     finally:
         if acquired:
             lock.release()
@@ -754,6 +807,7 @@ def ocr_job_scope(job_id, worker_token, stop_event=None):
 def _ocr_file_slot(owner_id, file_id, scope=None):
     """File leases count across items and server processes, not page HTTP calls."""
     if not scope:
+        _check_background_control(owner_id=owner_id)
         # The legacy synchronous endpoint has no durable job. Keep its slots
         # owner-scoped too, without holding a database writer during provider IO.
         key = (db.engine, owner_id)
@@ -762,6 +816,7 @@ def _ocr_file_slot(owner_id, file_id, scope=None):
                                           and sum(_OCR_LOCAL_ACTIVE.values()) < OCR_FILES_GLOBAL)
             _OCR_LOCAL_ACTIVE[key] = _OCR_LOCAL_ACTIVE.get(key, 0) + 1
         try:
+            _check_background_control(owner_id=owner_id)
             yield
         finally:
             with _OCR_LOCAL_CONDITION:
@@ -773,6 +828,7 @@ def _ocr_file_slot(owner_id, file_id, scope=None):
     job_id, worker_token = scope[:2]
     stop_event = scope[2] if len(scope) > 2 else None
     while True:
+        _check_background_control(scope)
         if stop_event and stop_event.is_set():
             raise RecognitionInterrupted()
         with db.write() as conn:
@@ -799,24 +855,70 @@ def _ocr_file_slot(owner_id, file_id, scope=None):
 
 
 def _save_regions(conn, run: dict, data: dict):
+    prepared = []
     if run["api_name"] == "GeneralAccurateOCR":
         for index, item in enumerate(data.get("TextDetections") or []):
             polygon = item.get("Polygon") or _rect_polygon(item.get("ItemPolygon") or {})
             words = []
             for word, coords in zip(item.get("Words") or [], item.get("WordCoordPoint") or []):
                 words.append({"text": str(word.get("Character", "")), "polygon": coords.get("WordCoordinate") or [], "confidence": word.get("Confidence")})
-            add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="TEXT", text=str(item.get("DetectedText", "")), confidence=Decimal(str(item.get("Confidence") or 0)) / 100, polygon_json=polygon, extra_json={"words": words})
+            prepared.append(dict(id=uid(), run_id=run["id"], region_no=index, kind="TEXT", text=str(item.get("DetectedText", "")), confidence=Decimal(str(item.get("Confidence") or 0)) / 100, polygon_json=polygon, extra_json={"words": words}))
     else:
         seals = data.get("SealInfos") or ([data] if data.get("Location") else [])
         for index, item in enumerate(seals):
-            add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="SEAL", text=str(item.get("SealBody", "")), confidence=None, polygon_json=_rect_polygon(item.get("Location") or {}), extra_json={"shape": item.get("SealShape"), "other_texts": item.get("OtherTexts", [])})
+            prepared.append(dict(id=uid(), run_id=run["id"], region_no=index, kind="SEAL", text=str(item.get("SealBody", "")), confidence=None, polygon_json=_rect_polygon(item.get("Location") or {}), extra_json={"shape": item.get("SealShape"), "other_texts": item.get("OtherTexts", [])}))
+    if prepared:
+        conn.execute(tables['recognition_regions'].insert(), prepared)
 
 
-def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None) -> dict:
+def _ocr_response_cache(param_hash, action, data=None):
+    """Private durable response copy survives a later SQLite write failure."""
+    path = asset_path(f'ocr-response-cache/{param_hash}.json')
+    if data is None:
+        try:
+            envelope = json.loads(path.read_text(encoding='utf-8'))
+            if envelope.get('parameters_hash') == param_hash and envelope.get('api_name') == action and isinstance(envelope.get('result'), dict):
+                return envelope['result']
+        except (OSError, ValueError, AttributeError):
+            pass
+        return None
+    import os
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = path.with_name(f'{param_hash}.{uid()}.tmp')
+    temporary.write_text(json.dumps({'parameters_hash': param_hash, 'api_name': action, 'result': data}, ensure_ascii=False), encoding='utf-8')
+    for attempt in range(6):
+        try:
+            os.replace(temporary, path)
+            break
+        except PermissionError:
+            if attempt == 5:
+                raise
+            time.sleep(.02)
+
+
+def _ocr_reservation_orphaned(conn, run):
+    meta = run.get('result_json') or {}
+    if meta.get('worker_job_id'):
+        job = one(conn, 'background_jobs', meta['worker_job_id'])
+        return not job or job['state'] != 'RUNNING' or job.get('worker_token') != meta.get('worker_token')
+    # Older reservations only stored a PID. Reclaim one only if its matching
+    # durable OCR interval is known to have ended, never just because it is old.
+    revisions = {link['revision_id'] for link in rows(conn, 'revision_files', file_id=one(conn, 'file_pages', run['page_id'])['file_id'])}
+    owners = [job for revision_id in revisions for job in rows(conn, 'background_jobs', input_revision_id=revision_id, kind='OCR')
+              if job.get('started_at') and job['started_at'] <= (run.get('started_at') or '')
+              and (not job.get('finished_at') or job['finished_at'] >= (run.get('started_at') or ''))]
+    return bool(owners) and all(job['state'] not in {'RUNNING', 'QUEUED', 'PAUSED'} for job in owners)
+
+
+def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None, scope=None, owner_id=None) -> dict:
     param_hash = hashlib.sha256((page["render_sha256"] + action + "v2-words").encode()).hexdigest()
+    saved_response = _ocr_response_cache(param_hash, action)
     while True:
+        _check_background_control(scope, owner_id)
         if stop_event and stop_event.is_set():
             raise RecognitionInterrupted()
+        if saved_response is None:
+            saved_response = _ocr_response_cache(param_hash, action)
         # BEGIN IMMEDIATE makes lookup/reservation/counting one atomic decision,
         # including calls in another server process. HTTP never holds this lock.
         with db.write() as conn:
@@ -829,13 +931,22 @@ def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None) -> 
                 run = add(conn, "recognition_runs", page_id=page["id"], provider="CACHE", api_name=action, parameters_hash=param_hash, status="SUCCEEDED", provider_request_id=source.get("provider_request_id"), result_json=source["result_json"], started_at=None, finished_at=now())
                 _save_regions(conn, run, source["result_json"] or {})
                 return run
+            if saved_response is not None:
+                own = rows(conn, 'recognition_runs', page_id=page['id'], api_name=action, parameters_hash=param_hash, status='RUNNING')
+                if own:
+                    run = change(conn, 'recognition_runs', own[-1]['id'], status='SUCCEEDED', provider_request_id=saved_response.get('RequestId'), result_json=saved_response, finished_at=now())
+                else:
+                    run = add(conn, 'recognition_runs', page_id=page['id'], provider='CACHE', api_name=action, parameters_hash=param_hash,
+                              status='SUCCEEDED', provider_request_id=saved_response.get('RequestId'), result_json=saved_response, started_at=None, finished_at=now())
+                _save_regions(conn, run, saved_response)
+                return run
             pending = rows(conn, 'recognition_runs', api_name=action, parameters_hash=param_hash, status='RUNNING')
             waiting = False
             for existing in pending:
                 from .jobs import _process_alive
                 pid = (existing.get('result_json') or {}).get('worker_pid')
                 fresh = (existing.get('started_at') or '') > (datetime.now(timezone.utc) - timedelta(minutes=3)).isoformat()
-                if (pid and _process_alive(f'{pid}:ocr-cache')) or (not pid and fresh):
+                if not _ocr_reservation_orphaned(conn, existing) and ((pid and _process_alive(f'{pid}:ocr-cache')) or (not pid and fresh)):
                     waiting = True
                 else:
                     change(conn, 'recognition_runs', existing['id'], status='FAILED',
@@ -846,11 +957,15 @@ def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None) -> 
                 if used >= limit:
                     raise ProviderError("LocalBudgetExceeded", ocr_stop_info("LocalBudgetExceeded")["stop_message"], diagnostics={"action": action, "used": used, "limit": limit})
                 import os
-                run = add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=action, parameters_hash=param_hash, status="RUNNING", provider_request_id=None, result_json={'worker_pid': os.getpid()}, started_at=now(), finished_at=None)
+                metadata = {'worker_pid': os.getpid()}
+                if scope:
+                    metadata.update(worker_job_id=scope[0], worker_token=scope[1])
+                run = add(conn, "recognition_runs", page_id=page["id"], provider="TENCENT", api_name=action, parameters_hash=param_hash, status="RUNNING", provider_request_id=None, result_json=metadata, started_at=now(), finished_at=None)
                 break
         time.sleep(.05)
     try:
         data = tencent_ocr(action, asset_path(page["image_uri"]).read_bytes(), config)
+        _ocr_response_cache(param_hash, action, data)
     except ProviderError as error:
         with db.write() as conn:
             change(conn, "recognition_runs", run["id"], status="FAILED", result_json={"error_code": error.code, "message": error.message}, finished_at=now())
@@ -861,6 +976,9 @@ def _ocr_page_locked(page: dict, action: str, config: dict, stop_event=None) -> 
                    result_json={'error_code': 'UnexpectedError', 'message': '识别调用未完成，原始材料已保留'}, finished_at=now())
         raise
     with db.write() as conn:
+        existing = one(conn, 'recognition_runs', run['id'])
+        if existing and existing['status'] == 'SUCCEEDED':
+            return existing
         run = change(conn, "recognition_runs", run["id"], status="SUCCEEDED", provider_request_id=data.get("RequestId"), result_json=data, finished_at=now())
         _save_regions(conn, run, data)
         return run
@@ -924,8 +1042,10 @@ def _native_pages(file: dict, pages: list[dict]) -> dict:
         with db.write() as conn:
             run = add(conn, "recognition_runs", page_id=page["id"], provider="LOCAL_PDF", api_name=NATIVE_TEXT_API, parameters_hash=parameter_hash, status="SUCCEEDED", provider_request_id=None, result_json={"usable": usable, "text": str(extracted.get("text") or ""), "reason": str(extracted.get("reason") or "")[:200]}, started_at=None, finished_at=now())
             if usable:
-                for index, region in enumerate(extracted.get("regions") or []):
-                    add(conn, "recognition_regions", run_id=run["id"], region_no=index, kind="TEXT", text=str(region.get("text") or ""), confidence=None, polygon_json=region.get("polygon_json") or [], extra_json=region.get("extra_json") or {})
+                prepared = [dict(id=uid(), run_id=run["id"], region_no=index, kind="TEXT", text=str(region.get("text") or ""), confidence=None, polygon_json=region.get("polygon_json") or [], extra_json=region.get("extra_json") or {})
+                            for index, region in enumerate(extracted.get("regions") or [])]
+                if prepared:
+                    conn.execute(tables['recognition_regions'].insert(), prepared)
             cached[page["id"]] = run
     return cached
 
@@ -1366,6 +1486,8 @@ def _last_seal_suggestions(conn, suggestions: list[dict]) -> list[dict]:
 
 def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[dict]:
     """Re-derive existing successful OCR, including old jobs, without making any cloud call."""
+    if result.get('evidence_context_fingerprint') == _evidence_context_fingerprint(conn, context, revision):
+        return _last_seal_suggestions(conn, result.get('suggested_crops', []))
     pages = []
     for page_id in result.get("page_ids", []):
         page = one(conn, "file_pages", page_id)
@@ -1379,6 +1501,33 @@ def _result_evidence(conn, context: dict, revision: dict, result: dict) -> list[
     return _last_seal_suggestions(conn, result.get("suggested_crops", []))
 
 
+def _evidence_context_fingerprint(conn, context, revision):
+    data = [EVIDENCE_LAYOUT_VERSION, ocr_input_fingerprint(conn, revision),
+            context['student']['student_number'], context['user']['display_name'], context['class']['name']]
+    return hashlib.sha256(json.dumps(data, ensure_ascii=False).encode()).hexdigest()
+
+
+def _evidence_metadata(item):
+    return {key: item[key] for key in ('file_name', 'page_number', 'highlights', 'other_matches', 'validity_kind',
+            'layout_version', 'origin', 'participation_role', 'outcome_kind', 'outcome_value', 'outcome_text', 'result_association') if key in item}
+
+
+def _prepare_evidence_assets(conn, revision, suggestions):
+    prepared = {}
+    if (revision.get('payload_json') or {}).get('evidence_manually_edited'):
+        return prepared
+    for item in sorted(_last_seal_suggestions(conn, suggestions), key=lambda value: value.get('evidence_type') != 'PARTICIPATION')[:25]:
+        _check_background_control()
+        page = one(conn, 'file_pages', item.get('page_id'))
+        if not page or not one(conn, 'revision_files', revision_id=revision['id'], file_id=page['file_id']):
+            continue
+        box, masks, metadata = _crop_inputs(conn, page, item['evidence_type'], item['box'], [], _evidence_metadata(item))
+        key = _crop_asset_key(page, item['evidence_type'], box, masks, metadata)
+        if key not in prepared:
+            prepared[key] = _render_crop_assets(conn, page, item['evidence_type'], box, masks, metadata)
+    return prepared
+
+
 @router.post("/applications/{application_id}/analyze")
 def analyze(application_id: str, body: dict | None = None, user: dict = Depends(current_user)):
     if not ANALYSIS_LOCK.acquire(blocking=False):
@@ -1390,6 +1539,9 @@ def analyze(application_id: str, body: dict | None = None, user: dict = Depends(
         # The compatibility endpoint must never become a fourth OCR/AI slot.
         # Claim its exclusive owner lease atomically with the worker's check.
         with db.write() as conn:
+            from . import jobs
+            if jobs._control(conn, user['id']).get('paused'):
+                raise HTTPException(409, '任务已暂停，请先继续处理')
             if synchronous_analysis_active(conn, user['id']) or any(job['state'] in {'QUEUED', 'RUNNING'} for job in rows(conn, 'background_jobs', owner_id=user['id'])):
                 raise HTTPException(409, '后台识别正在排队或执行，请等待完成后再重试')
             import os
@@ -1432,6 +1584,7 @@ def _recognition_snapshot(conn, application_id: str, user: dict, config: dict):
 
 def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None = None) -> dict:
     """Server-worker entry point: OCR only, never calls the language model."""
+    _check_background_control(owner_id=user['id'])
     config = _config or configuration()
     max_pages = _page_limit(config)
     with db.write() as conn:
@@ -1445,6 +1598,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
     if progress:
         progress("检查PDF已有文字层", 0, 0)
     for file_id, file in files.items():
+        _check_background_control(scope, user['id'])
         if worker_stop and worker_stop.is_set():
             raise RecognitionInterrupted()
         file_pages = [page for page in pages if page["file_id"] == file_id]
@@ -1478,6 +1632,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
         nonlocal done, stopped, stop_reason, stop_info
         with _ocr_file_slot(user['id'], file_id, scope):
             for page, action in file_tasks:
+                _check_background_control(scope, user['id'])
                 if worker_stop and worker_stop.is_set():
                     raise RecognitionInterrupted()
                 if stop_event.is_set():
@@ -1496,7 +1651,7 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
                             stop_event.set()
                         break
                 try:
-                    run = _ocr_page(page, action, config, worker_stop)
+                    run = _ocr_page(page, action, config, worker_stop, scope, user['id'])
                     with result_lock:
                         ocr_runs.append(run)
                 except ProviderError as error:
@@ -1520,8 +1675,10 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
         futures = [executor.submit(process_file, file_id, planned) for file_id, planned in file_tasks if planned]
         for future in futures:
             future.result()
-    with db.write() as conn:
+    _check_background_control(scope, user['id'])
+    with db.read() as conn:
         text_pages, cloud_text_pages, seal_pages = set(), set(), set()
+        refreshed, seen_crops = [], set()
         for run in ocr_runs:
             regions = rows(conn, "recognition_regions", run_id=run["id"])
             if run["api_name"] in ("GeneralAccurateOCR", NATIVE_TEXT_API) and any((region.get("text") or "").strip() for region in regions):
@@ -1532,17 +1689,30 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
                 seal_pages.add(run["page_id"])
             page = one(conn, "file_pages", run["page_id"])
             for crop in rows(conn, "evidence_crops", page_id=page["id"], revision_id=revision["id"]):
+                if crop['id'] in seen_crops:
+                    continue
+                seen_crops.add(crop['id'])
                 current_revision = one(conn, "application_revisions", crop["revision_id"])
                 if current_revision.get("content_frozen_at"):
                     continue
                 manual = (crop.get("masks_json") or {}).get("manual", [])
-                change(conn, "evidence_crops", crop["id"], **_build_public_crop(conn, crop, page, manual))
+                refreshed.append((crop, _build_public_crop(conn, crop, page, manual)))
         activities = rows(conn, "activities", status="ACTIVE")
         names = [activity["canonical_name"] for activity in activities]
         if specific_activity_title(revision.get("title", "")):
             names.append(revision["title"])
         evidence = _evidence_suggestions(conn, pages, context["student"], context["user"], context["class"]["name"], names)
+        evidence_fingerprint = _evidence_context_fingerprint(conn, context, revision)
         seal_files = {one(conn, "file_pages", item["page_id"])["file_id"] for item in evidence if item.get("validity_kind") == "SEAL"}
+    _check_background_control(scope, user['id'])
+    if refreshed:
+        with db.write() as conn:
+            current = one(conn, 'application_revisions', revision['id'])
+            if current and not current.get('content_frozen_at') and ocr_input_fingerprint(conn, current) == source_fingerprint:
+                for previous, values in refreshed:
+                    crop = one(conn, 'evidence_crops', previous['id'])
+                    if crop and crop['source_hash'] == previous['source_hash'] and crop.get('masks_json') == previous.get('masks_json'):
+                        change(conn, 'evidence_crops', crop['id'], **values)
     skipped_files, per_file_warnings = [], []
     for item in file_results:
         file_pages = [page for page in pages if page["file_id"] == item["file_id"]]
@@ -1581,13 +1751,16 @@ def run_ocr(application_id: str, user: dict, progress=None, _config: dict | None
     return {**common, "status": "SUCCEEDED" if text_pages else "MANUAL_REQUIRED", "partial": partial, "stopped": stopped, "stop_reason": stop_reason, **stop_info,
             "planned_tasks": total, "completed_tasks": done, "native_text_page_count": sum(len(item["native_pages"]) for item in file_results),
             "skipped_files": skipped_files, "manual_required_files": skipped_files, "file_results": file_results, "processed_files": [item for item in file_results if item["processed_page_count"]], "processed_page_ids": [page["id"] for page in pages if page["id"] in text_pages], "per_file_warnings": per_file_warnings,
-            "run_ids": list(dict.fromkeys(run["id"] for run in ocr_runs)), "suggested_crops": evidence, "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": ("已取得可用文字，部分页面或印章仍需人工核对。" if partial else "文字识别已完成，请核对原页定位；识别结果不作为材料真实性结论。") if text_pages else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
+            "run_ids": list(dict.fromkeys(run["id"] for run in ocr_runs)), "suggested_crops": evidence,
+            "evidence_context_fingerprint": evidence_fingerprint,
+            "missing_validity": missing, "warnings": list(dict.fromkeys(warnings)), "message": ("已取得可用文字，部分页面或印章仍需人工核对。" if partial else "文字识别已完成，请核对原页定位；识别结果不作为材料真实性结论。") if text_pages else "未取得可供分析的文字，可手动填写、计分和框选证明。"}
 
 
 def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_fingerprint=None, on_applied=None, expected_ocr_fingerprint=None) -> dict:
     """Apply evidence only after the worker rechecks the exact immutable input snapshot."""
     from .submissions import assert_confirmed
-    with db.write() as conn:
+
+    def validate(conn):
         context, revision = _editable(conn, application_id, user)
         assert_confirmed(conn, application_id)
         fingerprint = revision_fingerprint(conn, revision)
@@ -1598,6 +1771,20 @@ def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_f
             valid_input = fingerprint == expected
         if result.get("input_revision_id") != revision["id"] or not valid_input:
             raise HTTPException(409, "OCR期间材料或内容已变动，建议保留但不会覆盖现稿。")
+        return context, revision, fingerprint
+
+    _check_background_control()
+    with db.write() as conn:
+        context, revision, _ = validate(conn)
+    with db.read() as conn:
+        suggestions = _result_evidence(conn, context, revision, result)
+        context_fingerprint = _evidence_context_fingerprint(conn, context, revision)
+        prepared = _prepare_evidence_assets(conn, revision, suggestions)
+    _check_background_control()
+    with db.write() as conn:
+        context, revision, fingerprint = validate(conn)
+        if context_fingerprint != _evidence_context_fingerprint(conn, context, revision):
+            raise HTTPException(409, '识别证据准备期间材料或账户信息已变化，请重新核对')
         existing = rows(conn, "evidence_crops", revision_id=revision["id"])
         if (revision.get("payload_json") or {}).get("evidence_manually_edited") or any(crop["source"] == "STUDENT" for crop in existing):
             if on_applied:
@@ -1606,7 +1793,7 @@ def apply_ocr_evidence(application_id: str, user: dict, result: dict, expected_f
         for crop in existing:
             if crop["source"] == "AI":
                 conn.execute(delete(tables["evidence_crops"]).where(tables["evidence_crops"].c.id == crop["id"]))
-        _apply_evidence(conn, revision, _result_evidence(conn, context, revision, result))
+        _apply_evidence(conn, revision, suggestions, prepared_assets=prepared)
         _touch(conn, context["application"])
         updated = one(conn, "application_revisions", revision["id"])
         after_fingerprint = revision_fingerprint(conn, updated)
@@ -1625,7 +1812,7 @@ def _mark_manual_evidence(conn, revision: dict):
     change(conn, "application_revisions", revision["id"], payload_json=payload)
 
 
-def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
+def _apply_evidence(conn, revision: dict, suggestions: list, prepared_assets=None) -> None:
     if revision.get("content_frozen_at"):
         return
     suggestions = _last_seal_suggestions(conn, suggestions)
@@ -1698,8 +1885,14 @@ def _apply_evidence(conn, revision: dict, suggestions: list) -> None:
             # A newly found exact number may share the old name crop's bounds.
             # Rebuild that automatic working image so its red frames update.
             existing.remove(duplicate)
-        metadata = {key: item[key] for key in ("file_name", "page_number", "highlights", "other_matches", "validity_kind", "layout_version", "origin", "participation_role", "outcome_kind", "outcome_value", "outcome_text", "result_association") if key in item}
-        crop = create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"), metadata=metadata)
+        metadata = _evidence_metadata(item)
+        asset = None
+        if prepared_assets is not None:
+            box, masks, normalized = _crop_inputs(conn, page, item['evidence_type'], item['box'], [], metadata)
+            asset = prepared_assets.get(_crop_asset_key(page, item['evidence_type'], box, masks, normalized))
+            if asset is None:
+                raise HTTPException(409, '证据截图准备结果已变化，请重新核对')
+        crop = create_crop(conn, revision, page, item["evidence_type"], item["box"], source="AI", region_id=item.get("region_id"), metadata=metadata, prepared=asset)
         if item["evidence_type"] == "PARTICIPATION":
             existing = [value for value in existing if value["evidence_type"] != "PARTICIPATION" or (((value.get("masks_json") or {}).get("evidence", {}).get("participation_role") or "PRIMARY") != (item.get("participation_role") or "PRIMARY"))]
         existing.append(crop)
@@ -1808,7 +2001,30 @@ def _safe_ai_diagnostics(value):
     return result
 
 
+def _ai_response_cache(fingerprint, prompt_version, suggestion=None):
+    scope = getattr(_OCR_SCOPE, 'job', None)
+    if not scope:
+        return None
+    key = hashlib.sha256(json.dumps([scope[0], fingerprint, prompt_version]).encode()).hexdigest()
+    path = asset_path(f'ai-response-cache/{key}.json')
+    if suggestion is None:
+        try:
+            envelope = json.loads(path.read_text(encoding='utf-8'))
+            if envelope.get('fingerprint') == fingerprint and envelope.get('job_id') == scope[0] and isinstance(envelope.get('suggestion'), dict):
+                return envelope['suggestion']
+        except (OSError, ValueError, AttributeError):
+            pass
+        return None
+    if isinstance(suggestion, dict):
+        import os
+        path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = path.with_name(f'{key}.{uid()}.tmp')
+        temporary.write_text(json.dumps({'job_id': scope[0], 'fingerprint': fingerprint, 'suggestion': suggestion}, ensure_ascii=False), encoding='utf-8')
+        os.replace(temporary, path)
+
+
 def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_result=None) -> dict:
+    _check_background_control(owner_id=user['id'])
     ocr = ocr_result if ocr_result is not None else run_ocr(application_id, user, progress, _config=config)
     if ocr["status"] != "SUCCEEDED":
         return ocr
@@ -1825,15 +2041,24 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v4-scoring-state", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
         if ocr.get("policy_version") not in (None, OCR_POLICY_VERSION):
             raise HTTPException(409, "OCR结果使用旧识别策略，请按当前策略重新排队。")
+    with db.read() as conn:
         texts, excerpt = _ai_material_excerpt(conn, ocr, context["student"], context["user"])
+        input_rows = []
         for index, page in enumerate(pages):
-            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=None, input_kind="PAGE", input_hash=page["render_sha256"], sort_order=index)
+            input_rows.append(dict(analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=None, input_kind="PAGE", input_hash=page["render_sha256"], sort_order=index))
         for index, run_id in enumerate(ocr["run_ids"]):
             run = one(conn, "recognition_runs", run_id)
             page = one(conn, "file_pages", run["page_id"])
-            add(conn, "analysis_inputs", analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index)
+            input_rows.append(dict(analysis_id=analysis["id"], file_id=page["file_id"], page_id=page["id"], recognition_run_id=run_id, input_kind="OCR", input_hash=run["parameters_hash"], sort_order=len(pages) + index))
         activities = retrieve_activity_candidates(conn, texts, context['category']['id'], context['year']['id'],
             limit=30, current_activity_id=revision.get('activity_id')) if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'} else []
+    _check_background_control()
+    with db.write() as conn:
+        current = one(conn, 'application_revisions', revision['id'])
+        if not current or revision_fingerprint(conn, current) != ocr['input_fingerprint']:
+            raise HTTPException(409, 'AI材料准备期间内容已变动，保留当前稿')
+        if input_rows:
+            conn.execute(tables['analysis_inputs'].insert(), [dict(id=uid(), **values) for values in input_rows])
     from .outcome_evidence import linked_outcome
     with db.read() as conn:
         outcome = linked_outcome(conn, pages, context["student"], context["user"], context["class"]["name"], automatic=True)
@@ -1846,8 +2071,12 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
     if progress:
         progress("AI整理具体活动与分值", 0, 1)
     prompt_context = {"category": context["category"]["name"], "category_code": context["category"]["code"], "category_cap": str(context["category"]["default_cap"]), "academic_year": context["year"]["name"], "student": {"name": context["user"]["display_name"], "class": context["class"]["name"]}, "scoring_rules": rule.get("rules_json") or {}, "activity_catalog": activities, "context_excerpt": excerpt, "linked_outcome": {"status": outcome.get("status"), "facts": outcome.get("facts") or {}, "is_roster": bool(outcome.get("is_roster"))}, "untrusted_materials": texts}
+    _check_background_control(owner_id=user['id'])
     try:
-        suggestion = deepseek_suggestion(prompt_context, config)
+        suggestion = _ai_response_cache(ocr['input_fingerprint'], analysis['prompt_version'])
+        if suggestion is None:
+            suggestion = deepseek_suggestion(prompt_context, config)
+            _ai_response_cache(ocr['input_fingerprint'], analysis['prompt_version'], suggestion)
         if not isinstance(suggestion, dict):
             raise ProviderError("OutputFormatError", "DeepSeek条目格式错误（需要JSON对象）；OCR结果已保留。")
         diagnostics = _safe_ai_diagnostics(suggestion.pop("_provider_diagnostics", {}))
@@ -1905,15 +2134,14 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         return {**metadata, "status": "MANUAL_REQUIRED", "error_code": error_code, "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "FAILED"}, "message": message, "warnings": list(dict.fromkeys(warnings)), "suggested_crops": evidence}
     with db.write() as conn:
         change(conn, "ai_analyses", analysis["id"], status="SUCCEEDED", suggested_title=suggestion["title"], suggested_score=score, suggested_activity_id=activity_id, result_json={**metadata, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings))})
-    if progress:
-        progress("AI分析完成", 1, 1)
     return {**metadata, "status": "SUCCEEDED", "input_revision_id": revision["id"], "input_fingerprint": ocr["input_fingerprint"], "analysis_id": analysis["id"], "analysis": {"id": analysis["id"], "status": "SUCCEEDED", "input_revision_id": revision["id"]}, "suggestion": suggestion, "warnings": list(dict.fromkeys(warnings)), "message": "分值保留当前稿；请核对本人结果、次数和计分依据。" if score_needs_review else ("已生成政策计分，请核对具体活动名称和证据。" if title_needs_review else "建议已生成；当前填写内容尚未改变。")}
 
 
 @router.post("/applications/{application_id}/apply-analysis")
 def apply_analysis(application_id: str, body: dict, user: dict = Depends(current_user)):
     from .workflow import application_detail
-    with db.write() as conn:
+
+    def validate(conn):
         if body.get('_background_job_id'):
             background = one(conn, 'background_jobs', body['_background_job_id'])
             if not background or background['application_id'] != application_id or background['owner_id'] != user['id'] or background['state'] != 'RUNNING' or background.get('worker_token') != body.get('_worker_token'):
@@ -1926,6 +2154,16 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
             raise HTTPException(400, "该分析记录不能应用。")
         if analysis["input_revision_id"] != revision["id"] or analysis["input_fingerprint"] != revision_fingerprint(conn, revision):
             raise HTTPException(409, "分析后内容或附件已变更，请重新分析；已有填写不会被覆盖。")
+        return context, revision, analysis
+
+    _check_background_control()
+    with db.write() as conn:
+        context, revision, analysis = validate(conn)
+    with db.read() as conn:
+        prepared = _prepare_evidence_assets(conn, revision, (analysis.get('result_json') or {}).get('suggestion', {}).get('suggested_crops', []))
+    _check_background_control()
+    with db.write() as conn:
+        context, revision, analysis = validate(conn)
         suggestion = (analysis.get("result_json") or {}).get("suggestion", {})
         incoming = dict(suggestion.get('payload_json') or {})
         if not incoming.get('result_label') and (revision.get('payload_json') or {}).get('result_label'):
@@ -1945,8 +2183,9 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
         if context['category']['code'] in {'RESEARCH', 'ARTS', 'POST'} and (not selected_activity or selected_activity['status'] != 'ACTIVE'):
             activity_id = None
         revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=amount, activity_id=activity_id, payload_json=payload, ai_analysis_id=analysis["id"])
-        _apply_evidence(conn, revision, suggestion.get("suggested_crops", []))
+        _apply_evidence(conn, revision, suggestion.get("suggested_crops", []), prepared_assets=prepared)
         _touch(conn, context["application"])
+    with db.read() as conn:
         return application_detail(conn, one(conn, "applications", application_id), user)
 
 

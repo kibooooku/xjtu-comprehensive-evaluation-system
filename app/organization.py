@@ -60,7 +60,12 @@ def login(data: dict, request: Request, response: Response):
 
 
 @router.post('/logout')
-def logout(response: Response):
+def logout(response: Response, request: Request):
+    user = resolve_session(request)
+    if user and user['base_identity'] == 'STUDENT':
+        from .jobs import pause_owner
+        with db.write() as conn:
+            pause_owner(conn, user['id'], 'LOGOUT')
     response.delete_cookie(COOKIE)
     return {'ok': True}
 
@@ -276,7 +281,7 @@ def user_entry(conn, person):
 def admin_users(user=Depends(current_user)):
     with db.read() as conn:
         require(conn, user, 'admin.users')
-        return [user_entry(conn, p) for p in db.rows(conn, 'users')]
+        return [user_entry(conn, p) for p in db.rows(conn, 'users') if p['status'] != 'DELETED']
 
 
 def bind_student(conn, person, class_id, actor, academic_year_id=None, initial=False):
@@ -352,7 +357,7 @@ def admin_update_user(user_id: str, data: dict, user=Depends(current_user)):
     with db.write() as conn:
         require(conn, user, 'admin.users')
         person = db.one(conn, 'users', user_id)
-        if not person:
+        if not person or person['status'] == 'DELETED':
             raise HTTPException(404, '账号不存在')
         if data.get('base_identity', person['base_identity']) != person['base_identity']:
             raise HTTPException(400, '基础身份互斥且不可原地转换，请建立对应新账号')
@@ -376,6 +381,12 @@ def admin_update_user(user_id: str, data: dict, user=Depends(current_user)):
         person = db.change(conn, 'users', user_id, **updates)
         ensure_staffing(conn)
         return user_entry(conn, person)
+
+
+@router.delete('/admin/users/{user_id}')
+def admin_delete_student(user_id: str, user=Depends(current_user)):
+    from .admin_account_deletion import delete_student_account
+    return delete_student_account(user_id, user)
 
 
 @router.post('/admin/import')

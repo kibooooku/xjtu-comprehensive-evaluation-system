@@ -1,0 +1,110 @@
+{
+  "source": "All APIs mocked; synthetic local files; no real business or cloud calls",
+  "checks": [
+    "顶部箭头统一收起上传及OCR/AI整块面板，轮询和站内切页保持单行",
+    "键盘可重新展开整个面板，上传和后台进度均恢复",
+    "暂停上传保留当前已返回文件，不启动下一附件或确认，也不把暂停当失败",
+    "迟到的旧心跳结果不能解除人工暂停",
+    "继续时复用已保存主文件，只传剩余附件，再确认一次",
+    "站内路由不发送暂停命令",
+    "真正离开文档发送带页面标识的keepalive暂停通知",
+    "退出登录先暂停服务端任务，再清会话"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "method": "POST",
+      "path": "/api/analysis-control/presence",
+      "body": {
+        "tab_id": "29ccc031-ee62-4107-8f30-7faee279d1d8",
+        "document_id": "5a85a664-fce7-4afe-96e3-b672f98b99ce",
+        "reload": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "paused-main.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analysis-control",
+      "body": {
+        "action": "pause",
+        "reason": "MANUAL"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analysis-control",
+      "body": {
+        "action": "resume",
+        "reason": "MANUAL"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "paused-supplement.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analysis-control/leave",
+      "body": {
+        "tab_id": "29ccc031-ee62-4107-8f30-7faee279d1d8",
+        "document_id": "5a85a664-fce7-4afe-96e3-b672f98b99ce"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analysis-control/presence",
+      "body": {
+        "tab_id": "29ccc031-ee62-4107-8f30-7faee279d1d8",
+        "document_id": "5a85a664-fce7-4afe-96e3-b672f98b99ce",
+        "reload": false
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/analysis-control",
+      "body": {
+        "action": "pause",
+        "reason": "LOGOUT"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/logout",
+      "body": {}
+    }
+  ],
+  "createdAt": "2026-10-26T15:19:45.333Z"
+}

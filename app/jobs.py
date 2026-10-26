@@ -2,26 +2,202 @@
 from __future__ import annotations
 import os
 import threading
+import time
+import re
+import logging
+import traceback
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import OperationalError
 from . import db
 from .limits import OCR_POLICY_VERSION
 from .migrations import active_year, assert_current_year, ensure_group
 from .security import current_user
 
 router = APIRouter(prefix='/api', tags=['background recognition'])
-ACTIVE = {'QUEUED', 'RUNNING'}
+ACTIVE = {'QUEUED', 'RUNNING', 'PAUSED'}
 OCR_FINGERPRINT_KIND = 'OCR_FILES_V1'
 WAITING_FOR_OCR = '等待OCR完成（原OCR任务继续执行）'
 OCR_START_STAGE = '检查材料与PDF文字层，可能需要一点时间'
 _workers = []
 OWNER_CONCURRENCY = {'OCR': 3, 'AI': 3}
 GLOBAL_CONCURRENCY = {'OCR': 12, 'AI': 12}
+PRESENCE_TTL_SECONDS = 45
+CONTROL_PREFIX = 'task_control:'
 
 
 class JobOwnershipLost(Exception):
     pass
+
+
+class JobPauseRequested(Exception):
+    pass
+
+
+def _control(conn, owner_id):
+    row = db.one(conn, 'system_settings', CONTROL_PREFIX + owner_id)
+    value = (row or {}).get('value_json')
+    return dict(value) if isinstance(value, dict) else {}
+
+
+def _save_control(conn, owner_id, value):
+    key = CONTROL_PREFIX + owner_id
+    existing = db.one(conn, 'system_settings', key)
+    previous = (existing or {}).get('value_json') or {}
+    revision = previous.get('revision', 0) if isinstance(previous, dict) else 0
+    value['revision'] = (revision if type(revision) is int else 0) + 1
+    if existing:
+        db.change(conn, 'system_settings', key, value_json=value, updated_at=db.now())
+    else:
+        db.add(conn, 'system_settings', id=key, value_json=value)
+
+
+def _live_tabs(control):
+    now = time.time()
+    return {key: value for key, value in (control.get('tabs') or {}).items()
+            if isinstance(value, dict) and isinstance(value.get('seen_at'), (int, float))
+            and now - value['seen_at'] < PRESENCE_TTL_SECONDS}
+
+
+def pause_owner(conn, owner_id, reason='MANUAL'):
+    """Keep in-flight ownership until the provider returns; block every next request."""
+    control = _control(conn, owner_id)
+    control.update(paused=True, reason=reason, paused_at=db.now())
+    _save_control(conn, owner_id, control)
+    for job in db.rows(conn, 'background_jobs', owner_id=owner_id):
+        if job['state'] not in ('QUEUED', 'RUNNING', 'PAUSED'):
+            continue
+        meta = {**(job.get('result_json') or {}), 'pause_requested': True}
+        if job['state'] == 'RUNNING':
+            db.change(conn, 'background_jobs', job['id'], stage='正在暂停，保留本次已发请求结果', result_json=meta)
+        else:
+            db.change(conn, 'background_jobs', job['id'], state='PAUSED', stage='已暂停，点击继续处理',
+                      worker_token=None, result_json=meta)
+    return control
+
+
+def resume_owner(conn, owner_id):
+    control = _control(conn, owner_id)
+    control.update(paused=False, reason='', resumed_at=db.now())
+    _save_control(conn, owner_id, control)
+    for job in db.rows(conn, 'background_jobs', owner_id=owner_id):
+        if job['state'] not in ACTIVE:
+            continue
+        meta = dict(job.get('result_json') or {})
+        meta.pop('pause_requested', None)
+        if job['state'] == 'PAUSED':
+            db.change(conn, 'background_jobs', job['id'], state='QUEUED', stage='继续处理，复用已完成结果',
+                      result_json=meta, worker_token=None, finished_at=None)
+        else:
+            db.change(conn, 'background_jobs', job['id'], result_json=meta)
+    return control
+
+
+def _job_paused(conn, job):
+    return bool((job.get('result_json') or {}).get('pause_requested') or _control(conn, job['owner_id']).get('paused'))
+
+
+def raise_if_pause_requested(job_id, worker_token):
+    with db.read() as conn:
+        job = db.one(conn, 'background_jobs', job_id)
+        if not job or job['state'] != 'RUNNING' or job.get('worker_token') != worker_token:
+            raise JobOwnershipLost()
+        if _job_paused(conn, job):
+            raise JobPauseRequested()
+
+
+def _expire_presence(conn):
+    for setting in db.rows(conn, 'system_settings'):
+        if not setting['id'].startswith(CONTROL_PREFIX):
+            continue
+        value = setting.get('value_json') or {}
+        if value.get('tracking') and not value.get('paused') and not _live_tabs(value):
+            pause_owner(conn, setting['id'][len(CONTROL_PREFIX):], 'CONNECTION_LOST')
+
+
+def _control_view(control):
+    return {'paused': bool(control.get('paused')), 'reason': control.get('reason') or '',
+            'revision': control.get('revision', 0),
+            'presence_ttl_seconds': PRESENCE_TTL_SECONDS}
+
+
+def _student_control_user(user):
+    if user['base_identity'] != 'STUDENT':
+        raise HTTPException(403, '仅学生管理本人上传和识别任务')
+
+
+def _active_control_user(conn, user):
+    current = db.one(conn, 'users', user['id'])
+    if not current or current['status'] != 'ACTIVE':
+        raise HTTPException(401, '账号已停用或删除，请重新登录')
+
+
+def _tab_id(body):
+    value = body.get('tab_id')
+    if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_-]{8,100}', value):
+        raise HTTPException(400, '页面标识无效')
+    return value
+
+
+@router.get('/analysis-control')
+def get_control(user=Depends(current_user)):
+    _student_control_user(user)
+    with db.read() as conn:
+        return _control_view(_control(conn, user['id']))
+
+
+@router.post('/analysis-control')
+def change_control(body: dict, user=Depends(current_user)):
+    _student_control_user(user)
+    with db.write() as conn:
+        _active_control_user(conn, user)
+        if body.get('action') == 'pause':
+            value = pause_owner(conn, user['id'], 'LOGOUT' if body.get('reason') == 'LOGOUT' else 'MANUAL')
+        elif body.get('action') == 'resume':
+            value = resume_owner(conn, user['id'])
+        else:
+            raise HTTPException(400, '请选择暂停或继续')
+        return _control_view(value)
+
+
+@router.post('/analysis-control/presence')
+def presence(body: dict, user=Depends(current_user)):
+    _student_control_user(user)
+    tab = _tab_id(body)
+    with db.write() as conn:
+        _active_control_user(conn, user)
+        value = _control(conn, user['id'])
+        tabs = _live_tabs(value)
+        document = str(body.get('document_id') or '')[:100]
+        tabs[tab] = {'seen_at': time.time(), 'document_id': document}
+        value.update(tracking=True, tabs=tabs)
+        _save_control(conn, user['id'], value)
+        if (body.get('reload') is True and value.get('reason') == 'PAGE_CLOSED'
+                and value.get('last_left_tab') == tab and time.time() - value.get('left_at', 0) < 15):
+            value = resume_owner(conn, user['id'])
+        return _control_view(value)
+
+
+@router.post('/analysis-control/leave')
+def leave(body: dict, user=Depends(current_user)):
+    _student_control_user(user)
+    tab = _tab_id(body)
+    with db.write() as conn:
+        _active_control_user(conn, user)
+        value = _control(conn, user['id'])
+        tabs = _live_tabs(value)
+        document = str(body.get('document_id') or '')[:100]
+        current = tabs.get(tab)
+        if current and current.get('document_id') != document:
+            return _control_view(value)  # A refreshed document already replaced this page.
+        tabs.pop(tab, None)
+        value.update(tracking=True, tabs=tabs, last_left_tab=tab, left_at=time.time())
+        _save_control(conn, user['id'], value)
+        if not tabs:
+            value = pause_owner(conn, user['id'], 'PAGE_CLOSED')
+        return _control_view(value)
 
 
 def _owns_job(conn, job_id, worker_token):
@@ -134,7 +310,7 @@ def _normalize_queued_ocr(conn, job):
 
 def _new_ocr(conn, application_id, user, revision, content_fingerprint, files_fingerprint, total, force=False):
     return db.add(conn, 'background_jobs', application_id=application_id, owner_id=user['id'], kind='OCR',
-                  state='QUEUED', stage='排队等待OCR', progress=0, total=total,
+                  state='PAUSED' if _control(conn, user['id']).get('paused') else 'QUEUED', stage='排队等待OCR', progress=0, total=total,
                   input_revision_id=revision['id'], input_fingerprint=files_fingerprint,
                   result_json={'auto_apply': not force and _pristine(conn, revision),
                                'auto_analyze': True,
@@ -156,7 +332,7 @@ def _matching_ocr(job, revision, content_fingerprint, files_fingerprint):
 
 def _new_ai(conn, application_id, user, revision, fingerprint, files_fingerprint, total, dependency, force=False, automatic=False):
     return db.add(conn, 'background_jobs', application_id=application_id, owner_id=user['id'], kind='AI',
-                  state='QUEUED', stage=WAITING_FOR_OCR if dependency['state'] in ACTIVE else '排队等待AI分析（OCR已完成）',
+                  state='PAUSED' if _control(conn, user['id']).get('paused') else 'QUEUED', stage=WAITING_FOR_OCR if dependency['state'] in ACTIVE else '排队等待AI分析（OCR已完成）',
                   progress=0, total=total, input_revision_id=revision['id'], input_fingerprint=fingerprint,
                   result_json={'auto_apply': not force and _pristine(conn, revision), 'automatic': automatic,
                                'policy_version': OCR_POLICY_VERSION, 'wait_for_ocr_job_id': dependency['id'],
@@ -276,7 +452,8 @@ def create_job(application_id: str, payload: dict, user=Depends(current_user)):
 def list_jobs(active_only: bool = False, user=Depends(current_user)):
     with db.read() as conn:
         result = [job_view(j) for j in db.rows(conn, 'background_jobs', owner_id=user['id']) if not active_only or j['state'] in ACTIVE]
-    return {'jobs': sorted(result, key=lambda j: j['created_at'], reverse=True)[:200]}
+        control = _control_view(_control(conn, user['id']))
+    return {'jobs': sorted(result, key=lambda j: j['created_at'], reverse=True)[:200], 'control': control}
 
 
 @router.get('/analysis-jobs/{job_id}')
@@ -427,6 +604,9 @@ def _claim_next(conn, worker_token, kind=None):
     for candidate in pending:
         if kind and candidate['kind'] != kind:
             continue
+        if _control(conn, candidate['owner_id']).get('paused'):
+            db.change(conn, 'background_jobs', candidate['id'], state='PAUSED', stage='已暂停，点击继续处理')
+            continue
         active_kind = [other for other in running if other['kind'] == candidate['kind']]
         if len(active_kind) >= GLOBAL_CONCURRENCY[candidate['kind']] or sum(other['owner_id'] == candidate['owner_id'] for other in active_kind) >= OWNER_CONCURRENCY[candidate['kind']]:
             continue
@@ -455,7 +635,9 @@ def _claim_next(conn, worker_token, kind=None):
 
 def _advance_waiting_ai(conn, ocr_job, before_fingerprint, after_fingerprint):
     """Called inside the crop transaction: no f0/f1 enqueue race can exist."""
-    for queued in db.rows(conn, 'background_jobs', application_id=ocr_job['application_id'], kind='AI', state='QUEUED'):
+    for queued in db.rows(conn, 'background_jobs', application_id=ocr_job['application_id'], kind='AI'):
+        if queued['state'] not in ('QUEUED', 'PAUSED'):
+            continue
         if not _policy_current(queued) or queued['input_revision_id'] != ocr_job['input_revision_id'] or queued['input_fingerprint'] != before_fingerprint:
             continue
         meta = dict(queued.get('result_json') or {})
@@ -464,7 +646,7 @@ def _advance_waiting_ai(conn, ocr_job, before_fingerprint, after_fingerprint):
         meta['wait_for_ocr_job_id'] = ocr_job['id']
         meta['ocr_input_fingerprint'] = ocr_job['input_fingerprint']
         db.change(conn, 'background_jobs', queued['id'], input_fingerprint=after_fingerprint,
-                  result_json=meta, stage=WAITING_FOR_OCR)
+                  result_json=meta, stage='已暂停，点击继续处理' if queued['state'] == 'PAUSED' else WAITING_FOR_OCR)
 
 
 def _ocr_result_for_ai(conn, job):
@@ -484,12 +666,50 @@ def _ocr_result_for_ai(conn, job):
     return result
 
 
+def _is_database_busy(error):
+    return isinstance(error, OperationalError) and any(word in str(error.orig).lower() for word in ('locked', 'busy'))
+
+
 def process_job(job_id, worker_token=None, stop_event=None):
+    recovery = {}
+    try:
+        _process_job(job_id, worker_token, stop_event, recovery)
+    except OperationalError as error:
+        if not _is_database_busy(error):
+            raise
+        # Preserve any already-returned provider result before asking for resume.
+        # Retrying a database transaction must never repeat the cloud request.
+        for attempt in range(30):
+            try:
+                with db.write() as conn:
+                    current = db.one(conn, 'background_jobs', job_id)
+                    if not current or current['state'] not in ('RUNNING', 'QUEUED'):
+                        return
+                    if current['state'] == 'RUNNING' and current.get('worker_token') != (worker_token or recovery.get('worker_token')):
+                        return
+                    pause_owner(conn, current['owner_id'], 'DATABASE_BUSY')
+                    metadata = dict(current.get('result_json') or {})
+                    if recovery.get('result') is not None:
+                        metadata.update(recovery['result'], completed_result=True)
+                    metadata.update(error_code='DatabaseBusy', error_source='DATABASE',
+                                    diagnostics={'exception_type': type(error).__name__})
+                    metadata.pop('active_file_ids', None)
+                    db.change(conn, 'background_jobs', job_id, state='PAUSED', stage='数据库繁忙，结果已保留；请继续处理',
+                              worker_token=None, result_json=metadata, error_message=None)
+                return
+            except OperationalError as retry_error:
+                if not _is_database_busy(retry_error):
+                    raise
+                time.sleep(min(.1 * (attempt + 1), 1))
+        logging.getLogger(__name__).error('Background result awaits database recovery; no cloud request was repeated')
+
+
+def _process_job(job_id, worker_token=None, stop_event=None, recovery=None):
     """Process one already-claimed job; callable directly by deterministic tests."""
     from . import materials
     with db.write() as conn:
         job = db.one(conn, 'background_jobs', job_id)
-        if not job or job['state'] not in ACTIVE:
+        if not job or job['state'] not in ACTIVE or job['state'] == 'PAUSED':
             return
         job = _normalize_queued_ocr(conn, job)
         job = _ensure_dependency(conn, job)
@@ -520,18 +740,26 @@ def process_job(job_id, worker_token=None, stop_event=None):
                             stage=OCR_START_STAGE if job['kind'] == 'OCR' else job['stage'],
                             heartbeat_at=db.now(), worker_token=worker_token, attempts=job['attempts'] + 1)
         ocr_result = _ocr_result_for_ai(conn, job) if job['kind'] == 'AI' else None
+        if recovery is not None:
+            recovery['worker_token'] = worker_token
 
     def progress(stage, done, total):
         with db.write() as conn:
             if not _owns_job(conn, job_id, worker_token):
                 raise JobOwnershipLost()
+            if _job_paused(conn, db.one(conn, 'background_jobs', job_id)):
+                raise JobPauseRequested()
             db.change(conn, 'background_jobs', job_id, stage=str(stage)[:150], progress=int(done), total=max(int(total), 1), heartbeat_at=db.now())
 
     try:
+        raise_if_pause_requested(job_id, worker_token)
         if stop_event and stop_event.is_set():
             raise materials.RecognitionInterrupted()
         manual_dependency = bool(job['kind'] == 'AI' and ocr_result is not None and ocr_result.get('status') == 'MANUAL_REQUIRED')
-        if job['kind'] == 'OCR':
+        if (job.get('result_json') or {}).get('completed_result'):
+            result = dict(job['result_json'])
+            result.pop('completed_result', None)
+        elif job['kind'] == 'OCR':
             with materials.ocr_job_scope(job_id, worker_token, stop_event):
                 result = materials.run_ocr(job['application_id'], user, progress)
         elif manual_dependency:
@@ -540,9 +768,13 @@ def process_job(job_id, worker_token=None, stop_event=None):
             result = {**ocr_result, 'status': 'MANUAL_REQUIRED', 'automatically_applied': False,
                       'message': ocr_result.get('message') or '材料缺少可用文字，请手动填写、计分和框选证明；AI未调用'}
         elif ocr_result is not None:
-            result = materials.run_ai(job['application_id'], user, progress, ocr_result=ocr_result)
+            with materials.ocr_job_scope(job_id, worker_token, stop_event):
+                result = materials.run_ai(job['application_id'], user, progress, ocr_result=ocr_result)
         else:
-            result = materials.run_ai(job['application_id'], user, progress)
+            with materials.ocr_job_scope(job_id, worker_token, stop_event):
+                result = materials.run_ai(job['application_id'], user, progress)
+        if recovery is not None:
+            recovery['result'] = result
         if job['kind'] == 'AI' and ocr_result is not None:
             # Model adapters must not erase partial-recognition notices.
             for field in ('manual_required_files', 'skipped_files', 'partial', 'planned_tasks', 'completed_tasks',
@@ -555,6 +787,21 @@ def process_job(job_id, worker_token=None, stop_event=None):
             if not _owns_job(conn, job_id, worker_token):
                 return
             valid = _snapshot_valid(conn, job)
+            paused = _job_paused(conn, db.one(conn, 'background_jobs', job_id))
+        if paused:
+            with db.write() as conn:
+                if not _owns_job(conn, job_id, worker_token):
+                    return
+                meta = {**(job.get('result_json') or {}), **result, 'completed_result': True}
+                meta.pop('active_file_ids', None)
+                db.change(conn, 'background_jobs', job_id, state='PAUSED', stage='已暂停，已返回结果保留',
+                          result_json=meta, worker_token=None, error_message=None)
+            return
+        with db.write() as conn:
+            if not _owns_job(conn, job_id, worker_token):
+                return
+            prepared = {**(job.get('result_json') or {}), **result, 'completed_result': True}
+            db.change(conn, 'background_jobs', job_id, result_json=prepared)
         manual = result.get('status') == 'MANUAL_REQUIRED' and (job['kind'] == 'OCR' or manual_dependency)
         succeeded = result.get('status') == 'SUCCEEDED' or manual
         output = {**(job.get('result_json') or {}), **result}
@@ -574,9 +821,12 @@ def process_job(job_id, worker_token=None, stop_event=None):
                 def on_applied(conn, before_fp, after_fp):
                     if not _owns_job(conn, job_id, worker_token):
                         raise JobOwnershipLost()
+                    if _job_paused(conn, db.one(conn, 'background_jobs', job_id)):
+                        raise JobPauseRequested()
                     _advance_waiting_ai(conn, job, before_fp, after_fp)
                 material_mode = (job.get('result_json') or {}).get('fingerprint_kind') == OCR_FINGERPRINT_KIND
-                applied = materials.apply_ocr_evidence(job['application_id'], user, result,
+                with materials.ocr_job_scope(job_id, worker_token, stop_event):
+                    applied = materials.apply_ocr_evidence(job['application_id'], user, result,
                                                      expected_fingerprint=None if material_mode else job['input_fingerprint'],
                                                      expected_ocr_fingerprint=job['input_fingerprint'] if material_mode else None,
                                                      on_applied=on_applied)
@@ -586,8 +836,9 @@ def process_job(job_id, worker_token=None, stop_event=None):
                     output['output_fingerprint'] = new_fingerprint
             elif not manual and output.get('auto_apply') and not job['force']:
                 analysis_id = result.get('analysis_id') or (result.get('analysis') or {}).get('id')
-                materials.apply_analysis(job['application_id'], {'analysis_id': analysis_id,
-                                        '_background_job_id': job_id, '_worker_token': worker_token}, user)
+                with materials.ocr_job_scope(job_id, worker_token, stop_event):
+                    materials.apply_analysis(job['application_id'], {'analysis_id': analysis_id,
+                                            '_background_job_id': job_id, '_worker_token': worker_token}, user)
                 output['automatically_applied'] = True
                 if (output.get('score_resolution') or {}).get('status') == 'NEEDS_REVIEW':
                     stage = '条目已提取，分值待核定'
@@ -618,6 +869,16 @@ def process_job(job_id, worker_token=None, stop_event=None):
                 _schedule_automatic_ai(conn, finished)
     except JobOwnershipLost:
         return
+    except JobPauseRequested:
+        with db.write() as conn:
+            if not _owns_job(conn, job_id, worker_token):
+                return
+            latest = db.one(conn, 'background_jobs', job_id)
+            metadata = {key: value for key, value in (latest.get('result_json') or {}).items() if key != 'active_file_ids'}
+            metadata['pause_requested'] = True
+            db.change(conn, 'background_jobs', job_id, state='PAUSED', stage='已暂停，点击继续处理',
+                      worker_token=None, result_json=metadata, error_message=None,
+                      attempts=max(0, latest['attempts'] - 1))
     except materials.RecognitionInterrupted:
         with db.write() as conn:
             if not _owns_job(conn, job_id, worker_token):
@@ -632,13 +893,21 @@ def process_job(job_id, worker_token=None, stop_event=None):
                 return
             db.change(conn, 'background_jobs', job_id, state='STALE' if error.status_code == 409 else 'FAILED',
                       stage='内容已变更' if error.status_code == 409 else '需要人工核对', error_message=str(error.detail)[:500], finished_at=db.now())
-    except Exception:
+    except OperationalError:
+        raise
+    except Exception as error:
         # Do not write exception reprs: provider exceptions can contain credentials/paths.
         with db.write() as conn:
             if not _owns_job(conn, job_id, worker_token):
                 return
+            latest = db.one(conn, 'background_jobs', job_id)
+            frames = traceback.extract_tb(error.__traceback__)[-6:]
+            diagnostic = {'exception_type': type(error).__name__,
+                          'locations': [{'file': Path(frame.filename).name, 'function': frame.name, 'line': frame.lineno}
+                                        for frame in frames]}
             db.change(conn, 'background_jobs', job_id, state='FAILED', stage='任务异常，可重试或手工填写',
-                      error_message='任务未能完成，已保留原文件和填写内容', finished_at=db.now())
+                      error_message='任务未能完成，已保留原文件和填写内容', finished_at=db.now(),
+                      result_json={**(latest.get('result_json') or {}), 'error_code': 'TaskError', 'diagnostics': diagnostic})
 
 
 def _process_alive(token):
@@ -716,17 +985,29 @@ class JobWorker:
             _workers.remove(self)
 
     def run(self):
+        next_presence_check = 0
         while not self.stop_event.is_set() and self.engine is db.engine:
             dispatched = False
-            for kind in ('OCR', 'AI'):
-                self.futures[kind] = {future for future in self.futures[kind] if not future.done()}
-                while len(self.futures[kind]) < GLOBAL_CONCURRENCY[kind] and not self.stop_event.is_set():
+            try:
+                if time.monotonic() >= next_presence_check:
                     with db.write() as conn:
-                        job = _claim_next(conn, self.token, kind)
-                    if not job:
-                        break
-                    self.futures[kind].add(self.executors[kind].submit(process_job, job['id'], self.token, self.stop_event))
-                    dispatched = True
+                        _expire_presence(conn)
+                    next_presence_check = time.monotonic() + 1
+                for kind in ('OCR', 'AI'):
+                    self.futures[kind] = {future for future in self.futures[kind] if not future.done()}
+                    while len(self.futures[kind]) < GLOBAL_CONCURRENCY[kind] and not self.stop_event.is_set():
+                        with db.write() as conn:
+                            job = _claim_next(conn, self.token, kind)
+                        if not job:
+                            break
+                        self.futures[kind].add(self.executors[kind].submit(process_job, job['id'], self.token, self.stop_event))
+                        dispatched = True
+            except OperationalError as error:
+                if not _is_database_busy(error):
+                    raise
+                # A transient writer must not kill the only queue dispatcher.
+                self.stop_event.wait(.25)
+                continue
             self.stop_event.wait(.04 if dispatched else .15)
 
 

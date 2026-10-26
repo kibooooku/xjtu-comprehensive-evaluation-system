@@ -15,11 +15,17 @@ from pathlib import Path
 import httpx
 from dotenv import dotenv_values
 from PIL import Image, UnidentifiedImageError
-from .limits import MAX_AUTOMATIC_OCR_PAGES
+from .limits import MAX_ATTACHMENT_BYTES, MAX_AUTOMATIC_OCR_PAGES
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 OCR_HOST = "ocr.tencentcloudapi.com"
 OCR_BASE64_BUDGET = 9_500_000
+OCR_IMAGE_BYTES_BUDGET = 6_800_000
+OCR_REQUEST_BYTES_BUDGET = 9_600_000
+OCR_MAX_IMAGE_SIDE = 6000
+OCR_MIN_IMAGE_SIDE = 20
+OCR_MAX_SOURCE_PIXELS = 36_000_000
+OCR_IMAGE_PREPROCESS_VERSION = 'jpeg-bounded-v2'
 
 
 class ProviderError(Exception):
@@ -134,13 +140,23 @@ def tencent_headers(action: str, payload: bytes, config: dict, timestamp: int | 
 
 
 def prepare_ocr_image(image: bytes) -> tuple[bytes, float, float]:
-    """Bound the provider copy only; source images and evidence coordinates stay original."""
-    if 4 * ((len(image) + 2) // 3) <= OCR_BASE64_BUDGET:
-        return image, 1.0, 1.0
+    """Every cloud request uses a bounded JPEG copy in the source pixel space.
+
+    Tencent currently documents a 10 MB base64 ceiling for both adapters. Keep
+    conservative independent binary/base64/JSON limits as well as an edge limit;
+    a small compressed PNG may still have an excessively long dimension.
+    """
+    def fits(data):
+        encoded_size = 4 * ((len(data) + 2) // 3)
+        return (len(data) <= OCR_IMAGE_BYTES_BUDGET and encoded_size <= OCR_BASE64_BUDGET
+                and encoded_size + 1024 <= OCR_REQUEST_BYTES_BUDGET)
+
     try:
+        if not image or len(image) > MAX_ATTACHMENT_BYTES:
+            raise ValueError('invalid source byte size')
         with Image.open(io.BytesIO(image)) as original:
             width, height = original.size
-            if width * height > 36_000_000:
+            if original.format not in ('PNG', 'JPEG', 'BMP') or min(width, height) < OCR_MIN_IMAGE_SIDE or width * height > OCR_MAX_SOURCE_PIXELS:
                 raise ValueError("oversized raster")
             if original.mode in ("RGBA", "LA") or "transparency" in original.info:
                 rgba = original.convert("RGBA")
@@ -148,22 +164,30 @@ def prepare_ocr_image(image: bytes) -> tuple[bytes, float, float]:
                 source.paste(rgba, mask=rgba.getchannel("A"))
             else:
                 source = original.convert("RGB")
-        # Try a high-quality JPEG at full resolution first. Most large rendered
-        # PNGs fit without resizing; subsequent scales are a bounded fallback.
-        for scale in (1.0, .85, .70, .55, .40):
-            size = (max(1, round(width * scale)), max(1, round(height * scale)))
-            if scale != 1.0 and min(size) < 600:
+        # Keep full text resolution whenever quality compression alone fits.
+        # All fallback work happens locally, before the single provider request.
+        edge_scale = min(1.0, OCR_MAX_IMAGE_SIDE / max(width, height))
+        previous_size = None
+        for fallback in (1.0, .85, .70, .55, .40, .28, .20, .14, .10, .07, .05, .035, .025, .0175, .01):
+            size = (max(1, round(width * edge_scale * fallback)), max(1, round(height * edge_scale * fallback)))
+            if min(size) < OCR_MIN_IMAGE_SIDE:
                 break
-            raster = source if scale == 1.0 else source.resize(size, Image.Resampling.LANCZOS)
-            for quality in (96, 92, 86, 80):
+            if size == previous_size:
+                continue
+            previous_size = size
+            raster = source if size == source.size else source.resize(size, Image.Resampling.LANCZOS)
+            for quality in (96, 92, 86, 80, 72):
                 output = io.BytesIO()
-                raster.save(output, format="JPEG", quality=quality, subsampling=0, optimize=True)
+                # libjpeg's optimize buffer can fail on large high-entropy RGB
+                # pages ("Suspension not allowed here"). Standard encoding has
+                # bounded memory and works safely across concurrent requests.
+                raster.save(output, format="JPEG", quality=quality, subsampling=0, optimize=False)
                 data = output.getvalue()
-                if 4 * ((len(data) + 2) // 3) <= OCR_BASE64_BUDGET:
+                if fits(data):
                     return data, width / size[0], height / size[1]
     except (OSError, ValueError, UnidentifiedImageError, Image.DecompressionBombError):
         pass
-    raise ProviderError("ImageTooLarge", "此页压缩后仍超过 OCR 请求上限，请手动填写和截图。")
+    raise ProviderError("ImageTooLarge", "此页无法在安全尺寸和请求上限内生成识别副本，请手动填写和框选；原件已保留。")
 
 
 def _original_ocr_coordinates(value, scale_x: float, scale_y: float):
@@ -186,11 +210,14 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
         raise ProviderError("UnsupportedAction", "不支持的识别接口。")
     if not config["secret_id"] or not config["secret_key"]:
         raise ProviderError("NotConfigured", "腾讯云 OCR 密钥未配置，可以手动填写和截图。")
+    source_bytes = len(image)
     image, scale_x, scale_y = prepare_ocr_image(image)
     parameters = {"ImageBase64": base64.b64encode(image).decode("ascii")}
     if action == "GeneralAccurateOCR":
         parameters["IsWords"] = True  # Original per-character coordinates support precise identity outlines.
     payload = json.dumps(parameters, separators=(",", ":")).encode()
+    if len(image) > OCR_IMAGE_BYTES_BUDGET or len(parameters['ImageBase64']) > OCR_BASE64_BUDGET or len(payload) > OCR_REQUEST_BYTES_BUDGET:
+        raise ProviderError('ImageTooLarge', '识别副本超过请求上限，未调用云服务；原件已保留。')
     try:
         with httpx.Client(timeout=httpx.Timeout(45.0, connect=10.0), follow_redirects=False) as client:
             result = client.post(f"https://{OCR_HOST}/", content=payload, headers=tencent_headers(action, payload, config))
@@ -213,7 +240,11 @@ def tencent_ocr(action: str, image: bytes, config: dict | None = None) -> dict:
         else:
             message = f"腾讯云 OCR 未成功（{safe_code}），可以手动继续。"
         raise ProviderError(safe_code, message)
-    return _original_ocr_coordinates(data, scale_x, scale_y) if (scale_x, scale_y) != (1.0, 1.0) else data
+    result = _original_ocr_coordinates(data, scale_x, scale_y) if (scale_x, scale_y) != (1.0, 1.0) else data
+    result['_image_preprocess'] = {'version': OCR_IMAGE_PREPROCESS_VERSION, 'source_bytes': source_bytes,
+                                   'image_bytes': len(image), 'base64_bytes': len(parameters['ImageBase64']),
+                                   'scale_x': scale_x, 'scale_y': scale_y}
+    return result
 
 
 def _suggestion_json(content: str) -> tuple[dict, dict]:

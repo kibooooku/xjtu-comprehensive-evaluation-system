@@ -4,7 +4,48 @@
  * This file owns the upload-first, multi-item workspace and persistent job UI. */
 Object.assign(S,{submissions:[],expandedSubmission:null,selectedItem:null,checkedItems:new Set(),jobs:[],jobTimer:null,jobSignature:'',completedJobKeys:new Set(),jobsLoaded:false,comparisonRequest:0,workspaceDirty:false,workspaceScoreTouched:false,workspaceFormVersion:null,workspaceFormBasis:null,workspaceFormEdits:0,historyYear:'',reviewYear:'',uploadGroups:[]});
 const activeYear=()=>S.boot?.active_year || S.boot?.current_year || S.boot?.years?.[0];
-Object.assign(S,{uploadBatches:[],uploadWorkers:0,uploadQueueExpanded:true});
+Object.assign(S,{uploadBatches:[],uploadWorkers:0,uploadQueueExpanded:true,jobsDockCollapsed:false,tasksPaused:false,taskControlEnabled:false,presenceTimer:null,presenceOwner:null,taskControlRevision:0,taskControlPending:false,taskControlRequest:0});
+const taskDocumentId=crypto.randomUUID();
+const taskNavigationReload=performance.getEntriesByType('navigation')[0]?.type==='reload';
+let taskTabId;
+try{taskTabId=taskNavigationReload&&sessionStorage.getItem('evaluation-task-tab')||crypto.randomUUID();sessionStorage.setItem('evaluation-task-tab',taskTabId);}catch{taskTabId=crypto.randomUUID();}
+class UploadPaused extends Error{}
+function markLocalTaskControl(paused){for(const batch of uploadBatchVisible()){batch.pauseRequested=paused;if(paused&&batch.state==='QUEUED'){batch.state='PAUSED';for(const item of batch.items)if(!item.confirmed){item.state='PAUSED';item.stage='已暂停，点击继续处理';}}}}
+function syncTaskControl(control){
+  if(!control||typeof control.paused!=='boolean')return;
+  if(S.taskControlPending||typeof control.revision==='number'&&control.revision<S.taskControlRevision)return;
+  if(typeof control.revision==='number')S.taskControlRevision=control.revision;
+  S.taskControlEnabled=true;const changed=S.tasksPaused!==control.paused;S.tasksPaused=control.paused;
+  markLocalTaskControl(S.tasksPaused);
+  if(changed&&!S.tasksPaused){for(const batch of uploadBatchVisible())if(batch.state==='PAUSED'){batch.state='QUEUED';batch.error='';}pumpUploadBatches();}
+}
+async function heartbeatTasks(reload=false){
+  const owner=S.user?.id;if(!owner||!isStudent()||!S.taskControlEnabled)return;
+  try{const control=await api('/analysis-control/presence',{method:'POST',body:{tab_id:taskTabId,document_id:taskDocumentId,reload}});if(S.user?.id===owner){syncTaskControl(control);drawJobs();}}catch{}
+}
+function startTaskPresence(){
+  if(!S.taskControlEnabled||S.presenceOwner===S.user?.id)return;
+  if(S.presenceTimer)clearInterval(S.presenceTimer);S.presenceOwner=S.user?.id;
+  heartbeatTasks(taskNavigationReload);S.presenceTimer=setInterval(()=>heartbeatTasks(),10000);
+}
+async function setTasksPaused(paused,reason='MANUAL'){
+  if(!isStudent())return;
+  const owner=S.user.id,operation=++S.taskControlRequest;S.taskControlPending=true;if(paused){S.tasksPaused=true;markLocalTaskControl(true);}drawJobs();
+  let control;try{control=await api('/analysis-control',{method:'POST',body:{action:paused?'pause':'resume',reason}});}finally{if(operation===S.taskControlRequest)S.taskControlPending=false;}
+  if(S.user?.id!==owner||operation!==S.taskControlRequest)return;syncTaskControl(control);
+  if(!paused){for(const batch of uploadBatchVisible())if(batch.state==='PAUSED'){batch.state='QUEUED';batch.error='';}pumpUploadBatches();}
+  await pollJobs();drawJobs();
+}
+async function pauseBeforeLogout(){
+  if(S.user&&isStudent())await setTasksPaused(true,'LOGOUT');
+  if(S.presenceTimer)clearInterval(S.presenceTimer);S.presenceTimer=null;S.presenceOwner=null;
+}
+window.addEventListener('pagehide',()=>{
+  if(!S.user||!isStudent()||!S.taskControlEnabled)return;
+  S.tasksPaused=true;
+  fetch('/api/analysis-control/leave',{method:'POST',credentials:'same-origin',keepalive:true,headers:{'Content-Type':'application/json','X-CSRF-Token':S.csrf},body:JSON.stringify({tab_id:taskTabId,document_id:taskDocumentId})}).catch(()=>{});
+});
+function setJobsDockCollapsed(collapsed){S.jobsDockCollapsed=collapsed;if(!collapsed)$('#jobs-list')?.classList.remove('hidden');drawJobs();}
 const itemState=i=>i.state || i.round?.state || 'DRAFT';
 const itemEditable=i=>['DRAFT','REJECTED','WITHDRAWN'].includes(itemState(i));
 const groupItems=g=>g?.items||[];
@@ -115,6 +156,8 @@ const materialStates={PENDING:{label:'待处理',color:''},PROCESSING:{label:'�
 function itemJobs(item,kind){const list=S.jobs.filter(j=>j.application_id===item?.id&&(!kind||j.kind===kind));if(item?.latest_job&&(!kind||item.latest_job.kind===kind)&&!list.some(j=>j.id===item.latest_job.id))list.push(item.latest_job);return list.sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||'')));}
 function elapsedText(job){const start=Date.parse(job?.started_at||''),end=job?.finished_at?Date.parse(job.finished_at):Date.now();if(!Number.isFinite(start)||!Number.isFinite(end)||end<start)return '';const seconds=Math.floor((end-start)/1000);return '已耗时 '+(seconds<60?`${seconds}秒`:`${Math.floor(seconds/60)}分${seconds%60}秒`);}
 function processingPhase(job){
+  if(job?.state==='PAUSED')return {title:job.kind==='OCR'?'材料识别已暂停':'AI 分析已暂停',hint:'已保存结果保留，点击进度面板“继续处理”恢复。',paused:true};
+  if(job?.state==='RUNNING'&&job.result_json?.pause_requested)return {title:'正在暂停',hint:'保留当前已发请求的返回结果，随后停止，不再启动后续步骤。'};
   if(!job||!['QUEUED','RUNNING'].includes(job.state))return null;
   const waiting=waitingForOcr(job),progress=Number(job.total)>0?` ${Number(job.progress||0)}/${Number(job.total)}`:'';let title,hint;
   if(job.kind==='AI'){
@@ -154,6 +197,7 @@ function normalizeMaterialState(file=null,item=S.detail||S.workspaceItem||{},for
   const policy=forcedJob?policyJobResult(forcedJob):itemPolicyResult(item),detail=S.detail?.id===item.id?S.detail:item,crops=policyVisibleCrops(detail.crops||[],Boolean(detail.can_edit),detail.files||[]);
   const summary=detail.evidence_summary||item.evidence_summary||{},summarized=!Array.isArray(detail.crops),evidence={participation:crops.some(c=>c.evidence_type==='PARTICIPATION'&&c.participation_role!=='OUTCOME')||(summarized&&(summary.has_participation===true||summary.participation===true)),name:crops.some(c=>c.evidence_type==='VALIDITY'&&c.validity_kind==='NAME')||(summarized&&(summary.has_activity_name===true||summary.name===true)),time:crops.some(c=>c.evidence_type==='VALIDITY'&&c.validity_kind==='TIME')||(summarized&&(summary.has_activity_time===true||summary.time===true)),seal:crops.some(c=>c.evidence_type==='VALIDITY'&&c.validity_kind==='SEAL')||(summarized&&(summary.has_seal===true||summary.seal===true))};
   const result=(state,extra={})=>({...materialStates[state],state,busy:state==='PROCESSING',actions:[],...extra});
+  if(latest?.state==='PAUSED')return result('PENDING',{label:'已暂停',color:'warning',method:'材料识别已暂停',reason:'结果已保留，点击“继续处理”恢复。'});
   if(!file){
     const known=detail.files?.some(f=>f.page_count||f.pages?.length)?detail.files:(policy.file_results||[]).map(f=>({...f,id:f.file_id,original_name:f.file_name}));
     const files=known||[];
@@ -187,7 +231,7 @@ function normalizeMaterialState(file=null,item=S.detail||S.workspaceItem||{},for
 }
 function aiTask(item,forcedJob=null){
   const jobs=forcedJob?[forcedJob]:itemJobs(item,'AI'),job=jobs.find(j=>j.state==='RUNNING')||jobs.find(j=>j.state==='QUEUED')||jobs[0],phase=processingPhase(job),policy=policyJobResult(job),stop=ocrStopNotice(job);
-  if(phase)return {label:phase.title,color:'info',busy:true,description:phase.hint,phase};
+  if(phase)return {label:phase.title,color:phase.paused?'warning':'info',busy:!phase.paused,description:phase.hint,phase};
   if(job?.state==='FAILED')return {label:'分析异常',color:'danger',description:stop?.message||job.error_message||job.stage||'已有材料保留，可稍后重试。'};
   if(jobNeedsManual(job))return {label:'需手工填写',color:'warning',description:stop?.message||policy.message||'未得到可分析文字，AI未调用。'};
   if(policy.policy_expired)return {label:'请重新分析',color:'warning',description:'识别策略已更新，旧任务结果保留。'};
@@ -250,12 +294,13 @@ function setupWorkspaceShell(){
     const button=document.createElement('button');button.className='nav-item';button.dataset.action='v2-statistics-year';button.innerHTML=icon('calendar')+'<span>当前统计学年</span>';$('.nav-list')?.append(button);
   }
   const existing=$('#background-jobs');if(existing)existing.remove();
-  if(S.jobsOwner!==S.user?.id){S.jobs=[];S.jobsLoaded=false;S.completedJobKeys.clear();S.jobSignature='';S.jobsOwner=S.user?.id;S.submissions=[];S.workspaceItem=null;S.detail=null;S.selectedItem=null;S.expandedSubmission=null;S.workspaceDirty=false;S.workspaceScoreTouched=false;S.checkedItems.clear();S.comparisonRequest++;}
+  if(S.jobsOwner!==S.user?.id){if(S.presenceTimer)clearInterval(S.presenceTimer);S.presenceTimer=null;S.presenceOwner=null;S.taskControlEnabled=false;S.tasksPaused=false;S.taskControlRevision=0;S.taskControlPending=false;S.taskControlRequest++;S.jobs=[];S.jobsLoaded=false;S.completedJobKeys.clear();S.jobSignature='';S.jobsOwner=S.user?.id;S.submissions=[];S.workspaceItem=null;S.detail=null;S.selectedItem=null;S.expandedSubmission=null;S.workspaceDirty=false;S.workspaceScoreTouched=false;S.checkedItems.clear();S.comparisonRequest++;}
   if(isStudent()){
-    const bar=document.createElement('section');bar.id='background-jobs';bar.className='jobs-dock hidden';bar.setAttribute('aria-live','polite');bar.innerHTML='<div id="upload-batches"></div><div id="jobs-summary"></div><div id="jobs-list" class="jobs-list hidden"></div>';$('.shell')?.append(bar);
-    bar.addEventListener('click',e=>{const button=e.target.closest('[data-upload-action]');if(!button)return;const batch=S.uploadBatches.find(b=>b.id===button.dataset.batch&&b.ownerId===S.user?.id);if(button.dataset.uploadAction==='expand'){S.uploadQueueExpanded=!S.uploadQueueExpanded;drawJobs();}else if(button.dataset.uploadAction==='retry'&&batch&&batch.state==='FAILED'){batch.state='QUEUED';batch.error='';batch.items.filter(item=>!item.confirmed).forEach(item=>{item.state='QUEUED';item.error='';});pumpUploadBatches();drawJobs();}else if(button.dataset.uploadAction==='dismiss'&&batch&&batch.state==='COMPLETED'){S.uploadBatches=S.uploadBatches.filter(b=>b!==batch);drawJobs();}});
+    const bar=document.createElement('section');bar.id='background-jobs';bar.className='jobs-dock hidden';bar.setAttribute('aria-live','polite');bar.innerHTML='<div id="task-dock-head"></div><div id="upload-batches"></div><div id="jobs-summary"></div><div id="jobs-list" class="jobs-list hidden"></div>';$('.shell')?.append(bar);
+    bar.addEventListener('click',e=>{const button=e.target.closest('[data-upload-action]');if(!button)return;const batch=S.uploadBatches.find(b=>b.id===button.dataset.batch&&b.ownerId===S.user?.id);if(button.dataset.uploadAction==='expand'){setJobsDockCollapsed(!S.jobsDockCollapsed);}else if(button.dataset.uploadAction==='retry'&&batch&&batch.state==='FAILED'){batch.state='QUEUED';batch.error='';batch.items.filter(item=>!item.confirmed).forEach(item=>{item.state='QUEUED';item.error='';});pumpUploadBatches();drawJobs();}else if(button.dataset.uploadAction==='dismiss'&&batch&&batch.state==='COMPLETED'){S.uploadBatches=S.uploadBatches.filter(b=>b!==batch);drawJobs();}});
     bar.addEventListener('click',e=>{const button=e.target.closest('[data-upload-action="discard"]');if(!button)return;const batch=S.uploadBatches.find(value=>value.id===button.dataset.batch&&value.ownerId===S.user?.id&&value.state==='FAILED');if(batch&&window.confirm('放弃这批未完成的本地上传？已上传确认的小项会保留，未完成项不会正式申报。')){batch.items.forEach(item=>item.files=[]);S.uploadBatches=S.uploadBatches.filter(value=>value!==batch);drawJobs();}});
-    bar.onclick=e=>{const button=e.target.closest('[data-job-action]');if(!button)return;if(button.dataset.jobAction==='expand')$('#jobs-list').classList.toggle('hidden');if(button.dataset.jobAction==='item')openJobItem(button.dataset.id);if(button.dataset.jobAction==='retry')enqueueItem(button.dataset.id,button.dataset.kind,true).catch(err=>toast(err.message,true));};
+    bar.addEventListener('click',e=>{const button=e.target.closest('[data-dock-action]');if(!button)return;if(button.dataset.dockAction==='toggle')setJobsDockCollapsed(!S.jobsDockCollapsed);else buttonTask(button,()=>setTasksPaused(button.dataset.dockAction==='pause'));});
+    bar.onclick=e=>{const button=e.target.closest('[data-job-action]');if(!button)return;if(button.dataset.jobAction==='expand'){if(S.jobsDockCollapsed)setJobsDockCollapsed(false);else $('#jobs-list').classList.toggle('hidden');}if(button.dataset.jobAction==='item')openJobItem(button.dataset.id);if(button.dataset.jobAction==='retry')enqueueItem(button.dataset.id,button.dataset.kind,true).catch(err=>toast(err.message,true));};
   }
   if(S.jobTimer)clearInterval(S.jobTimer);S.jobTimer=null;
   if(isStudent()){pollJobs(true);S.jobTimer=setInterval(()=>pollJobs(),2200);}
@@ -266,7 +311,8 @@ async function pollJobs(){
   const requestOwnerId=S.user.id;
   try{
     const response=await api('/analysis-jobs?active_only=false');if(S.user?.id!==requestOwnerId)return;
-    const jobs=arr(response.jobs||response),completed=[];
+    if(typeof response.control?.revision==='number'&&response.control.revision<S.taskControlRevision)return;
+    syncTaskControl(response.control);startTaskPresence();const jobs=arr(response.jobs||response),completed=[];
     for(const job of jobs){if(!['SUCCEEDED','FAILED','STALE'].includes(job.state))continue;const key=job.id+':'+job.state+':'+(job.finished_at||'');if(!S.completedJobKeys.has(key)){if(S.jobsLoaded)completed.push({key,id:job.application_id});else S.completedJobKeys.add(key);}}
     const signature=JSON.stringify(jobs.map(j=>[j.id,j.state,j.progress,j.stage,j.finished_at]));
     S.jobs=jobs.sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at)));S.jobSignature=signature;drawJobs();
@@ -278,13 +324,16 @@ async function pollJobs(){
 }
 function drawJobs(){
   const bar=$('#background-jobs');if(!bar)return;
+  bar.classList.toggle('is-collapsed',S.jobsDockCollapsed);
   const uploads=S.uploadBatches.filter(batch=>batch.ownerId===S.user?.id);drawUploadBatches(uploads);
   const active=S.jobs.filter(j=>['QUEUED','RUNNING'].includes(j.state)).sort((a,b)=>{const rank=j=>j.state==='RUNNING'?(j.kind==='OCR'?0:1):2;return rank(a)-rank(b)||String(b.created_at||'').localeCompare(String(a.created_at||''));});
-  const activeIds=new Set(active.map(j=>j.id)),recent=[...active,...S.jobs.filter(j=>!activeIds.has(j.id)).slice(0,6)];
+  const paused=S.jobs.filter(j=>j.state==='PAUSED'),activeIds=new Set([...active,...paused].map(j=>j.id)),recent=[...active,...paused,...S.jobs.filter(j=>!activeIds.has(j.id)).slice(0,6)];
   if(!recent.length&&!uploads.length){bar.classList.add('hidden');document.body.classList.remove('has-jobs');return;}
   bar.classList.remove('hidden');document.body.classList.add('has-jobs');
+  const total=active.length+uploads.filter(batch=>['QUEUED','RUNNING'].includes(batch.state)).length;
+  patchHtml($('#task-dock-head'),`<span class="row gap6">${icon('upload')}<strong>上传与识别${S.tasksPaused?' · 已暂停':total?` · ${total} 项处理中`:paused.length?' · 有暂停任务':' · 处理记录'}</strong></span><span class="row gap6"><button type="button" class="text-action" data-dock-action="${S.tasksPaused?'resume':'pause'}">${S.tasksPaused?'继续处理':'暂停全部'}</button><button type="button" class="icon-btn" data-dock-action="toggle" aria-label="${S.jobsDockCollapsed?'展开':'收起'}上传与识别进度" aria-expanded="${!S.jobsDockCollapsed}">${icon(S.jobsDockCollapsed?'chevron':'back')}</button></span>`);
   $('#jobs-summary').classList.toggle('hidden',!recent.length);if(!recent.length){$('#jobs-list').replaceChildren();return;}
-  patchHtml($('#jobs-summary'),`<button class="jobs-summary" data-job-action="expand"><span class="row gap6">${active.length?'<span class="tiny-spinner"></span>':icon('check')}<strong>${active.length?`${active.length} 个后台任务正在进行`:'后台任务已处理'}</strong><span class="muted small">切换页面或刷新后继续运行</span></span><span class="row gap6 small">查看进度 ${icon('chevron')}</span></button>${active.length?'<p class="jobs-busy-notice">识别完成后自动分析；每人最多同时识别3个文件、分析3个小项，其余排队。可切换页面，完成后自动更新。</p>':''}`);
+  patchHtml($('#jobs-summary'),`<button class="jobs-summary" data-job-action="expand"><span class="row gap6">${active.length?'<span class="tiny-spinner"></span>':icon('check')}<strong>${active.length?`${active.length} 个后台任务正在进行`:'后台任务已处理'}</strong><span class="muted small">站内切页继续；离站或退出暂停</span></span><span class="row gap6 small">查看进度 ${icon('chevron')}</span></button>${active.length?'<p class="jobs-busy-notice">识别完成后自动分析；每人最多同时识别3个文件、分析3个小项，其余排队。可切换页面，完成后自动更新。</p>':''}`);
   patchJobRows($('#jobs-list'),recent.map(j=>{const presentation=jobPresentation(j),errorText=ocrStopNotice(j)?.message||j.error_message;const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row" data-job-id="${esc(j.id)}" data-job-kind="${esc(j.kind)}"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(jobStage(j))}${elapsedText(j)?' · '+esc(elapsedText(j)):''}${j.state==='RUNNING'&&Number(j.total)>0?` · ${Number(j.progress||0)}/${Number(j.total)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)&&Number(j.total)>0?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${errorText?`<p class="small ${presentation.manual?'muted':'danger-text'} mt8">${esc(errorText)}</p>`:''}</div><span class="tag ${presentation.color}">${esc(presentation.label)}</span>${j.state==='FAILED'&&!presentation.manual?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join(''));
   refreshProcessingStatus();
 }
@@ -481,7 +530,7 @@ async function confirmOrganizedUpload(button){
   if(button.disabled)return;const category=$('#organizer-category').value;if(!category){modalError('请先选择加分类别。');return;}
   const groups=S.uploadGroups.filter(item=>!item.confirmed);if(!groups.length)return;button.disabled=true;
   const batch={id:crypto.randomUUID(),ownerId:S.user.id,yearId:activeYear()?.id,yearName:activeYear()?.name||'当前学年',categoryId:category,categoryName:S.boot.categories.find(item=>item.id===category)?.name||'加分材料',submissionId:S.uploadSubmissionId||null,state:'QUEUED',error:'',createdAt:new Date().toISOString(),items:groups.map(item=>({...item,files:[...item.files],fileNames:item.files.map(file=>file.name),totalFiles:item.files.length,uploaded:new Set(item.uploaded),state:'QUEUED',stage:'排队等待上传',error:'',confirmationAttempted:false}))};
-  S.uploadBatches.push(batch);S.uploadGroups=[];S.uploadSubmissionId=null;S.uploadQueueExpanded=true;closeModal();drawJobs();pumpUploadBatches();
+  S.uploadBatches.push(batch);markLocalTaskControl(S.tasksPaused);S.uploadGroups=[];S.uploadSubmissionId=null;S.uploadQueueExpanded=true;closeModal();drawJobs();pumpUploadBatches();
   toast('已加入后台上传，可继续选择其它大类。上传期间请保留此网站窗口。');
   if(S.view!=='applications'&&!S.workspaceDirty&&!$('#application-form'))await go('applications');
 }
@@ -494,13 +543,13 @@ function drawUploadBatches(batches=uploadBatchVisible()){
   const container=$('#upload-batches');if(!container)return;
   if(!batches.length){container.replaceChildren();container._renderedHtml='';return;}
   const active=batches.filter(batch=>['QUEUED','RUNNING'].includes(batch.state)).length,failed=batches.filter(batch=>batch.state==='FAILED').length;
-  const labels={QUEUED:'等待上传',RUNNING:'上传处理中',FAILED:'部分失败，可重试',COMPLETED:'上传已完成'};
-  patchHtml(container,`<div class="upload-queue-head"><button class="text-action" data-upload-action="expand">${active?'<span class="tiny-spinner"></span>':icon('upload')}<strong>文件上传${active?` · ${active} 批进行中`:failed?` · ${failed} 批待处理`:' · 已完成'}</strong>${icon('chevron')}</button></div>${S.uploadQueueExpanded?`<p class="upload-queue-note">可切换站内页面或继续上传其它类别。未完成的文件仍在本窗口上传，请勿刷新或关闭；已入队的识别任务在服务器继续运行。</p><div class="upload-queue-list">${batches.map(batch=>`<section class="upload-batch" data-upload-batch="${esc(batch.id)}"><div class="row between gap6"><strong>${esc(batch.categoryName)} <small>${esc(batch.yearName)}</small></strong><span class="tag ${batch.state==='FAILED'?'danger':batch.state==='COMPLETED'?'success':'info'}">${labels[batch.state]}</span></div><p class="small muted">${batch.items.filter(item=>item.confirmed).length}/${batch.items.length} 个小项已上传确认</p>${batch.items.map(item=>`<div class="upload-queue-item" data-upload-item="${esc(item.id)}"><span>${esc(item.fileNames[0]||'证明材料')}</span><small class="${item.state==='FAILED'?'danger-text':'muted'}">${esc(item.error||item.stage)}${item.totalFiles>1?` · ${item.uploaded.size}/${item.totalFiles} 份文件已保存`:''}</small>${item.warning?`<small class="warning-text">${esc(item.warning)}</small>`:''}</div>`).join('')}${batch.error?`<p class="small danger-text">${esc(batch.error)}</p>`:''}${batch.state==='FAILED'?`<div class="row gap6"><button class="btn sm" data-upload-action="retry" data-batch="${esc(batch.id)}">重试未完成项</button><button class="text-action" data-upload-action="discard" data-batch="${esc(batch.id)}">放弃未完成上传</button></div>`:batch.state==='COMPLETED'?`<button class="text-action" data-upload-action="dismiss" data-batch="${esc(batch.id)}">收起此批记录</button>`:''}</section>`).join('')}</div>`:''}`);
+  const labels={QUEUED:'等待上传',RUNNING:'上传处理中',PAUSED:'已暂停，可继续',FAILED:'部分失败，可重试',COMPLETED:'上传已完成'};
+  patchHtml(container,`<div class="upload-queue-head"><button class="text-action" data-upload-action="expand">${active?'<span class="tiny-spinner"></span>':icon('upload')}<strong>文件上传${active?` · ${active} 批进行中`:failed?` · ${failed} 批待处理`:' · 已完成'}</strong>${icon('chevron')}</button></div>${S.uploadQueueExpanded?`<p class="upload-queue-note">可切换站内页面或继续上传其它类别。退出登录或关闭网站会暂停任务；未上传文件需保留当前窗口，关闭后请重新选择。已保存文件和识别结果会保留。</p><div class="upload-queue-list">${batches.map(batch=>`<section class="upload-batch" data-upload-batch="${esc(batch.id)}"><div class="row between gap6"><strong>${esc(batch.categoryName)} <small>${esc(batch.yearName)}</small></strong><span class="tag ${batch.state==='FAILED'?'danger':batch.state==='COMPLETED'?'success':'info'}">${batch.pauseRequested&&batch.state==='RUNNING'?'正在暂停':labels[batch.state]}</span></div><p class="small muted">${batch.items.filter(item=>item.confirmed).length}/${batch.items.length} 个小项已上传确认</p>${batch.items.map(item=>`<div class="upload-queue-item" data-upload-item="${esc(item.id)}"><span>${esc(item.fileNames[0]||'证明材料')}</span><small class="${item.state==='FAILED'?'danger-text':'muted'}">${esc(item.error||item.stage)}${item.totalFiles>1?` · ${item.uploaded.size}/${item.totalFiles} 份文件已保存`:''}</small>${item.warning?`<small class="warning-text">${esc(item.warning)}</small>`:''}</div>`).join('')}${batch.error?`<p class="small danger-text">${esc(batch.error)}</p>`:''}${batch.state==='FAILED'?`<div class="row gap6"><button class="btn sm" data-upload-action="retry" data-batch="${esc(batch.id)}">重试未完成项</button><button class="text-action" data-upload-action="discard" data-batch="${esc(batch.id)}">放弃未完成上传</button></div>`:batch.state==='COMPLETED'?`<button class="text-action" data-upload-action="dismiss" data-batch="${esc(batch.id)}">收起此批记录</button>`:''}</section>`).join('')}</div>`:''}`);
 }
 
-function assertUploadOwner(batch){if(S.user?.id!==batch.ownerId||!isStudent())throw new Error('登录账号已变化，请用原账号重试此批上传。');}
+function assertUploadOwner(batch){if(batch.pauseRequested||S.user?.id===batch.ownerId&&S.tasksPaused)throw new UploadPaused('上传已暂停');if(S.user?.id!==batch.ownerId||!isStudent())throw new Error('登录账号已变化，请用原账号重试此批上传。');}
 function pumpUploadBatches(){
-  if(!isStudent())return;
+  if(!isStudent()||S.tasksPaused)return;
   while(S.uploadWorkers<2){const batch=S.uploadBatches.find(item=>item.ownerId===S.user.id&&item.state==='QUEUED');if(!batch)break;S.uploadWorkers++;batch.state='RUNNING';drawJobs();runUploadBatch(batch).finally(()=>{S.uploadWorkers--;drawJobs();pumpUploadBatches();});}
 }
 async function refreshUploadList(batch){
@@ -533,10 +582,10 @@ async function runUploadBatch(batch){
         if(response.ocr_errors?.length){item.warning='上传已完成，部分识别未能入队，请在小项中重试识别。';item.stage='上传完成';}
         if(S.user?.id===batch.ownerId){const jobs=response.jobs||[];S.jobs=[...jobs,...S.jobs.filter(job=>!jobs.some(value=>value.id===job.id))];drawJobs();}
         await refreshUploadList(batch);
-      }catch(error){item.state='FAILED';item.error=error.message;item.stage='上传未完成';drawJobs();if(S.user?.id!==batch.ownerId)throw error;}
+      }catch(error){if(error instanceof UploadPaused){item.state='PAUSED';item.stage='已暂停，已保存文件保留';throw error;}item.state='FAILED';item.error=error.message;item.stage='上传未完成';drawJobs();if(S.user?.id!==batch.ownerId)throw error;}
     }
     batch.state=batch.items.every(item=>item.confirmed)?'COMPLETED':'FAILED';
-  }catch(error){batch.state='FAILED';batch.error=error.message;for(const item of batch.items)if(!item.confirmed&&item.state!=='FAILED'){item.state='FAILED';item.error=error.message;}}
+  }catch(error){if(error instanceof UploadPaused){batch.state='PAUSED';batch.error='';}else{batch.state='FAILED';batch.error=error.message;for(const item of batch.items)if(!item.confirmed&&item.state!=='FAILED'){item.state='FAILED';item.error=error.message;}}}
   finally{drawJobs();if(batch.state==='COMPLETED'&&S.user?.id===batch.ownerId)toast(`${batch.categoryName}材料已上传完成，可在列表核对。`);}
 }
 

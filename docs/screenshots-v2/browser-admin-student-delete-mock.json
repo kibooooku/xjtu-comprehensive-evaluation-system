@@ -1,0 +1,25 @@
+{
+  "source": "All API calls mocked; no real accounts, files or cloud modified",
+  "checks": [
+    "管理员用户列表仅学生行显示删除入口，管理员及辅导员不显示",
+    "一次确认窗口明确姓名、登录账号及删除范围",
+    "取消删除不发写请求",
+    "学生编辑弹窗也有删除入口，进入同一个确认窗口",
+    "有在途任务时显示已暂停并等待的409说明，账号和同一确认窗口保留",
+    "等待后再次删除发送带CSRF的DELETE，完成后关闭窗口并更新账号列表",
+    "管理员及辅导员编辑窗口也不提供删除学生操作",
+    "学生身份无法通过直接调用前端函数打开删除窗口"
+  ],
+  "errors": [],
+  "deletions": [
+    {
+      "id": "delete-ui-student",
+      "csrf": "synthetic-csrf"
+    },
+    {
+      "id": "delete-ui-student",
+      "csrf": "synthetic-csrf"
+    }
+  ],
+  "createdAt": "2026-10-26T15:18:12.492Z"
+}

@@ -44,6 +44,7 @@
     "/api/submissions",
     "/api/applications/mock-item",
     "/api/analysis-jobs",
+    "/api/analysis-jobs",
     "/api/submissions",
     "/api/applications/mock-item",
     "/api/analysis-jobs",
@@ -60,5 +61,5 @@
     "/api/submissions",
     "/api/applications/mock-item"
   ],
-  "createdAt": "2026-10-26T13:36:50.015Z"
+  "createdAt": "2026-10-26T14:56:45.776Z"
 }

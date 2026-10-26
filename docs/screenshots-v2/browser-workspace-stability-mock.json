@@ -43,9 +43,9 @@
     "/api/applications/stability-item",
     "/api/analysis-jobs",
     "/api/applications/stability-item",
+    "/api/applications/stability-item",
+    "/api/applications/stability-item",
     "/api/analysis-jobs",
-    "/api/applications/stability-item",
-    "/api/applications/stability-item",
     "/api/applications/stability-item",
     "/api/analysis-jobs",
     "/api/submissions",
@@ -53,5 +53,5 @@
     "/api/submissions",
     "/api/analysis-jobs"
   ],
-  "createdAt": "2026-10-26T13:31:07.703Z"
+  "createdAt": "2026-10-26T15:23:11.792Z"
 }
