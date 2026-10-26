@@ -9,6 +9,8 @@ import re
 import unicodedata
 from decimal import Decimal, ROUND_HALF_UP
 
+from .award_scope import scope_levels
+
 
 POLICY_VERSION = "xjtu-2018-evidence-v1"
 FACT_KEYS = ("award_level", "award_grade", "competition_kind", "research_type", "project_level",
@@ -41,23 +43,7 @@ def _number(value):
 
 
 def _scope(text):
-    # 全国 in a competition brand is not evidence of winning its national round.
-    # Explicit provincial qualifiers beat neither another explicit national claim
-    # nor a contradictory attachment: those cases need human comparison.
-    patterns = {
-        "NATIONAL": r"全国(?:总)?决赛|国赛|国家级|国家[一二三特]等(?:级)?奖|全国[一二三特]等(?:级)?奖",
-        "PROVINCIAL": r"省级|省赛|省[一二三特]等(?:级)?奖|(?:省|北京|上海|天津|重庆|河北|山西|辽宁|吉林|黑龙江|江苏|浙江|安徽|福建|江西|山东|河南|湖北|湖南|广东|海南|四川|贵州|云南|陕西|甘肃|青海|内蒙古|广西|西藏|宁夏|新疆|香港|澳门|台湾)(?:省|市|自治区)?赛区",
-        "INTERNATIONAL": r"国际级|高水平国际|国际(?:总)?决赛|国际[一二三特]等(?:级)?奖",
-        "SCHOOL": r"校级|校赛|学校[一二三特]等(?:级)?奖",
-        "LOCAL_OR_INDUSTRY": r"地方行政部门级|行业级|企业级|学会级|协会级|市级竞赛|县级竞赛",
-    }
-    levels = {level for level, pattern in patterns.items() if re.search(pattern, text)}
-    # OCR may return wrapped certificate lines out of reading order. A national
-    # final's two explicit words still identify that round; a national brand
-    # without 总决赛 does not. Any provincial conflict remains unresolved.
-    if "全国" in text and "总决赛" in text:
-        levels.add("NATIONAL")
-    return _single(levels)
+    return _single(scope_levels(text))
 
 
 def _grade(text):

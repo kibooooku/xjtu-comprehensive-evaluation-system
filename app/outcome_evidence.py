@@ -12,6 +12,7 @@ from pathlib import Path
 from PIL import Image
 
 from . import db
+from .award_scope import PROVINCIAL_QUALIFIER, scope_levels as _scope_levels
 
 
 OUTCOMES = {
@@ -177,26 +178,6 @@ def _same_table_record(image, identity_box, grade_cell):
     return False
 
 
-_PROVINCES = r"(?:北京|天津|上海|重庆|河北|山西|辽宁|吉林|黑龙江|江苏|浙江|安徽|福建|江西|山东|河南|湖北|湖南|广东|海南|四川|贵州|云南|陕西|甘肃|青海|台湾|内蒙古|广西|西藏|宁夏|新疆)"
-
-
-def _scope_levels(text):
-    value = compact(text)
-    found = set()
-    for pattern, level in ((r"高水平国际|国际(?:级|赛|赛事|比赛|竞赛|总决赛|一等|二等|三等|特等)|世界(?:赛|大赛|比赛)", "INTERNATIONAL"),
-                           (r"国赛|国家(?:级|赛|一等|二等|三等|特等)|全国(?:总决赛|赛|大赛|竞赛|比赛|一等|二等|三等|特等)", "NATIONAL"),
-                           (r"省(?:级|赛|[一二三特]等(?:级)?奖)", "PROVINCIAL"),
-                           (r"校级|校赛|学校[一二三特]等(?:级)?奖", "SCHOOL"),
-                           (r"地方行政部门级|行业级|企业级|学会级|协会级|市级竞赛|县级竞赛", "LOCAL_OR_INDUSTRY")):
-        if re.search(pattern, value):
-            found.add(level)
-    if "全国" in value and "总决赛" in value:
-        found.add("NATIONAL")
-    if re.search(_PROVINCES + r"(?:省|市|自治区)?赛区", value):
-        found.add("PROVINCIAL")
-    return found
-
-
 def _scope(text):
     found = _scope_levels(text)
     return next(iter(found)) if len(found) == 1 else None
@@ -223,7 +204,7 @@ def _certificate_levels(regions):
     if "全国" in text and "总决赛" in text:
         levels.add("NATIONAL")
     for before, a in lines:
-        if not re.search(_PROVINCES + r"(?:省|市|自治区)?$", before):
+        if not re.search(PROVINCIAL_QUALIFIER + r"$", before):
             continue
         for after, b in lines:
             height = max(a[3], b[3])

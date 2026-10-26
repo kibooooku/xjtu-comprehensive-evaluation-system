@@ -224,6 +224,42 @@ def test_wrapped_provincial_certificate_uses_geometry_not_ocr_order(material_app
         assert suggestion["requested_score"] == "8.00" and policy["status"] == "RULE_APPLIED" and not warnings
 
 
+@pytest.mark.parametrize("reverse_order", [False, True])
+@pytest.mark.parametrize("event,region,prize,grade,category,score", [
+    ("大学生电子设计竞赛", "浙江省", "一等奖", "FIRST", "RESEARCH", "8.00"),
+    ("大学生创新设计大赛", "宁夏回族自治区", "二等奖", "SECOND", "RESEARCH", "6.00"),
+    ("大学生机械创新设计大赛", "新疆维吾尔自治区", "三等奖", "THIRD", "RESEARCH", "4.00"),
+    ("高校摄影艺术比赛", "广西壮族自治区", "二等奖", "SECOND", "ARTS", "3.50"),
+    ("大学生书法艺术大赛", "广东省", "一等奖", "FIRST", "ARTS", "4.00"),
+    ("大学生绘画艺术比赛", "香港特别行政区", "三等奖", "THIRD", "ARTS", "3.00"),
+])
+def test_generic_event_scope_grade_and_score_do_not_depend_on_certificate_filename(
+        material_app, reverse_order, event, region, prize, grade, category, score):
+    from app.policy_suggestions import normalize_policy_suggestion
+    _, login = material_app
+    # The same neutral fixture filename is used for every unrelated event.
+    _, context, _, pages = _input(login("student"))
+    lines = [("荣获" + event + "项目" + region, 100, 700),
+             ("赛区" + prize + "。", 100, 750)]
+    if reverse_order:
+        lines.reverse()
+    with db.write() as conn:
+        _line(conn, pages[0], context["user"]["display_name"], 100, 200)
+        for text, x, y in lines:
+            _line(conn, pages[0], text, x, y, height=24)
+        linked = _result(conn, context, pages)
+        assert linked["status"] == "MATCHED" and not linked["is_roster"]
+        assert linked["facts"] == {"award_grade": grade, "award_level": "PROVINCIAL"}
+        suggestion, policy, warnings = normalize_policy_suggestion(
+            category, [{"text": text} for text, _, _ in lines], {"requested_score": "0"},
+            {"requested_score": "10", "payload_json": {"award_level": "NATIONAL", "award_grade": "FIRST"}},
+            linked_outcome=linked)
+        assert policy["status"] == "RULE_APPLIED" and not warnings
+        assert suggestion["requested_score"] == score
+        assert suggestion["payload_json"]["award_level"] == "PROVINCIAL"
+        assert suggestion["payload_json"]["award_grade"] == grade
+
+
 @pytest.mark.parametrize("province_position,award_position", [((100, 650), (700, 650)), ((100, 650), (700, 690)), ((100, 650), (100, 1000))])
 def test_certificate_does_not_join_columns_or_distant_labels_into_provincial_scope(material_app, province_position, award_position):
     from app.policy_suggestions import normalize_policy_suggestion
