@@ -192,7 +192,7 @@ async function renderDashboard(seq){
 }
 
 function applicationTable(items){
-  return `<div class="table-wrap"><table><thead><tr><th>申请条目</th><th>加分类别</th><th>申请人</th><th>申报分值</th><th>审核状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody>${items.map(a=>`<tr><td class="title-cell"><div class="table-title">${esc(a.title || '未命名草稿')}</div><div class="table-sub">${esc(a.class_name || '')}${a.student_modified_score?' · 学生手动修改过计分':''}</div></td><td>${esc(a.category_name || S.boot.categories.find(c=>c.id===a.category_id)?.name || '—')}</td><td>${esc(a.student_name || a.display_name || S.user.display_name)}</td><td><span class="score-num">${fmt(a.requested_score)}</span><span class="small muted"> 分</span></td><td>${statusTag(a.state)}</td><td class="small muted">${date(a.updated_at || a.created_at)}</td><td><button class="text-action" data-action="detail" data-id="${esc(a.id)}">${S.view==='review'?'查看审核':'查看详情'}</button></td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>申请条目</th><th>加分类别</th><th>申请人</th><th>申报分值</th><th>审核状态</th><th>更新时间</th><th>操作</th></tr></thead><tbody>${items.map(a=>`<tr><td class="title-cell"><div class="table-title">${esc(a.title || '未命名草稿')}</div><div class="table-sub">${esc(a.class_name || '')}${a.student_modified_score?' · 学生手动修改过计分':''}</div></td><td>${esc(a.category_name || S.boot.categories.find(c=>c.id===a.category_id)?.name || '—')}</td><td>${esc(a.student_name || a.display_name || S.user.display_name)}</td><td>${typeof itemScoreHtml==='function'?itemScoreHtml(a):'<span class="score-num">'+fmt(a.requested_score)+'</span><span class="small muted"> 分</span>'}</td><td>${statusTag(a.state)}</td><td class="small muted">${date(a.updated_at || a.created_at)}</td><td><button class="text-action" data-action="detail" data-id="${esc(a.id)}">${S.view==='review'?'查看审核':'查看详情'}</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 async function renderApplications(seq){
   const scope=S.view==='applications'?'mine':S.view==='review'?'review':'class';S.applicationItems=arr(await api('/applications'+query({scope})));if(seq!==S.renderSequence)return;
@@ -210,18 +210,19 @@ function newApplicationModal(categoryId=''){
   $('#create-application').onclick=e=>buttonTask(e.currentTarget,async()=>{const form=$('#create-application-form');if(!form.reportValidity())return;const d=await api('/applications',{method:'POST',body:{year_id:form.year_id.value,category_id:form.category_id.value}});closeModal();await go('detail',{id:d.id,from:'applications'});});
 }
 
-const policyFactKeys=['award_level','award_grade','competition_kind','research_type','project_level','publication_level','author_rank','assessment_result','position_tier','tenure_months','practice_type','volunteer_hours','record_level','recognition_level'];
+const policyFactKeys=['award_level','award_grade','competition_kind','research_type','project_level','publication_level','author_rank','assessment_result','position_tier','tenure_months','practice_type','volunteer_hours','record_level','recognition_level','activity_count','theory_level','excellent_trainee','award_system','recognition_kind','placement_level'];
 const policyLevels=[['INTERNATIONAL','国际级'],['NATIONAL','国家级'],['PROVINCIAL','省级'],['SCHOOL','校级'],['LOCAL_OR_INDUSTRY','地市或行业级']];
 const policyGrades=[['SPECIAL','特等奖'],['FIRST','一等奖'],['SECOND','二等奖'],['THIRD','三等奖'],['EXCELLENT','优秀奖'],...Array.from({length:8},(_,index)=>['PLACE_'+(index+1),'第'+(index+1)+'名'])];
 const policyAssessments=[['EXCELLENT','优秀'],['GOOD','良好'],['PASS','合格'],['FAIL','不合格']];
+function policyFactValue(key,value){const text=String(value??'');if(key==='excellent_trainee'){if(value===true||['true','True','YES'].includes(text))return 'YES';if(value===false||['false','False','NO'].includes(text))return 'NO';}return text;}
 function policyFactField(payload,key,label,choices,edit){
-  const value=String(payload[key]??''),known=choices?.find(([code])=>code===value),id='fact-'+key;
+  const value=policyFactValue(key,payload[key]),known=choices?.find(([code])=>code===value),id='fact-'+key,countInput=key==='activity_count'&&(!value||/^\d+$/.test(value));
   if(!edit)return `<div class="field" data-policy-fact="${key}"><label>${label}</label><div class="read-value">${esc(known?.[1]||value||'—')}</div></div>`;
   const options=choices?`<option value="">待核对 / 未填写</option>${value&&!known?`<option data-original-fact="true" value="${esc(value)}" selected>原记录：${esc(value)}</option>`:''}${choices.map(([code,text])=>`<option value="${code}" ${code===value?'selected':''}>${text}</option>`).join('')}`:'';
-  return `<div class="field" data-policy-fact="${key}"><label for="${id}">${label}</label>${choices?`<select id="${id}" name="${key}">${options}</select>`:`<input id="${id}" name="${key}" value="${esc(value)}" maxlength="100" inputmode="decimal">`}</div>`;
+  return `<div class="field" data-policy-fact="${key}"><label for="${id}">${label}</label>${choices?`<select id="${id}" name="${key}">${options}</select>`:`<input id="${id}" name="${key}" value="${esc(value)}" maxlength="100" ${countInput?'type="number" min="0" step="1" inputmode="numeric"':'inputmode="decimal"'}>`}</div>`;
 }
 function syncPolicyFactField(field,value){
-  const text=String(value??'');
+  const text=policyFactValue(field.name,value);
   if(field.tagName==='SELECT'&&policyFactKeys.includes(field.name)){
     for(const option of field.querySelectorAll('[data-original-fact]'))option.remove();
     if(text&&!Array.from(field.options).some(option=>option.value===text)){const option=document.createElement('option');option.dataset.originalFact='true';option.value=text;option.textContent='原记录：'+text;field.append(option);}
@@ -233,11 +234,13 @@ function competitionFields(p,edit){
 }
 function policyFieldsHtml(p,edit,category){
   const field=(key,label,choices)=>policyFactField(p,key,label,choices,edit);let body='';
+  if(category==='COLLECTIVE')body=field('activity_count','参加活动次数');
+  if(category==='IDEOLOGY')body=field('activity_count','学习培训次数')+field('theory_level','培训层级',[['ORDINARY','普通党团培训'],['SCHOOL','校级'],['PROVINCIAL','省级'],['MINISTERIAL','部级'],['NATIONAL','国家级']])+field('excellent_trainee','是否获优秀学员',[['YES','获优秀学员'],['NO','未获优秀学员']]);
   if(category==='RESEARCH')body=field('research_type','科研成果类型',[['COMPETITION','科研竞赛'],['PAPER','论文'],['MONOGRAPH','专著'],['PATENT','专利'],['PROJECT','科研项目']])+field('project_level','科研项目等级',policyLevels)+field('publication_level','论文类别',[['INTERNATIONAL_RECOGNIZED','学校认定国际期刊'],['CORE_OR_INTL_CONFERENCE','国内核心期刊 / 国际会议'],['GENERAL_OR_DOMESTIC_CONFERENCE','国内一般期刊 / 国内会议']])+field('author_rank','作者 / 发明人排序')+field('assessment_result','考评结果',policyAssessments);
-  if(category==='ARTS')body=field('competition_kind','竞赛类型',[['ART','文艺竞赛'],['SPORT','体育竞赛']])+field('record_level','破纪录级别（如适用）',[['PROVINCIAL_OR_ABOVE','省级及以上'],['SCHOOL','校级']]);
-  if(category==='SERVICE')body=field('practice_type','社会服务类型',[['VOLUNTEER','志愿服务'],['SCHOOL_SOCIAL_PRACTICE','校级社会实践'],['PLACEMENT','见习 / 挂职 / 实习']])+field('assessment_result','实践考评',policyAssessments)+field('volunteer_hours','志愿服务工时（小时）');
+  if(category==='ARTS')body=field('competition_kind','竞赛类型',[['ART','文艺竞赛'],['SPORT','体育竞赛']])+field('award_system','奖项采用的评定方式',[['PRIZE','奖次制：一等奖、二等奖等'],['RANK','名次制：第1名、第2名等']])+'<p class="small muted span2">按原件区分奖次与名次，三等奖不会自动改为第3名。</p>'+field('record_level','破纪录级别（如适用）',[['PROVINCIAL_OR_ABOVE','省级及以上'],['SCHOOL','校级']]);
+  if(category==='SERVICE')body=field('practice_type','社会服务类型',[['VOLUNTEER','志愿服务'],['SCHOOL_SOCIAL_PRACTICE','校级社会实践'],['PLACEMENT','见习 / 挂职 / 实习']])+field('assessment_result','实践考评',policyAssessments)+field('volunteer_hours','志愿服务工时（小时）')+field('placement_level','见习 / 挂职层级（如适用）',[['PROVINCIAL_OR_ABOVE','省级、部级或国际组织'],['CITY_OR_COUNTY','市级或县级'],['PROVINCIAL','省级（原记录）'],['MINISTERIAL','部级（原记录）'],['INTERNATIONAL','国际组织（原记录）'],['CITY','市级（原记录）'],['COUNTY','县级（原记录）']]);
   if(category==='POST')body=field('position_tier','任职层级',[['TIER_1','第一层级：主要学生组织负责人等'],['TIER_2','第二层级：主要学生组织副职等'],['TIER_3','第三层级：班长、团支书等'],['TIER_4','第四层级：干事、班干部、舍长等']])+field('assessment_result','任职考评',policyAssessments)+field('tenure_months','任职月数（不足一年需人工核定）');
-  if(category==='REWARD')body=field('recognition_level','表彰级别',[['NATIONAL','国家级'],['PROVINCIAL','省级'],['CITY','市级'],['SCHOOL','校级'],['COLLEGE','院级']]);
+  if(category==='REWARD')body=field('recognition_kind','奖励依据类型',[['MORAL_HONOR','精神文明或道德表彰'],['GOOD_DEED','好人好事或突出贡献']])+field('recognition_level','表彰级别',[['NATIONAL','国家级'],['PROVINCIAL','省级'],['CITY','市级'],['SCHOOL','校级'],['COLLEGE','院级']])+field('activity_count','好人好事次数（如适用）');
   return body?`<div class="span2"><div class="divider"></div><h3>计分依据</h3><p class="small muted mt8">按原件核对对应等级、名次或考评；未明确的信息可留空后人工补充。</p></div>${body}`:'';
 }
 function filesHtml(files,edit){

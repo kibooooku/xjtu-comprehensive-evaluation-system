@@ -18,6 +18,7 @@ from sqlalchemy import delete
 from . import db
 from .migrations import active_year, assert_current_year, ensure_group
 from .security import active_grants, allowed, class_context, current_user, require, student_enrollment
+from .score_resolution import current as resolve_current_score
 
 router = APIRouter(prefix="/api", tags=["applications and evaluation"])
 PENDING = {"PENDING_PEER", "PENDING_COUNSELOR"}
@@ -132,6 +133,21 @@ def _event(conn, application, event_type, actor=None, round_=None, from_state=No
     return event
 
 
+def _score_resolution(conn, revision):
+    preliminary = resolve_current_score(revision)
+    if preliminary['source'] in ('FROZEN', 'STUDENT') or not revision.get('ai_analysis_id'):
+        return preliminary
+    analysis = db.one(conn, 'ai_analyses', revision['ai_analysis_id'])
+    material_changed = False
+    if analysis:
+        inputs = db.rows(conn, 'analysis_inputs', analysis_id=analysis['id'])
+        if inputs:
+            analyzed_files = {item['file_id'] for item in inputs}
+            current_files = {item['file_id'] for item in db.rows(conn, 'revision_files', revision_id=revision['id'])}
+            material_changed = analyzed_files != current_files
+    return resolve_current_score(revision, analysis, material_changed=material_changed)
+
+
 def _summary(conn, application, context=None):
     context = context or app_context(conn, application["id"])
     revision = _display_revision(conn, application)
@@ -145,6 +161,7 @@ def _summary(conn, application, context=None):
         "class_id": context["class"]["id"], "class_name": context["class"]["name"],
         "year_id": context["year"]["id"], "year_name": context["year"]["name"],
         "student_modified_score": revision["student_modified_score"],
+        "score_resolution": _score_resolution(conn, revision),
         "round_id": current["id"] if current else None, "revision_id": revision["id"],
         "lock_version": application["lock_version"], "created_at": application["created_at"],
         "updated_at": current["submitted_at"] if current else revision["created_at"],
@@ -166,7 +183,8 @@ def application_detail(conn, application, user, revision_id=None, include_delete
     current = _round(conn, application)
     result = _summary(conn, application, context)
     result.update(title=revision["title"], requested_score=str(db.money(revision["requested_score"])),
-                  revision_id=revision["id"], student_modified_score=revision["student_modified_score"])
+                  revision_id=revision["id"], student_modified_score=revision["student_modified_score"],
+                  score_resolution=_score_resolution(conn, revision))
     files = []
     for attachment in sorted(db.rows(conn, "revision_files", revision_id=revision["id"]), key=lambda r: r["sort_order"]):
         file = db.one(conn, "file_objects", attachment["file_id"])
@@ -291,15 +309,22 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
             raise HTTPException(400, "修改大类请从对应入口新建申请")
         values = {}
         original_facts = revision.get("payload_json") or {}
-        protected_flags = {k: original_facts[k] for k in ("evidence_manually_edited", "content_manually_edited") if original_facts.get(k)}
+        protected_flags = {k: original_facts[k] for k in ("evidence_manually_edited", "content_manually_edited", "_score_confirmation", "_score_resolution_stale", "policy_revalidation") if original_facts.get(k)}
         content_changed = False
+        score_basis_changed = False
+        score_changed = False
+        if 'score_confirmed' in payload and not isinstance(payload['score_confirmed'], bool):
+            raise HTTPException(400, '分值确认标记必须为布尔值')
+        if payload.get('score_confirmed') and 'requested_score' not in payload:
+            raise HTTPException(400, '请同时提供需要确认的分值')
         if "title" in payload:
             values["title"] = _text(payload["title"])
             content_changed = values["title"] != revision["title"]
         if "requested_score" in payload:
             score = _amount(payload["requested_score"])
             values["requested_score"] = score
-            content_changed = content_changed or score != db.money(revision["requested_score"])
+            score_changed = score != db.money(revision["requested_score"])
+            content_changed = content_changed or score_changed
             # The marker records any manual edit, including reverting to the AI value.
             values["student_modified_score"] = revision["student_modified_score"] or score != db.money(revision["requested_score"])
         if "activity_id" in payload:
@@ -313,13 +338,24 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
             facts = payload["payload_json"]
             if not isinstance(facts, dict) or len(json.dumps(facts, ensure_ascii=False)) > 12000:
                 raise HTTPException(400, "活动信息格式不正确或过长")
-            facts = {**facts, **protected_flags}
-            content_changed = content_changed or facts != original_facts
+            facts = {**{key: value for key, value in facts.items() if key not in ('_score_confirmation', '_score_resolution_stale', 'policy_revalidation')}, **protected_flags}
+            from .policy_suggestions import FACT_KEYS
+            def comparable_fact(key, value):
+                normalized = '' if value is None else str(value).strip()
+                if key == 'excellent_trainee':
+                    normalized = {'TRUE': 'YES', 'FALSE': 'NO', '1': 'YES', '0': 'NO'}.get(normalized.upper(), normalized.upper())
+                return normalized
+            score_basis_changed = any(comparable_fact(key, facts.get(key)) != comparable_fact(key, original_facts.get(key)) for key in FACT_KEYS)
+            def comparable_payload(data):
+                return {key: comparable_fact(key, value) if key in FACT_KEYS else value
+                        for key, value in data.items() if value is not None and value != ''}
+            content_changed = content_changed or comparable_payload(facts) != comparable_payload(original_facts)
             values["payload_json"] = facts
         if "file_ids" in payload:
             if not isinstance(payload["file_ids"], list) or len(payload["file_ids"]) > 12 or any(not isinstance(i, str) for i in payload["file_ids"]):
                 raise HTTPException(400, "附件列表格式无效或超过12份")
             ids = list(dict.fromkeys(payload["file_ids"]))
+            score_basis_changed = score_basis_changed or set(ids) != {link['file_id'] for link in db.rows(conn, 'revision_files', revision_id=revision['id'])}
             for file_id in ids:
                 file = db.one(conn, "file_objects", file_id)
                 if not file or file["uploaded_by"] != user["id"]:
@@ -340,6 +376,16 @@ def update_application(application_id: str, payload: dict = Body(...), user=Depe
                     conn.execute(delete(db.tables["evidence_crops"]).where(db.tables["evidence_crops"].c.id == crop["id"]))
         if content_changed:
             values["payload_json"] = {**values.get("payload_json", original_facts), **protected_flags, "content_manually_edited": True}
+        if score_basis_changed or score_changed or payload.get('score_confirmed'):
+            facts = dict(values.get('payload_json', original_facts))
+            if score_basis_changed:
+                facts['_score_resolution_stale'] = True
+            if score_changed or payload.get('score_confirmed'):
+                facts['_score_confirmation'] = {'confirmed': True, 'value': str(values['requested_score']), 'confirmed_by': user['id'], 'confirmed_at': db.now()}
+                facts.pop('_score_resolution_stale', None)
+                content_changed = True
+                facts['content_manually_edited'] = True
+            values['payload_json'] = facts
         db.change(conn, "application_revisions", revision["id"], **values)
         _bump(conn, application)
         _event(conn, application, "DRAFT_UPDATED", user, detail={"fields": list(values)})
@@ -531,6 +577,8 @@ def submit_application(application_id: str, payload: dict = Body(default={}), us
         if not revision["title"].strip():
             raise HTTPException(400, "请填写加分条目名称")
         _amount(revision["requested_score"])
+        if _score_resolution(conn, revision)['status'] in ('NEEDS_REVIEW', 'UNANALYZED'):
+            raise HTTPException(400, '分值尚未核定，请补充计分依据或手动确认当前分值后再提交；允许确认0分，无需理由。')
         if not db.rows(conn, "revision_files", revision_id=revision["id"]):
             raise HTTPException(400, "每条申请至少上传一个原文件")
         eligibility = activity_eligibility(conn, revision.get("activity_id"), application["category_id"], context["year"]["id"], revision["payload_json"])

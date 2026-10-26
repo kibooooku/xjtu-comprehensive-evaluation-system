@@ -22,6 +22,7 @@ from .db import add, change, money, now, one, rows, tables, uid
 from .integrations import ProviderError, configuration, deepseek_suggestion, ocr_stop_info, tencent_ocr
 from .limits import MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_PAGES, MAX_AUTOMATIC_OCR_PAGES, OCR_POLICY_VERSION
 from .policy_suggestions import FACT_KEYS, normalize_policy_suggestion
+from .score_resolution import from_policy as policy_score_resolution
 from .security import current_user, require
 
 router = APIRouter(prefix="/api")
@@ -1618,7 +1619,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             return {"status": "MANUAL_REQUIRED", "message": "云识别已在本地配置关闭，可手动填写和截图。"}
         pages = [one(conn, "file_pages", page_id) for page_id in ocr["page_ids"]]
         rule = one(conn, "score_rule_versions", context["class_year"]["score_rule_version_id"])
-        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v3-policy", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
+        analysis = add(conn, "ai_analyses", application_id=application_id, input_revision_id=revision["id"], input_fingerprint=ocr["input_fingerprint"], score_rule_version_id=rule["id"], model_name=config["deepseek_model"], prompt_version="moral-score-v4-scoring-state", status="RUNNING", suggested_title=None, suggested_score=None, suggested_activity_id=None, result_json=None)
         if ocr.get("policy_version") not in (None, OCR_POLICY_VERSION):
             raise HTTPException(409, "OCR结果使用旧识别策略，请按当前策略重新排队。")
         texts, excerpt = _ai_material_excerpt(conn, ocr, context["student"], context["user"])
@@ -1665,6 +1666,8 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
         title = suggestion.get("title")
         title = title.strip()[:255] if isinstance(title, str) else ""
         score = money(suggestion.get("requested_score", "0"))
+        resolution_score = policy_score_resolution(score_policy, revision['requested_score'], score)
+        metadata['score_resolution'] = resolution_score
         if not specific_activity_title(title):
             raise ProviderError("ActivityNameMissing", "未识别出具体活动名称，请学生按原件补充，不能只填泛称‘活动证明’。")
         diagnostics["source_title_supported"] = activity_title_supported(title, texts, activities)
@@ -1680,7 +1683,7 @@ def _analyze(application_id: str, user: dict, config: dict, progress=None, ocr_r
             activity_id = None
         payload = suggestion.get("payload_json") if isinstance(suggestion.get("payload_json"), dict) else {}
         payload = {key: str(payload.get(key, ""))[:500] for key in dict.fromkeys(("edition_key", "track_key", "group_key", "work_key", "award_level", "subtype", *FACT_KEYS))}
-        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": title_needs_review, "score_requires_confirmation": score_needs_review, "suggested_crops": evidence}
+        suggestion = {"title": title, "requested_score": str(score), "score": str(score), "suggested_score": str(score), "activity_id": activity_id, "payload_json": payload, "explanation": str(suggestion.get("explanation", ""))[:3000], "match_uncertain": bool(suggestion.get("match_uncertain", not activity_id)), "title_source": resolution["source"], "title_requires_confirmation": title_needs_review, "score_requires_confirmation": score_needs_review, "score_resolution": resolution_score, "suggested_crops": evidence}
     except (ProviderError, InvalidOperation, ValueError, TypeError, HTTPException) as error:
         message = error.message if isinstance(error, ProviderError) else "AI 建议不符合预期格式，请手动填写。"
         error_code = error.code if isinstance(error, ProviderError) else "InvalidSuggestion"
@@ -1710,9 +1713,16 @@ def apply_analysis(application_id: str, body: dict, user: dict = Depends(current
             raise HTTPException(409, "分析后内容或附件已变更，请重新分析；已有填写不会被覆盖。")
         suggestion = (analysis.get("result_json") or {}).get("suggestion", {})
         payload = {**(revision.get("payload_json") or {}), **suggestion.get("payload_json", {})}
+        scoring = policy_score_resolution((analysis.get('result_json') or {}).get('score_policy'), revision['requested_score'], suggestion.get('requested_score'))
+        pending_score = scoring['status'] == 'NEEDS_REVIEW'
+        amount = money(revision['requested_score'] if pending_score else suggestion['requested_score'])
+        for marker in ('_score_resolution_stale', 'policy_revalidation'):
+            payload.pop(marker, None)
+        if not pending_score:
+            payload.pop('_score_confirmation', None)
         payload["ai_match_uncertain"] = suggestion.get("match_uncertain", False)
         payload["ai_explanation"] = suggestion.get("explanation", "")
-        revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=money(suggestion["requested_score"]), activity_id=suggestion.get("activity_id"), payload_json=payload, ai_analysis_id=analysis["id"])
+        revision = change(conn, "application_revisions", revision["id"], title=suggestion["title"], requested_score=amount, activity_id=suggestion.get("activity_id"), payload_json=payload, ai_analysis_id=analysis["id"])
         _apply_evidence(conn, revision, suggestion.get("suggested_crops", []))
         _touch(conn, context["application"])
         return application_detail(conn, one(conn, "applications", application_id), user)

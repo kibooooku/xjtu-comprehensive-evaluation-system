@@ -94,6 +94,7 @@ node --check app/static/workspace.js
 本地旧数据升级前的备份位于`instance/backups/`，可用 `python scripts/verify_migration.py` 只读核对原申请和审核轮次保留情况。
 
 - [V2验收记录](docs/v2/acceptance.md)
+- [七大类自动计分与真实隔离链路验收](docs/七大类自动计分验收.md)
 - [上传与云OCR任务修复](docs/上传与云OCR任务修复.md)
 - [文字层与免费OCR策略](docs/文字层与免费OCR策略.md)
 - [火山MediaKit开通与测试](docs/火山MediaKit开通与测试.md)

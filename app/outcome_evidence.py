@@ -216,6 +216,126 @@ def _certificate_levels(regions):
     return levels
 
 
+def _event_label(text):
+    """A document title can link attachments, but never establishes a level."""
+    value = re.sub(r"\.(?:pdf|png|jpe?g|webp)$", "", str(text or ""), flags=re.I)
+    value = re.sub(r"[^A-Za-z\u4e00-\u9fff]", "", compact(value))
+    for word in ("西安交通大学", "大学生", "学年度", "学年", "春季", "秋季", "夏季", "冬季", "学期",
+                 "综合素质", "具体名单", "获奖名单", "考核结果", "考评结果", "文体竞赛", "社会实践",
+                 "竞赛", "比赛", "活动", "证明材料", "证明", "材料", "名单", "获奖", "附件", "考核", "考评", "实践"):
+        value = value.replace(word, "")
+    return re.sub(r"^[春夏秋冬]", "", value).casefold()
+
+
+def _context_regions(data, headings_only=False):
+    """Exclude personal table rows before offering shared background to policy."""
+    selected = []
+    personal_rows = [box for region in data["regions"]
+                     if re.search(r"(?<!\d)\d{6,18}(?!\d)", compact(region.get("text")))
+                     and (box := _box(region.get("polygon_json")))]
+    for region in data["regions"]:
+        text, box = compact(region.get("text")), _box(region.get("polygon_json"))
+        if not text or not box or any(_same_row(box, personal_box) for personal_box in personal_rows):
+            continue
+        if headings_only and (box[1] > data["page"]["height_px"]*.25 or not re.search(r"竞赛|比赛|活动|培训|实践|项目|考核|考评|任职|名单|志愿|见习", text)):
+            continue
+        selected.append(region)
+    selected.sort(key=lambda region: ((_box(region.get("polygon_json")) or [0, 0])[1], (_box(region.get("polygon_json")) or [0])[0]))
+    return selected
+
+
+def _personal_contexts(records):
+    contexts, seen = [], set()
+    for identity, data, row in records:
+        if not row:
+            continue
+        regions = row if data["roster"] else data["regions"]
+        text = "\n".join(region.get("text") or "" for region in regions)[:6000]
+        key = (data["page"]["id"], text)
+        if not text.strip() or key in seen:
+            continue
+        seen.add(key)
+        contexts.append({"text": text, "file_id": data["page"]["file_id"], "page_id": data["page"]["id"],
+                         "association": "SAME_ROW" if data["roster"] else "CERTIFICATE"})
+    return contexts
+
+
+def _common_contexts(conn, information, records):
+    """Bind genuine headings or a named, explicitly attached roster cover.
+
+    A cover's explicit level can apply to its list even when every personal row
+    contains only an award. A filename is a relationship clue only: its text is
+    never passed to the level parser or used as a scoring fact.
+    """
+    by_file = {}
+    for data in information.values():
+        by_file.setdefault(data["page"]["file_id"], []).append(data)
+    for values in by_file.values():
+        values.sort(key=lambda data: data["page"]["page_index"])
+    files = {file_id: db.one(conn, "file_objects", file_id) or {} for file_id in by_file}
+    targets = {data["page"]["file_id"] for _, data, _ in records}
+    contexts, seen = [], set()
+
+    def append(data, text, target_id, association, regions):
+        key = (data["page"]["id"], target_id, association)
+        if not text or key in seen:
+            return
+        seen.add(key)
+        contexts.append({"text": text[:6000], "file_id": data["page"]["file_id"], "page_id": data["page"]["id"],
+                         "target_file_id": target_id, "association": association, "award_levels": sorted(_certificate_levels(regions))})
+
+    for target_id in targets:
+        target_pages = by_file[target_id]
+        first = target_pages[0]
+        heading_regions = _context_regions(first, headings_only=True)
+        heading = "\n".join(region.get("text") or "" for region in heading_regions)
+        first_regions = _context_regions(first)
+        first_body = "\n".join(region.get("text") or "" for region in first_regions)
+        if not _row_identifiers(first["regions"]) and _attachment_reference(first_body):
+            # The first page may be an actual cover with its level below the
+            # top-quarter title area and the personal list on later pages.
+            heading = first_body
+            heading_regions = first_regions
+        if heading:
+            append(first, heading, target_id, "FILE_HEADING", heading_regions)
+        # A bare list needs an explicit cover reference and a substantial event
+        # name found in the cover's *body*. Unrelated attached certificates and
+        # a school logo cannot provide the applicant's competition level.
+        target_label = _event_label(files[target_id].get("original_name"))
+        if len(target_label) < 4:
+            continue
+        target_has_roster = any(data["roster"] for data in target_pages)
+        if not target_has_roster:
+            continue
+        for source_id, source_pages in by_file.items():
+            if source_id == target_id:
+                continue
+            for source in source_pages:
+                regions = _context_regions(source)
+                text = "\n".join(region.get("text") or "" for region in regions)
+                value = compact(text)
+                if not _attachment_reference(value):
+                    continue
+                source_label = _event_label(files[source_id].get("original_name"))
+                body_label = _event_label(text)
+                shared = target_label if target_label in source_label else (source_label if source_label in target_label else "")
+                if len(shared) < 4 or shared not in body_label:
+                    continue
+                append(source, text, target_id, "ATTACHED_CONTEXT", regions)
+    return contexts
+
+
+def _attachment_reference(text):
+    return bool(re.search(r"(?:名单.{0,12}(?:见|详见|参见|附件)|(?:见|详见|参见).{0,6}(?:附件|名单))", compact(text)))
+
+
+def _prize_system(text):
+    value = compact(text)
+    return bool(re.search(r"(?:竞赛|比赛|奖次|奖项)", value) and
+                (re.search(r"一(?:等奖|等)?[、，,/与和及]二(?:等奖|等)?[、，,/与和及]三等奖", value)
+                 or re.search(r"一等奖.{0,12}二等奖.{0,12}三等奖", value)))
+
+
 def _heading_outcome(data, identity, information):
     """A genuine list section heading can label a following/continued roster."""
     page = data["page"]
@@ -299,7 +419,7 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
         is_roster = bool(re.search(r"名单|名册", text) or len(numbers) >= 3 or sum(len(_grade_tokens(region)) for region in regions) >= 4)
         roster |= is_roster
         information[page["id"]] = {"page": page, "regions": regions, "text": text, "roster": is_roster}
-    seen, validated_identities = set(), []
+    seen, validated_identities, personal_records = set(), [], []
     for identity in identities:
         data = information[identity["page_id"]]
         page, regions = data["page"], data["regions"]
@@ -317,6 +437,7 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
             if len(names) > 1:
                 continue
         validated_identities.append(identity)
+        personal_records.append((identity, data, row))
         tokens = [value for region in row for value in _grade_tokens(region)]
         row_keys = {(value["kind"], value["value"]) for value in tokens}
         chosen = []
@@ -365,13 +486,25 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
                 level = next(iter(row_levels)) if len(row_levels) == 1 else None
                 scope_conflict = len(row_levels) > 1
             all_anchors.append({**value, "award_level": level, "award_level_conflict": scope_conflict, "page_id": source_page["id"], "page_number": source_page["page_index"], "file_id": source_page["file_id"], "identity_page_id": identity["page_id"], "identity_box": identity["box"], "association": association})
+    personal = _personal_contexts(personal_records)
+    common = _common_contexts(conn, information, personal_records)
+    identity_files = {identity["page_id"]: data["page"]["file_id"] for identity, data, _ in personal_records}
+    for anchor in all_anchors:
+        background = [context for context in common if context["target_file_id"] == identity_files.get(anchor["identity_page_id"])]
+        levels = {level for context in background for level in context["award_levels"]}
+        if anchor.get("award_level"):
+            levels.add(anchor["award_level"])
+        if levels:
+            conflict = len(levels) > 1 or anchor.get("award_level_conflict", False)
+            anchor.update(award_level=next(iter(levels)) if len(levels) == 1 and not conflict else None, award_level_conflict=conflict)
+    context_metadata = {"personal_contexts": personal, "common_contexts": common}
     kinds = {(value["kind"], value["value"]) for value in all_anchors}
     # Do not let a certificate and an unrelated roster dictate two different
     # awards for a single small item. Mixed outcomes require human confirmation.
     if len(kinds) > 1:
-        return {"status": "AMBIGUOUS", "facts": {}, "anchors": [], "warnings": ["找到多个不同的本人奖次或考评，请对照原件确认。"], "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities)}
+        return {"status": "AMBIGUOUS", "facts": {}, "anchors": [], "warnings": ["找到多个不同的本人奖次或考评，请对照原件确认。"], "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities), **context_metadata}
     if not all_anchors:
-        return {"status": "NOT_FOUND", "facts": {}, "anchors": [], "warnings": ["未能可靠对应本人奖次或考评，请在原件中定位并核对。"], "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities)}
+        return {"status": "NOT_FOUND", "facts": {}, "anchors": [], "warnings": ["未能可靠对应本人奖次或考评，请在原件中定位并核对。"], "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities), **context_metadata}
     kind, value = next(iter(kinds))
     # Prefer an anchor actually sharing the selected identity row.
     all_anchors.sort(key=lambda anchor: (anchor["association"] != "SAME_ROW", anchor["page_number"], anchor["box"][1]))
@@ -380,5 +513,8 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
     scope_conflict = len(levels) > 1 or any(anchor.get("award_level_conflict") for anchor in all_anchors)
     if len(levels) == 1 and not scope_conflict:
         facts["award_level"] = next(iter(levels))
+    anchor_files = {identity_files.get(anchor["identity_page_id"]) for anchor in all_anchors}
+    if kind == "AWARD" and any(_prize_system(context["text"]) for context in common if context["target_file_id"] in anchor_files):
+        facts["award_system"] = "PRIZE"
     warnings = ["材料中的赛事级别有冲突，请核对本人比赛轮次。"] if scope_conflict else []
-    return {"status": "MATCHED", "facts": facts, "anchors": all_anchors, "warnings": warnings, "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities), "award_level_checked": True}
+    return {"status": "MATCHED", "facts": facts, "anchors": all_anchors, "warnings": warnings, "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities), "award_level_checked": True, **context_metadata}

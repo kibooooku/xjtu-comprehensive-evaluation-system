@@ -18,6 +18,7 @@
     {
       "path": "/api/applications/unified-item",
       "body": {
+        "expected_version": 2,
         "title": "虚构材料中的具体活动",
         "requested_score": "0.30",
         "activity_id": null,
@@ -41,6 +42,7 @@
     {
       "path": "/api/applications/unified-item",
       "body": {
+        "expected_version": 2,
         "title": "虚构材料中的具体活动",
         "requested_score": "0.30",
         "activity_id": null,
@@ -54,13 +56,15 @@
           "edition_key": "",
           "track_key": "",
           "group_key": "",
-          "work_key": ""
+          "work_key": "",
+          "award_system": ""
         }
       }
     },
     {
       "path": "/api/applications/unified-item",
       "body": {
+        "expected_version": 2,
         "title": "虚构材料中的具体活动",
         "requested_score": "0.30",
         "activity_id": null,
@@ -69,13 +73,15 @@
           "assessment_result": "PASS",
           "volunteer_hours": "16",
           "subtype": "",
-          "note": ""
+          "note": "",
+          "placement_level": ""
         }
       }
     },
     {
       "path": "/api/applications/unified-item",
       "body": {
+        "expected_version": 2,
         "title": "虚构材料中的具体活动",
         "requested_score": "0.30",
         "activity_id": null,
@@ -91,13 +97,16 @@
     {
       "path": "/api/applications/unified-item",
       "body": {
+        "expected_version": 2,
         "title": "虚构材料中的具体活动",
         "requested_score": "0.30",
         "activity_id": null,
         "payload_json": {
           "recognition_level": "PROVINCIAL",
           "subtype": "",
-          "note": ""
+          "note": "",
+          "activity_count": "",
+          "recognition_kind": ""
         }
       }
     },
@@ -128,5 +137,5 @@
       }
     }
   ],
-  "createdAt": "2026-10-26T06:08:38.370Z"
+  "createdAt": "2026-10-26T12:13:32.057Z"
 }

@@ -69,15 +69,15 @@ def _pristine(conn, revision):
     if revision['student_modified_score']:
         return False
     payload = revision.get('payload_json') or {}
-    if payload.get('content_manually_edited') or payload.get('evidence_manually_edited'):
+    if payload.get('content_manually_edited') or payload.get('evidence_manually_edited') or payload.get('_score_confirmation'):
         return False
+    clean = {k: v for k, v in payload.items() if k not in ('ai_explanation', 'ai_match_uncertain', 'policy_revalidation') and v not in ('', None)}
     if not revision.get('ai_analysis_id'):
-        return not revision['title'].strip() and db.money(revision['requested_score']) == 0 and not payload
+        return not revision['title'].strip() and db.money(revision['requested_score']) == 0 and not clean
     analysis = db.one(conn, 'ai_analyses', revision['ai_analysis_id'])
     if not analysis or (analysis.get('result_json') or {}).get('policy_version') != OCR_POLICY_VERSION:
         return False
     suggestion = ((analysis or {}).get('result_json') or {}).get('suggestion') or {}
-    clean = {k: v for k, v in payload.items() if k not in ('ai_explanation', 'ai_match_uncertain') and v not in ('', None)}
     expected = {k: v for k, v in (suggestion.get('payload_json') or {}).items() if v not in ('', None)}
     return bool(suggestion) and revision['title'] == suggestion.get('title') and db.money(revision['requested_score']) == db.money(suggestion.get('requested_score', -1)) and clean == expected
 
@@ -515,6 +515,8 @@ def process_job(job_id, worker_token=None):
                 analysis_id = result.get('analysis_id') or (result.get('analysis') or {}).get('id')
                 materials.apply_analysis(job['application_id'], {'analysis_id': analysis_id}, user)
                 output['automatically_applied'] = True
+                if (output.get('score_resolution') or {}).get('status') == 'NEEDS_REVIEW':
+                    stage = '条目已提取，分值待核定'
                 with db.read() as conn:
                     revision = db.one(conn, 'application_revisions', job['input_revision_id'])
                     output['output_fingerprint'] = materials.revision_fingerprint(conn, revision)

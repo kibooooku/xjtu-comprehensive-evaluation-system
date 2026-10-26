@@ -14,25 +14,30 @@
       "method": "PUT",
       "path": "/api/applications/submit-a",
       "body": {
+        "expected_version": 4,
         "title": "春季周末广场舞（2次）",
         "requested_score": "0.60",
         "activity_id": null,
         "payload_json": {
           "subtype": "",
-          "note": ""
-        }
+          "note": "",
+          "activity_count": ""
+        },
+        "score_confirmed": true
       }
     },
     {
       "method": "PUT",
       "path": "/api/applications/submit-a",
       "body": {
+        "expected_version": 5,
         "title": "春季周末广场舞（2次）",
         "requested_score": "0.60",
         "activity_id": null,
         "payload_json": {
           "subtype": "",
-          "note": ""
+          "note": "",
+          "activity_count": ""
         }
       }
     },
@@ -54,12 +59,14 @@
       "method": "PUT",
       "path": "/api/applications/submit-a",
       "body": {
+        "expected_version": 7,
         "title": "未成功保存的修改",
         "requested_score": "0.60",
         "activity_id": null,
         "payload_json": {
           "subtype": "",
-          "note": ""
+          "note": "",
+          "activity_count": ""
         }
       }
     }
@@ -117,5 +124,5 @@
     "/api/applications/submit-a",
     "/api/activities"
   ],
-  "createdAt": "2026-10-26T03:34:17.626Z"
+  "createdAt": "2026-10-26T12:13:33.624Z"
 }

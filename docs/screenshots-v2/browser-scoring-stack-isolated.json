@@ -1,0 +1,201 @@
+{
+  "mode": "ISOLATED_STACK",
+  "source": "真实HTTP、独立SQLite、原生后台worker和浏览器；全部材料/账号为演示，OCR与模型为受控离线替身，不接触生产8000或真实数据",
+  "checks": [
+    "仅连接独立8767端口，正常HTTP登录；配置不读真实私钥，出网硬阻断",
+    "8份虚构PNG经真实上传整理和后台上传，七类及缺本人案例进入真实OCR任务队列",
+    "真实后台队列在切换站内页面后继续完成OCR和AI，固定错误模型99由政策层替换或标待核定",
+    "COLLECTIVE真实API和对照表格均为0.60分，模型99未透传",
+    "IDEOLOGY真实API和对照表格均为1.00分，模型99未透传",
+    "SERVICE真实API和对照表格均为0.50分，模型99未透传",
+    "RESEARCH真实API和对照表格均为6.00分，模型99未透传",
+    "ARTS真实API和对照表格均为1.00分，模型99未透传",
+    "POST真实API和对照表格均为1.50分，模型99未透传",
+    "REWARD真实API和对照表格均为2.00分，模型99未透传",
+    "无本人材料在真实API及页面均标待核定、给具体原因，保留0不冒充已计分",
+    "后端拒绝提交未核定0分，页面提示和API保护一致",
+    "浏览器明确确认人工0分后，真实保存与刷新持续显示已核定0，无需理由",
+    "人工确认0分可正常提交到真实隔离审核流程，冻结后仍为0",
+    "真实submissions与详情、表格分值一致，8次受控模型/文字/印章调用，实际云调用0"
+  ],
+  "errors": [],
+  "applications": [
+    {
+      "id": 1,
+      "category": "COLLECTIVE",
+      "title": "虚构青禾春季集体活动",
+      "body": "参加本次集体活动2次。",
+      "score": "0.60",
+      "applicationId": "d48268a1-66d1-490f-a335-277cca003b00",
+      "groupId": "ab524439-0051-4e34-9c3d-e26e11e7ad73",
+      "actualScore": "0.60",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "0.60",
+        "retained_value": "0.60",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议0.60分，请核对。",
+        "rule": "CONFIRMED_COLLECTIVE_PER_EVENT",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 2,
+      "category": "IDEOLOGY",
+      "title": "虚构青年党团理论研修班",
+      "body": "参加党团理论学习培训1次并完成结业。",
+      "score": "1.00",
+      "applicationId": "2ffe9efe-9782-445c-a352-fc65a36d06c1",
+      "groupId": "db4831eb-a965-4b62-9dd2-3c28f6c10297",
+      "actualScore": "1.00",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "1.00",
+        "retained_value": "1.00",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议1.00分，请核对。",
+        "rule": "PDF5_IDEOLOGY_TRAINING",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 3,
+      "category": "SERVICE",
+      "title": "虚构青禾社区志愿服务",
+      "body": "参加志愿服务，服务工时16小时。",
+      "score": "0.50",
+      "applicationId": "4bfa0b3f-9c63-4c21-978e-0c347907a8b7",
+      "groupId": "d3cbd109-1bd5-4e3f-80e6-ce486c889ff2",
+      "actualScore": "0.50",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "0.50",
+        "retained_value": "0.50",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议0.50分，请核对。",
+        "rule": "PDF5_VOLUNTEER",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 4,
+      "category": "RESEARCH",
+      "title": "虚构大学生工程设计竞赛",
+      "body": "荣获省级竞赛二等奖。",
+      "score": "6.00",
+      "applicationId": "858334b0-b7b4-4f2e-acf6-111ff7c47bbf",
+      "groupId": "6051ccbf-0a00-476d-b277-a2df5511671a",
+      "actualScore": "6.00",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "6.00",
+        "retained_value": "6.00",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议6.00分，请核对。",
+        "rule": "PDF6_RESEARCH_COMPETITION",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 5,
+      "category": "ARTS",
+      "title": "虚构校园星光长跑文体竞赛",
+      "body": "校级文体竞赛，设一、二、三等奖。本人获得三等奖。",
+      "score": "1.00",
+      "applicationId": "2cd84160-d6af-4f9a-975b-82f25e4aeef0",
+      "groupId": "682450ea-8ddb-4b0f-b351-1f675e94f5d7",
+      "actualScore": "1.00",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "1.00",
+        "retained_value": "1.00",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议1.00分，请核对。",
+        "rule": "PDF7_8_PRIZE_BAND",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 6,
+      "category": "POST",
+      "title": "虚构班级学生干部任职考评",
+      "body": "担任班长，任期满一年，考评良好。",
+      "score": "1.50",
+      "applicationId": "2daa3a9c-c73b-4425-8f14-b18b637d0dc1",
+      "groupId": "3ac4e858-ead6-450b-a028-b7689d89f7ee",
+      "actualScore": "1.50",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "1.50",
+        "retained_value": "1.50",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议1.50分，请核对。",
+        "rule": "PDF8_9_POST_FULL_YEAR",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 7,
+      "category": "REWARD",
+      "title": "虚构文明学生表彰活动",
+      "body": "获得校级精神文明先进个人荣誉称号。",
+      "score": "2.00",
+      "applicationId": "23b3a812-612f-46ad-b0f2-d7f4b315e3da",
+      "groupId": "bb1fc23b-e32d-4602-9739-33af38e53ea6",
+      "actualScore": "2.00",
+      "resolution": {
+        "status": "RULE_APPLIED",
+        "value": "2.00",
+        "retained_value": "2.00",
+        "missing_facts": [],
+        "message": "已按本人的材料和计分规则建议2.00分，请核对。",
+        "rule": "PDF9_HONOR",
+        "source": "POLICY"
+      }
+    },
+    {
+      "id": 8,
+      "category": "RESEARCH",
+      "title": "虚构电子设计竞赛待核对材料",
+      "body": "省级电子设计竞赛二等奖，尚未列明参与学生。",
+      "score": null,
+      "applicationId": "7cfcd2b0-15bb-4295-9109-b0c50b84cb07",
+      "groupId": "6051ccbf-0a00-476d-b277-a2df5511671a",
+      "actualScore": "0.00",
+      "resolution": {
+        "status": "NEEDS_REVIEW",
+        "value": null,
+        "retained_value": "0.00",
+        "missing_facts": [
+          {
+            "code": "RESEARCH_TYPE",
+            "label": "科研成果类型"
+          },
+          {
+            "code": "IDENTITY",
+            "label": "可明确对应本人的记录"
+          }
+        ],
+        "message": "分值待核定：请核对科研成果类型、可明确对应本人的记录；也可手动填写并确认，无需理由。",
+        "rule": "",
+        "source": "POLICY"
+      }
+    }
+  ],
+  "fixture": {
+    "mode": "ISOLATED_STACK",
+    "fake_general": 8,
+    "fake_seal": 8,
+    "fake_model": 8,
+    "network_blocked": 0,
+    "actual_cloud_calls": 0,
+    "actual_business_writes": 0,
+    "model_always_proposes": "99",
+    "configuration_reads_private_keys": false
+  },
+  "external_requests": [],
+  "temporary_server_stopped": true,
+  "actual_cloud_calls": 0,
+  "actual_business_writes": 0,
+  "createdAt": "2026-10-26T12:24:55.687Z"
+}

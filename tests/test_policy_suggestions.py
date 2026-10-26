@@ -61,10 +61,50 @@ def test_sports_places_use_own_place_not_other_rows(level, expected):
         assert result["requested_score"] == score
 
 
-def test_night_run_third_prize_is_recognized_but_not_invented_as_third_place():
+def test_night_run_third_prize_is_scored_as_prize_band_without_inventing_third_place():
     result, meta, _ = suggest("ARTS", "星荧夜跑竞赛三等奖", grade="THIRD", level="SCHOOL")
     assert result["payload_json"]["competition_kind"] == "SPORT" and result["payload_json"]["award_grade"] == "THIRD"
-    assert result["requested_score"] == "0.37" and meta["requires_confirmation"]
+    assert result['payload_json']['award_system'] == 'PRIZE'
+    assert result["requested_score"] == "1.00" and not meta["requires_confirmation"]
+    assert meta['rule'] == 'PDF7_8_PRIZE_BAND'
+
+
+@pytest.mark.parametrize('level,scores', [('SCHOOL', ['2.00', '1.50', '1.00']), ('PROVINCIAL', ['4.00', '3.50', '3.00']), ('NATIONAL', ['6.00', '5.00', '4.00'])])
+def test_bound_sports_prizes_use_award_bands_across_levels(level, scores):
+    for grade, expected in zip(['FIRST', 'SECOND', 'THIRD'], scores):
+        result, meta, _ = suggest('ARTS', '体育跑步比赛获奖证明', grade=grade, level=level)
+        assert result['requested_score'] == expected and meta['status'] == 'RULE_APPLIED'
+        assert result['payload_json']['award_grade'] == grade
+        assert result['payload_json']['award_system'] == 'PRIZE'
+
+
+@pytest.mark.parametrize('grade,level,matched', [('THIRD', '', True), ('THIRD', 'SCHOOL', False), ('SPECIAL', 'SCHOOL', True), ('EXCELLENT', 'SCHOOL', True)])
+def test_incomplete_or_unlisted_sports_awards_remain_unresolved(grade, level, matched):
+    result, meta, _ = suggest('ARTS', '校运会跑步比赛', grade=grade, level=level, matched=matched)
+    assert result['requested_score'] == '0.37' and meta['status'] == 'NEEDS_REVIEW'
+    assert meta['value'] is None and meta['missing_facts']
+
+
+def test_known_award_grade_is_not_reported_as_missing_when_only_scope_is_unknown():
+    result, meta, _ = suggest('RESEARCH', '工程设计竞赛一等奖', grade='FIRST')
+    assert result['payload_json']['award_grade'] == 'FIRST'
+    assert meta['missing_facts'] == [{'code': 'AWARD_LEVEL', 'label': '赛事级别'}]
+    assert meta['value'] is None
+
+
+@pytest.mark.parametrize('category,text', [
+    ('RESEARCH', '示例同学未参编学术专著，第一署名单位西安交通大学。'),
+    ('POST', '示例同学未担任班长，任期12个月，考评结果良好。'),
+    ('SERVICE', '示例同学志愿服务工时未认证16小时。'),
+    ('REWARD', '示例同学校级精神文明荣誉称号未被表彰。'),
+])
+def test_negated_personal_authorship_role_hours_and_honor_are_not_positive_points(category, text):
+    linked = {'status': 'NOT_FOUND', 'identity_matched': True, 'identity_count': 1,
+              'personal_contexts': [{'text': text}], 'common_contexts': [], 'facts': {}}
+    result, meta, _ = normalize_policy_suggestion(category, [{'text': text}], {'requested_score': '0'},
+                                                 {'requested_score': '99', 'payload_json': {}}, linked, '示例同学')
+    assert result['requested_score'] == '0.00' and meta['status'] == 'NEEDS_REVIEW'
+    assert meta['value'] is None and 'NEGATED_BASIS' in meta['reason_codes']
 
 
 @pytest.mark.parametrize("tier,expected", [("TIER_1", ["4.00", "3.50", "3.00"]), ("TIER_2", ["3.50", "3.00", "2.50"]), ("TIER_3", ["2.00", "1.50", "1.00"]), ("TIER_4", ["1.00", "0.75", "0.50"])])
@@ -147,6 +187,25 @@ def test_volunteer_does_not_need_an_award_but_needs_a_personal_identity():
     outcome = {"status": "NOT_FOUND", "facts": {}, "identity_count": 0, "is_roster": False}
     result, meta, _ = normalize_policy_suggestion("SERVICE", [{"text": "志愿服务工时32小时"}], {"requested_score": ".37"}, {"requested_score": "10", "payload_json": {}}, outcome)
     assert result["requested_score"] == "0.37" and meta["requires_confirmation"]
+
+
+@pytest.mark.parametrize('hours', ['-16小时', '−16小时', '-16小时，另有32小时'])
+def test_negative_volunteer_hours_are_not_silently_converted_to_positive(hours):
+    result, policy, _ = suggest('SERVICE', '本人志愿服务认证工时' + hours, matched=False)
+    assert policy['status'] == 'NEEDS_REVIEW' and policy['value'] is None
+    assert result['requested_score'] == '0.37'
+
+
+@pytest.mark.parametrize('months', ['-12个月', '−12个月', '12.5个月'])
+def test_invalid_personal_tenure_cannot_fall_back_to_common_full_year(months):
+    outcome = {'status': 'MATCHED', 'identity_matched': True, 'identity_count': 1, 'is_roster': True,
+               'facts': {'assessment_result': 'GOOD'},
+               'personal_contexts': [{'text': '本人担任班长，任期' + months + '，考评良好。'}],
+               'common_contexts': [{'text': '班级干部任职考核，统一任期满一年。'}]}
+    result, policy, _ = normalize_policy_suggestion('POST', [], {'requested_score': '0'},
+        {'requested_score': '99', 'payload_json': {}}, outcome)
+    assert policy['status'] == 'NEEDS_REVIEW' and policy['value'] is None
+    assert result['requested_score'] == '0.00'
     outcome.update(identity_count=1, is_roster=True)
     result, meta, _ = normalize_policy_suggestion("SERVICE", [{"text": "多人名单，其他人志愿服务工时32小时"}], {"requested_score": ".37"}, {"requested_score": "10", "payload_json": {}}, outcome)
     assert result["requested_score"] == "0.37" and meta["requires_confirmation"]

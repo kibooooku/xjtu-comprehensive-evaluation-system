@@ -260,6 +260,119 @@ def test_generic_event_scope_grade_and_score_do_not_depend_on_certificate_filena
         assert suggestion["payload_json"]["award_grade"] == grade
 
 
+def _attached_roster(client, cover_event="校园星光长跑", cover_text=None):
+    claim, context, revision, pages = _input(client)
+    response = client.post(f"/api/applications/{claim['id']}/files", files={"file": ("共同活动证明.png", png(1000, 1598), "image/png")})
+    assert response.status_code == 200
+    with db.write() as conn:
+        cover = db.rows(conn, "file_pages", file_id=response.json()["id"])[0]
+        db.change(conn, "file_objects", pages[0]["file_id"], original_name="2026春校园星光长跑竞赛获奖名单.png")
+        db.change(conn, "file_objects", cover["file_id"], original_name=cover_event + "文体竞赛证明.png")
+        _line(conn, pages[0], "奖项 姓名 班级 学号", 100, 60)
+        _line(conn, pages[0], f"三等奖 {context['user']['display_name']} {context['student']['student_number']}", 100, 650)
+        _line(conn, pages[0], "一等奖 他人甲 9988110001", 100, 720)
+        _line(conn, pages[0], "二等奖 他人乙 9988110002", 100, 790)
+        _line(conn, cover, cover_event + "文体竞赛证明", 100, 80)
+        _line(conn, cover, cover_text or "该项目属校级文体竞赛，设一、二、三等奖。具体名单见附件。", 100, 180)
+    return context, [*pages, cover]
+
+
+def test_bare_personal_roster_can_bind_named_explicit_attachment_context(material_app):
+    _, login = material_app
+    context, pages = _attached_roster(login("student"))
+    with db.read() as conn:
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and result["is_roster"]
+        assert result["facts"] == {"award_grade": "THIRD", "award_level": "SCHOOL", "award_system": "PRIZE"}
+        assert any(value["association"] == "ATTACHED_CONTEXT" and value["target_file_id"] == pages[0]["file_id"] for value in result["common_contexts"])
+        assert all("他人甲" not in value["text"] and "他人乙" not in value["text"] for value in result["personal_contexts"])
+
+
+@pytest.mark.parametrize("event,text", [
+    ("校园星光短跑", "该项目属校级文体竞赛，设一、二、三等奖。具体名单见附件。"),
+    ("校园星光长跑", "该项目属校级文体竞赛，设一、二、三等奖。"),
+    ("校园星光长跑", "西安交通大学委员会出具活动证明，具体名单见附件。"),
+])
+def test_context_requires_same_event_explicit_attachment_and_actual_level(material_app, event, text):
+    _, login = material_app
+    context, pages = _attached_roster(login("student"), event, text)
+    with db.read() as conn:
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and result["facts"]["award_grade"] == "THIRD"
+        assert "award_level" not in result["facts"]
+
+
+def test_attachment_context_preserves_conflicting_levels_for_human_review(material_app):
+    _, login = material_app
+    context, pages = _attached_roster(login("student"), cover_text="本项目含校级及省级文体竞赛，设一、二、三等奖。具体名单见附件。")
+    with db.read() as conn:
+        result = _result(conn, context, pages)
+        assert result["facts"]["award_grade"] == "THIRD" and "award_level" not in result["facts"]
+        assert result["warnings"] and result["anchors"][0]["award_level_conflict"]
+
+
+def test_same_file_shared_heading_applies_to_personal_row_not_others_level(material_app):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], "校级摄影比赛获奖名单", 100, 70)
+        _line(conn, pages[0], f"三等奖 {context['user']['display_name']} {context['student']['student_number']}", 100, 650)
+        _line(conn, pages[0], "一等奖 他人甲 9988110001", 100, 720)
+        _line(conn, pages[0], "二等奖 他人乙 9988110002", 100, 790)
+        result = _result(conn, context, pages)
+        assert result["facts"] == {"award_grade": "THIRD", "award_level": "SCHOOL"}
+        assert result["common_contexts"][0]["association"] == "FILE_HEADING"
+
+
+def test_cover_before_roster_keeps_explicit_scope_below_the_title_area(material_app):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"), 2)
+    with db.write() as conn:
+        _line(conn, pages[0], "校园星光长跑活动证明", 100, 100)
+        _line(conn, pages[0], "本项目为校级文体竞赛，设一、二、三等奖，具体名单见附件。", 100, 650)
+        _line(conn, pages[1], f"三等奖 {context['user']['display_name']} {context['student']['student_number']}", 100, 650)
+        _line(conn, pages[1], "一等奖 他人甲 9988110001", 100, 720)
+        _line(conn, pages[1], "二等奖 他人乙 9988110002", 100, 790)
+        result = _result(conn, context, pages)
+        assert result["facts"] == {"award_grade": "THIRD", "award_level": "SCHOOL", "award_system": "PRIZE"}
+        assert result["common_contexts"][0]["page_id"] == pages[0]["id"]
+        assert result["anchors"][0]["page_id"] == pages[1]["id"]
+
+
+def test_top_of_roster_split_cells_are_not_common_scope_headings(material_app):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], "获奖名单", 100, 60)
+        _line(conn, pages[0], "他人甲", 100, 140)
+        _line(conn, pages[0], "省级摄影比赛一等奖", 400, 140)
+        _line(conn, pages[0], "9988110001", 800, 140)
+        _line(conn, pages[0], "他人乙 9988110002", 100, 210)
+        _line(conn, pages[0], f"三等奖 {context['user']['display_name']} {context['student']['student_number']}", 100, 650)
+        result = _result(conn, context, pages)
+        assert result["facts"] == {"award_grade": "THIRD"}
+        assert all("省级摄影" not in value["text"] for value in result["common_contexts"])
+
+
+@pytest.mark.parametrize("personal,other,excluded", [
+    ("担任班长，任期满一年", "担任院学生会主席，任期六个月", "学生会主席"),
+    ("志愿服务16小时", "志愿服务80小时", "80小时"),
+    ("荣获优秀志愿者称号", "荣获全国精神文明先进个人", "全国精神文明"),
+])
+def test_identity_contexts_do_not_require_an_award_and_exclude_other_records(material_app, personal, other, excluded):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], "个人记录名单", 100, 70)
+        _line(conn, pages[0], f"{context['user']['display_name']} {context['student']['student_number']} {personal}", 100, 650)
+        _line(conn, pages[0], "他人甲 9988110001 " + other, 100, 720)
+        _line(conn, pages[0], "他人乙 9988110002", 100, 790)
+        result = _result(conn, context, pages)
+        assert result["status"] == "NOT_FOUND" and result["identity_matched"] and result["identity_count"]
+        assert result["personal_contexts"] and personal in result["personal_contexts"][0]["text"]
+        assert all(excluded not in value["text"] and value["association"] == "SAME_ROW" for value in result["personal_contexts"])
+
+
 @pytest.mark.parametrize("province_position,award_position", [((100, 650), (700, 650)), ((100, 650), (700, 690)), ((100, 650), (100, 1000))])
 def test_certificate_does_not_join_columns_or_distant_labels_into_provincial_scope(material_app, province_position, award_position):
     from app.policy_suggestions import normalize_policy_suggestion

@@ -1,0 +1,309 @@
+{
+  "source": "All APIs/images mocked; score saves are fixture writes only, no actual database or provider calls",
+  "checks": [
+    "集体活动正常计分与未决分值分开显示，缺项具体且允许手填",
+    "思想政治理论学习正常计分与未决分值分开显示，缺项具体且允许手填",
+    "社会服务正常计分与未决分值分开显示，缺项具体且允许手填",
+    "学术科研及创新创业正常计分与未决分值分开显示，缺项具体且允许手填",
+    "文体竞赛正常计分与未决分值分开显示，缺项具体且允许手填",
+    "学生组织社团任职正常计分与未决分值分开显示，缺项具体且允许手填",
+    "奖励分正常计分与未决分值分开显示，缺项具体且允许手填",
+    "七大类次数、培训层级、优秀学员、奖次方式、任职、实践及奖励依据可核对保存，未展示字段保留",
+    "旧布尔优秀学员事实按YES或NO显示，不丢失原有语义",
+    "文体奖次制保留三等奖，不编造为第3名或PLACE_3",
+    "修改次数等计分依据后提示待核定，保留原分值并允许重新分析或人工确认",
+    "按规则不合格的真实0分保持0，不以数值0推断待核定",
+    "人工0、人工非零及冻结审核分值优先于旧任务建议，保持原值",
+    "仅修改标题或原样保存不会把默认0确认为人工计分",
+    "用户明确确认当前0分后成为人工核定，无需填写理由",
+    "用户输入分值后保存才明确核定，人工1.25分不受自动建议覆盖",
+    "后台新分值到达不推进脏表单版本，旧版本409保留输入且不覆盖服务端新分值",
+    "明确确认0分也携带表单版本，不能用旧页面0覆盖另一标签页的新人工分值",
+    "仅状态或证据刷新且表单依据未变时可安全推进版本，不丢输入或造成无谓冲突",
+    "后台任务与工作台通用表格同样区分已提取信息和已确定分值",
+    "未核定小项提交前明确指导补依据或确认当前分值，保留手填入口",
+    "批量混选明确标注待核定，正常已核定项可提交，未决项保留草稿与勾选",
+    "批量全为未决项时禁用提交，不把默认0当已确定分值"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "path": "/api/applications/COLLECTIVE-known",
+      "body": {
+        "expected_version": 1,
+        "title": "集体活动虚构计分材料（known）",
+        "requested_score": "0.60",
+        "activity_id": null,
+        "payload_json": {
+          "activity_count": "2",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/IDEOLOGY-known",
+      "body": {
+        "expected_version": 1,
+        "title": "思想政治理论学习虚构计分材料（known）",
+        "requested_score": "1.00",
+        "activity_id": null,
+        "payload_json": {
+          "activity_count": "1",
+          "theory_level": "ORDINARY",
+          "excellent_trainee": "NO",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/SERVICE-known",
+      "body": {
+        "expected_version": 1,
+        "title": "社会服务虚构计分材料（known）",
+        "requested_score": "1.00",
+        "activity_id": null,
+        "payload_json": {
+          "practice_type": "PLACEMENT",
+          "placement_level": "CITY_OR_COUNTY",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": "",
+          "assessment_result": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/RESEARCH-known",
+      "body": {
+        "expected_version": 1,
+        "title": "学术科研及创新创业虚构计分材料（known）",
+        "requested_score": "8.00",
+        "activity_id": null,
+        "payload_json": {
+          "research_type": "COMPETITION",
+          "award_level": "PROVINCIAL",
+          "award_grade": "FIRST",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": "",
+          "edition_key": "",
+          "track_key": "",
+          "group_key": "",
+          "work_key": "",
+          "project_level": "",
+          "publication_level": "",
+          "author_rank": "",
+          "assessment_result": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/ARTS-known",
+      "body": {
+        "expected_version": 1,
+        "title": "文体竞赛虚构计分材料（known）",
+        "requested_score": "3.50",
+        "activity_id": null,
+        "payload_json": {
+          "competition_kind": "ART",
+          "award_level": "PROVINCIAL",
+          "award_grade": "SECOND",
+          "award_system": "PRIZE",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": "",
+          "edition_key": "",
+          "track_key": "",
+          "group_key": "",
+          "work_key": "",
+          "record_level": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/POST-known",
+      "body": {
+        "expected_version": 1,
+        "title": "学生组织社团任职虚构计分材料（known）",
+        "requested_score": "1.50",
+        "activity_id": null,
+        "payload_json": {
+          "position_tier": "TIER_3",
+          "assessment_result": "GOOD",
+          "tenure_months": "12",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/REWARD-known",
+      "body": {
+        "expected_version": 1,
+        "title": "奖励分虚构计分材料（known）",
+        "requested_score": "4.00",
+        "activity_id": null,
+        "payload_json": {
+          "recognition_kind": "MORAL_HONOR",
+          "recognition_level": "PROVINCIAL",
+          "activity_count": "",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/ARTS-prize-third",
+      "body": {
+        "expected_version": 1,
+        "title": "文体竞赛虚构计分材料（prize-third）",
+        "requested_score": "1.00",
+        "activity_id": null,
+        "payload_json": {
+          "competition_kind": "SPORT",
+          "award_level": "SCHOOL",
+          "award_grade": "THIRD",
+          "award_system": "PRIZE",
+          "subtype": "",
+          "note": "",
+          "edition_key": "",
+          "track_key": "",
+          "group_key": "",
+          "work_key": "",
+          "record_level": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/COLLECTIVE-known",
+      "body": {
+        "expected_version": 2,
+        "title": "集体活动虚构计分材料（known）",
+        "requested_score": "0.60",
+        "activity_id": null,
+        "payload_json": {
+          "activity_count": "3",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/IDEOLOGY-unknown",
+      "body": {
+        "expected_version": 1,
+        "title": "只修改标题，不确认计分",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": "",
+          "activity_count": "",
+          "theory_level": "",
+          "excellent_trainee": ""
+        }
+      }
+    },
+    {
+      "path": "/api/applications/IDEOLOGY-unknown",
+      "body": {
+        "expected_version": 2,
+        "title": "只修改标题，不确认计分",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": "",
+          "activity_count": "",
+          "theory_level": "",
+          "excellent_trainee": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/POST-unknown",
+      "body": {
+        "expected_version": 1,
+        "title": "学生组织社团任职虚构计分材料（unknown）",
+        "requested_score": "1.25",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": "",
+          "assessment_result": "",
+          "position_tier": "",
+          "tenure_months": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/REWARD-unknown",
+      "body": {
+        "expected_version": 1,
+        "title": "奖励分虚构计分材料（unknown）",
+        "requested_score": "0.75",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": "",
+          "recognition_level": "",
+          "activity_count": "",
+          "recognition_kind": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/SERVICE-unknown",
+      "body": {
+        "expected_version": 1,
+        "title": "社会服务虚构计分材料（unknown）",
+        "requested_score": "0.00",
+        "activity_id": null,
+        "payload_json": {
+          "subtype": "",
+          "note": "",
+          "assessment_result": "",
+          "practice_type": "",
+          "placement_level": ""
+        },
+        "score_confirmed": true
+      }
+    },
+    {
+      "path": "/api/applications/IDEOLOGY-known",
+      "body": {
+        "expected_version": 3,
+        "title": "仅状态刷新期间的本地标题",
+        "requested_score": "1.00",
+        "activity_id": null,
+        "payload_json": {
+          "activity_count": "1",
+          "theory_level": "ORDINARY",
+          "excellent_trainee": "NO",
+          "fixture_unshown_fact": "保留未展示的原字段",
+          "subtype": "",
+          "note": ""
+        }
+      }
+    },
+    {
+      "path": "/api/submissions/group-RESEARCH/submit",
+      "body": {
+        "item_ids": [
+          "RESEARCH-known"
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-10-26T12:11:22.807Z"
+}

@@ -44,5 +44,7 @@ GET /bootstrap新增 active_year/current_year，years保留供历史/教职工�
 
 ## 前端（frontend agent）
 
+计分新增score_resolution={status:RULE_APPLIED|NEEDS_REVIEW|MANUAL|UNANALYZED,value:两位字符串|null,retained_value,missing_facts:[{code,label}],message,rule,source}，在summary/detail/AI建议中提供。未决不是0分；正常规则0与手填0照常显示。PUT score_confirmed:true与requested_score显式人工核定，无需理由；只存标题或空字段不核定0。NEEDS_REVIEW/UNANALYZED不得submit；批量可部分成功。表单保存及核分携带加载时expected_version，脏表单不跟随后台内容推进版本；409保持输入。详情见docs/七大类自动计分验收.md。
+
 主要我的申报页面每类一行卡片或大类展开表格；七类入口直接打开上传整理弹窗；文件先存在浏览器本地groups，默认主文件一小项，可每组添附件；点确认后依次建staged item+上传文件，再confirm-upload后才开始OCR。途中禁止重复点击，不在modal选文件时触发OCR。上传完成只刷新表格而不跳入旧单项详情。
 category详情为表格，行按小项状态/分值/文件/具体名/证据/操作，选中行左侧原件/截图右侧信息并列对照，review按小项，不锁整大类；旧单项编辑可复用嵌入/抽屉，识别按钮靠近上传区。全站后台任务栏+轮询，即使切菜单也不销毁；各类别/行OCR中/未分析/AI中/完毕/失败提示。一键分析跳过旧结果和锁定项。当前学年admin设置，学生只读显示，历史另入口。所有写API保留CSRF及权限处理。

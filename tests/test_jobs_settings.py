@@ -205,7 +205,7 @@ def test_ocr_then_ai_automatically_fills_only_the_pristine_new_item(system, monk
         if action == 'SealOCR':
             return {'RequestId': 'test-seal', 'SealInfos': [{'SealBody': '测试章', 'Location': {'X': 100, 'Y': 400, 'Width': 60, 'Height': 60}}]}
         return {'RequestId': 'test-general', 'TextDetections': [
-            {'DetectedText': '活动名称：迎新广场舞', 'Confidence': 99, 'ItemPolygon': {'X': 20, 'Y': 30, 'Width': 250, 'Height': 20}},
+            {'DetectedText': '活动名称：迎新广场舞（2次）', 'Confidence': 99, 'ItemPolygon': {'X': 20, 'Y': 30, 'Width': 250, 'Height': 20}},
             {'DetectedText': '2025年10月12日', 'Confidence': 99, 'ItemPolygon': {'X': 20, 'Y': 70, 'Width': 250, 'Height': 20}},
             {'DetectedText': '王欣然 DEMO202401004 软件2401', 'Confidence': 99, 'ItemPolygon': {'X': 20, 'Y': 220, 'Width': 350, 'Height': 20}}]}
 
