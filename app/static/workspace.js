@@ -4,6 +4,7 @@
  * This file owns the upload-first, multi-item workspace and persistent job UI. */
 Object.assign(S,{submissions:[],expandedSubmission:null,selectedItem:null,checkedItems:new Set(),jobs:[],jobTimer:null,jobSignature:'',completedJobKeys:new Set(),jobsLoaded:false,comparisonRequest:0,workspaceDirty:false,historyYear:'',reviewYear:'',uploadGroups:[]});
 const activeYear=()=>S.boot?.active_year || S.boot?.current_year || S.boot?.years?.[0];
+Object.assign(S,{uploadBatches:[],uploadWorkers:0,uploadQueueExpanded:true});
 const itemState=i=>i.state || i.round?.state || 'DRAFT';
 const itemEditable=i=>['DRAFT','REJECTED','WITHDRAWN'].includes(itemState(i));
 const groupItems=g=>g?.items||[];
@@ -114,17 +115,22 @@ function setupWorkspaceShell(){
     const button=document.createElement('button');button.className='nav-item';button.dataset.action='v2-statistics-year';button.innerHTML=icon('calendar')+'<span>当前统计学年</span>';$('.nav-list')?.append(button);
   }
   const existing=$('#background-jobs');if(existing)existing.remove();
+  if(S.jobsOwner!==S.user?.id){S.jobs=[];S.jobsLoaded=false;S.completedJobKeys.clear();S.jobSignature='';S.jobsOwner=S.user?.id;S.submissions=[];S.workspaceItem=null;S.detail=null;S.selectedItem=null;S.expandedSubmission=null;S.workspaceDirty=false;S.checkedItems.clear();S.comparisonRequest++;}
   if(isStudent()){
-    const bar=document.createElement('section');bar.id='background-jobs';bar.className='jobs-dock hidden';bar.setAttribute('aria-live','polite');bar.innerHTML='<div id="jobs-summary"></div><div id="jobs-list" class="jobs-list hidden"></div>';$('.shell')?.append(bar);
+    const bar=document.createElement('section');bar.id='background-jobs';bar.className='jobs-dock hidden';bar.setAttribute('aria-live','polite');bar.innerHTML='<div id="upload-batches"></div><div id="jobs-summary"></div><div id="jobs-list" class="jobs-list hidden"></div>';$('.shell')?.append(bar);
+    bar.addEventListener('click',e=>{const button=e.target.closest('[data-upload-action]');if(!button)return;const batch=S.uploadBatches.find(b=>b.id===button.dataset.batch&&b.ownerId===S.user?.id);if(button.dataset.uploadAction==='expand'){S.uploadQueueExpanded=!S.uploadQueueExpanded;drawJobs();}else if(button.dataset.uploadAction==='retry'&&batch&&batch.state==='FAILED'){batch.state='QUEUED';batch.error='';batch.items.filter(item=>!item.confirmed).forEach(item=>{item.state='QUEUED';item.error='';});pumpUploadBatches();drawJobs();}else if(button.dataset.uploadAction==='dismiss'&&batch&&batch.state==='COMPLETED'){S.uploadBatches=S.uploadBatches.filter(b=>b!==batch);drawJobs();}});
+    bar.addEventListener('click',e=>{const button=e.target.closest('[data-upload-action="discard"]');if(!button)return;const batch=S.uploadBatches.find(value=>value.id===button.dataset.batch&&value.ownerId===S.user?.id&&value.state==='FAILED');if(batch&&window.confirm('放弃这批未完成的本地上传？已上传确认的小项会保留，未完成项不会正式申报。')){batch.items.forEach(item=>item.files=[]);S.uploadBatches=S.uploadBatches.filter(value=>value!==batch);drawJobs();}});
     bar.onclick=e=>{const button=e.target.closest('[data-job-action]');if(!button)return;if(button.dataset.jobAction==='expand')$('#jobs-list').classList.toggle('hidden');if(button.dataset.jobAction==='item')openJobItem(button.dataset.id);if(button.dataset.jobAction==='retry')enqueueItem(button.dataset.id,button.dataset.kind,true).catch(err=>toast(err.message,true));};
   }
   if(S.jobTimer)clearInterval(S.jobTimer);S.jobTimer=null;
   if(isStudent()){pollJobs(true);S.jobTimer=setInterval(()=>pollJobs(),2200);}
+  drawJobs();pumpUploadBatches();
 }
 async function pollJobs(){
   if(!S.user||!isStudent()||S.pollingJobs)return;S.pollingJobs=true;
+  const requestOwnerId=S.user.id;
   try{
-    const response=await api('/analysis-jobs?active_only=false');if(!S.user)return;
+    const response=await api('/analysis-jobs?active_only=false');if(S.user?.id!==requestOwnerId)return;
     const jobs=arr(response.jobs||response),completed=[];
     for(const job of jobs){if(!['SUCCEEDED','FAILED','STALE'].includes(job.state))continue;const key=job.id+':'+job.state+':'+(job.finished_at||'');if(!S.completedJobKeys.has(key)){if(S.jobsLoaded)completed.push({key,id:job.application_id});else S.completedJobKeys.add(key);}}
     const signature=JSON.stringify(jobs.map(j=>[j.id,j.state,j.progress,j.stage,j.finished_at]));
@@ -137,10 +143,12 @@ async function pollJobs(){
 }
 function drawJobs(){
   const bar=$('#background-jobs');if(!bar)return;
+  const uploads=S.uploadBatches.filter(batch=>batch.ownerId===S.user?.id);drawUploadBatches(uploads);
   const active=S.jobs.filter(j=>['QUEUED','RUNNING'].includes(j.state)).sort((a,b)=>{const rank=j=>j.state==='RUNNING'?(j.kind==='OCR'?0:1):2;return rank(a)-rank(b)||String(b.created_at||'').localeCompare(String(a.created_at||''));});
   const activeIds=new Set(active.map(j=>j.id)),recent=[...active,...S.jobs.filter(j=>!activeIds.has(j.id)).slice(0,6)];
-  if(!recent.length){bar.classList.add('hidden');document.body.classList.remove('has-jobs');return;}
+  if(!recent.length&&!uploads.length){bar.classList.add('hidden');document.body.classList.remove('has-jobs');return;}
   bar.classList.remove('hidden');document.body.classList.add('has-jobs');
+  $('#jobs-summary').classList.toggle('hidden',!recent.length);if(!recent.length){$('#jobs-list').replaceChildren();return;}
   patchHtml($('#jobs-summary'),`<button class="jobs-summary" data-job-action="expand"><span class="row gap6">${active.length?'<span class="tiny-spinner"></span>':icon('check')}<strong>${active.length?`${active.length} 个后台任务正在进行`:'后台任务已处理'}</strong><span class="muted small">切换页面或刷新后继续运行</span></span><span class="row gap6 small">查看进度 ${icon('chevron')}</span></button>${active.length?'<p class="jobs-busy-notice">材料识别／AI分析可能需要一些时间；可切换站内页面，后台继续，完成后自动更新。请勿重复点击。</p>':''}`);
   patchJobRows($('#jobs-list'),recent.map(j=>{const presentation=jobPresentation(j);const title=findItem(j.application_id)?.title||j.title||j.application_title||'加分小项';const ratio=Math.min(100,Number(j.progress||0)/Math.max(1,Number(j.total||1))*100);return `<div class="job-row" data-job-id="${esc(j.id)}" data-job-kind="${esc(j.kind)}"><div class="flex1"><button class="text-action" data-job-action="item" data-id="${esc(j.application_id)}">${esc(title)}</button><p class="small muted">${jobName(j.kind)} · ${esc(jobStage(j))}${elapsedText(j)?' · '+esc(elapsedText(j)):''}${j.state==='RUNNING'&&Number(j.total)>0?` · ${Number(j.progress||0)}/${Number(j.total)}`:''}</p>${['QUEUED','RUNNING'].includes(j.state)&&Number(j.total)>0?`<div class="progress-track mt8"><span style="width:${ratio}%"></span></div>`:''}${j.error_message?`<p class="small ${presentation.manual?'muted':'danger-text'} mt8">${esc(j.error_message)}</p>`:''}</div><span class="tag ${presentation.color}">${esc(presentation.label)}</span>${j.state==='FAILED'&&!presentation.manual?`<button class="text-action" data-job-action="retry" data-id="${esc(j.application_id)}" data-kind="${esc(j.kind)}">重试</button>`:''}</div>`;}).join(''));
   refreshProcessingStatus();
@@ -235,12 +243,24 @@ function itemRow(g,i,edit){
   return `<tr class="${selected?'selected':''}" data-item-row="${esc(i.id)}">${edit?`<td><input type="checkbox" data-item-check="${esc(i.id)}" ${S.checkedItems.has(i.id)?'checked':''} ${editable?'':'disabled'} aria-label="选择 ${esc(i.title||'此小项')}"></td>`:''}<td class="item-file-cell"><div class="row gap6">${icon('file')}<span>${esc(fileNames[0] || i.primary_file_name || i.file_name || '证明材料')}</span></div><small>${fileNames.length>1?`另 ${fileNames.length-1} 份附件`:`${i.file_count||fileNames.length||1} 份附件`}</small></td><td class="title-cell"><div class="table-title">${esc(i.title||'等待分析，请核对填写')}</div>${i.student_modified_score?'<div class="table-sub">学生手动修改过计分</div>':''}${i.possible_duplicates?.length?`<div class="table-sub duplicate-hint" title="${esc(i.possible_duplicates.map(x=>x.reason).join('；'))}">疑似重复，请人工核对</div>`:''}</td><td><span class="score-num">${fmt(i.requested_score)}</span> <small>分</small></td><td>${taskTag(i)}</td><td><div data-ai-progress="${esc(i.id)}">${aiTaskContent(i)}</div></td><td><span data-item-state="${esc(i.id)}">${statusTag(state)}${i.deleted_at?'<span class="tag">已删除</span>':''}</span></td><td><div class="table-actions"><button class="text-action" data-action="v2-select-item" data-id="${esc(i.id)}" data-group="${esc(g.id)}">${S.workspaceScope==='review'?'比对审核':'对照核对'}</button>${editable?`<button class="text-action danger-text" data-action="v2-delete-item" data-id="${esc(i.id)}" data-group="${esc(g.id)}">删除</button>`:''}</div></td></tr>`;
 }
 function updateCheckedCount(){$$('[data-checked-count]').forEach(el=>{const g=S.submissions.find(x=>x.id===el.dataset.checkedCount);el.textContent=groupItems(g).filter(i=>itemEditable(i)&&S.checkedItems.has(i.id)).length;});}
-async function refreshWorkspaceData({fromPoll=false,completedItems=new Set()}={}){
+async function refreshWorkspaceData({fromPoll=false,completedItems=new Set(),mergeUploads=false}={}){
   const mount=$('#submission-groups'),sequence=S.renderSequence;if(!mount)return;
   const list=arr(await api('/submissions?'+new URLSearchParams({year_id:S.workspaceYear||'',class_id:S.classId||'',scope:S.workspaceScope||'mine',...(S.workspaceHistorical?{include_deleted:'true'}:{})})));
   if(!mount.isConnected||mount!==$('#submission-groups')||sequence!==S.renderSequence)return;
   const oldDirty=S.workspaceDirty;S.submissions=list;
   if(!fromPoll&&!oldDirty){await drawSubmissionGroups();return;}
+  if(mergeUploads){
+    const search=($('#workspace-search')?.value||'').toLowerCase();
+    for(const group of list){
+      if(!(`${group.category_name} ${group.student_name} ${groupItems(group).map(item=>item.title).join(' ')}`).toLowerCase().includes(search))continue;
+      let section=$(`[data-group-id="${group.id}"]`,mount);
+      if(!section){if(!mount.querySelector('[data-group-id]'))mount.replaceChildren();if(!S.expandedSubmission&&!S.selectedItem)S.expandedSubmission=group.id;mount.insertAdjacentHTML('beforeend',groupCard(group));section=$(`[data-group-id="${group.id}"]`,mount);}
+      const body=$('tbody',section),edit=group.student_user_id===S.user.id&&!S.workspaceHistorical&&group.year_id===activeYear()?.id;
+      if(body)for(const item of groupItems(group))if(!$(`[data-item-row="${item.id}"]`,body))body.insertAdjacentHTML('beforeend',itemRow(group,item,edit));
+      $$('[data-item-check]',section).forEach(checkbox=>checkbox.onchange=()=>{if(checkbox.checked)S.checkedItems.add(checkbox.dataset.itemCheck);else S.checkedItems.delete(checkbox.dataset.itemCheck);updateCheckedCount();});
+      $$('[data-group-check]',section).forEach(checkbox=>checkbox.onchange=()=>{groupItems(group).filter(itemEditable).forEach(item=>{if(checkbox.checked)S.checkedItems.add(item.id);else S.checkedItems.delete(item.id);const field=$(`[data-item-check="${item.id}"]`,section);if(field)field.checked=checkbox.checked;});updateCheckedCount();});
+    }
+  }
   for(const g of list)for(const i of groupItems(g)){
     const row=$(`[data-item-row="${i.id}"]`);if(!row)continue;
     const title=$('.table-title',row),text=i.title||'等待分析，请核对填写';if(title&&title.textContent!==text)title.textContent=text;
@@ -301,28 +321,66 @@ function drawOrganizer(){
   $('#organizer-confirm').disabled=!S.uploadGroups.some(g=>!g.confirmed)||S.uploading;
 }
 async function confirmOrganizedUpload(button){
-  if(S.uploading)return;const category=$('#organizer-category').value;if(!category){modalError('请先选择加分类别。');return;}S.uploadCategory=category;S.uploading=true;$('#organizer-cancel').disabled=true;$('#organizer-category').disabled=true;
-  const old=button.innerHTML;button.disabled=true;
+  if(button.disabled)return;const category=$('#organizer-category').value;if(!category){modalError('请先选择加分类别。');return;}
+  const groups=S.uploadGroups.filter(item=>!item.confirmed);if(!groups.length)return;button.disabled=true;
+  const batch={id:crypto.randomUUID(),ownerId:S.user.id,yearId:activeYear()?.id,yearName:activeYear()?.name||'当前学年',categoryId:category,categoryName:S.boot.categories.find(item=>item.id===category)?.name||'加分材料',submissionId:S.uploadSubmissionId||null,state:'QUEUED',error:'',createdAt:new Date().toISOString(),items:groups.map(item=>({...item,files:[...item.files],fileNames:item.files.map(file=>file.name),totalFiles:item.files.length,uploaded:new Set(item.uploaded),state:'QUEUED',stage:'排队等待上传',error:'',confirmationAttempted:false}))};
+  S.uploadBatches.push(batch);S.uploadGroups=[];S.uploadSubmissionId=null;S.uploadQueueExpanded=true;closeModal();drawJobs();pumpUploadBatches();
+  toast('已加入后台上传，可继续选择其它大类。上传期间请保留此网站窗口。');
+  if(S.view!=='applications'&&!S.workspaceDirty&&!$('#application-form'))await go('applications');
+}
+
+function uploadBatchVisible(){return S.uploadBatches.filter(batch=>batch.ownerId===S.user?.id);}
+function hasPendingLocalUploads(){return S.uploadBatches.some(batch=>batch.state!=='COMPLETED'&&batch.items.some(item=>!item.confirmed&&item.files.length));}
+window.addEventListener('beforeunload',event=>{if(hasPendingLocalUploads()){event.preventDefault();event.returnValue='';}});
+
+function drawUploadBatches(batches=uploadBatchVisible()){
+  const container=$('#upload-batches');if(!container)return;
+  if(!batches.length){container.replaceChildren();container._renderedHtml='';return;}
+  const active=batches.filter(batch=>['QUEUED','RUNNING'].includes(batch.state)).length,failed=batches.filter(batch=>batch.state==='FAILED').length;
+  const labels={QUEUED:'等待上传',RUNNING:'上传处理中',FAILED:'部分失败，可重试',COMPLETED:'上传已完成'};
+  patchHtml(container,`<div class="upload-queue-head"><button class="text-action" data-upload-action="expand">${active?'<span class="tiny-spinner"></span>':icon('upload')}<strong>文件上传${active?` · ${active} 批进行中`:failed?` · ${failed} 批待处理`:' · 已完成'}</strong>${icon('chevron')}</button></div>${S.uploadQueueExpanded?`<p class="upload-queue-note">可切换站内页面或继续上传其它类别。未完成的文件仍在本窗口上传，请勿刷新或关闭；已入队的识别任务在服务器继续运行。</p><div class="upload-queue-list">${batches.map(batch=>`<section class="upload-batch" data-upload-batch="${esc(batch.id)}"><div class="row between gap6"><strong>${esc(batch.categoryName)} <small>${esc(batch.yearName)}</small></strong><span class="tag ${batch.state==='FAILED'?'danger':batch.state==='COMPLETED'?'success':'info'}">${labels[batch.state]}</span></div><p class="small muted">${batch.items.filter(item=>item.confirmed).length}/${batch.items.length} 个小项已上传确认</p>${batch.items.map(item=>`<div class="upload-queue-item" data-upload-item="${esc(item.id)}"><span>${esc(item.fileNames[0]||'证明材料')}</span><small class="${item.state==='FAILED'?'danger-text':'muted'}">${esc(item.error||item.stage)}${item.totalFiles>1?` · ${item.uploaded.size}/${item.totalFiles} 份文件已保存`:''}</small>${item.warning?`<small class="warning-text">${esc(item.warning)}</small>`:''}</div>`).join('')}${batch.error?`<p class="small danger-text">${esc(batch.error)}</p>`:''}${batch.state==='FAILED'?`<div class="row gap6"><button class="btn sm" data-upload-action="retry" data-batch="${esc(batch.id)}">重试未完成项</button><button class="text-action" data-upload-action="discard" data-batch="${esc(batch.id)}">放弃未完成上传</button></div>`:batch.state==='COMPLETED'?`<button class="text-action" data-upload-action="dismiss" data-batch="${esc(batch.id)}">收起此批记录</button>`:''}</section>`).join('')}</div>`:''}`);
+}
+
+function assertUploadOwner(batch){if(S.user?.id!==batch.ownerId||!isStudent())throw new Error('登录账号已变化，请用原账号重试此批上传。');}
+function pumpUploadBatches(){
+  if(!isStudent())return;
+  while(S.uploadWorkers<2){const batch=S.uploadBatches.find(item=>item.ownerId===S.user.id&&item.state==='QUEUED');if(!batch)break;S.uploadWorkers++;batch.state='RUNNING';drawJobs();runUploadBatch(batch).finally(()=>{S.uploadWorkers--;drawJobs();pumpUploadBatches();});}
+}
+async function refreshUploadList(batch){
+  if(S.user?.id!==batch.ownerId||S.view!=='applications'||S.workspaceHistorical||S.workspaceScope!=='mine'||S.workspaceYear!==batch.yearId||!$('#submission-groups'))return;
+  try{await refreshWorkspaceData({fromPoll:true,mergeUploads:true});}catch{if(S.user?.id===batch.ownerId)toast('材料已上传，列表暂未更新；可稍后刷新查看。',true);}
+}
+async function runUploadBatch(batch){
   try{
-    if(!S.uploadSubmissionId){const g=await api('/submissions',{method:'POST',body:{category_id:category}});S.uploadSubmissionId=g.id || g.submission?.id;}
-    const ready=[];
-    for(let index=0;index<S.uploadGroups.length;index++){
-      const g=S.uploadGroups[index];if(g.confirmed)continue;g.error='';button.innerHTML=`<span class="tiny-spinner"></span>上传第 ${index+1}/${S.uploadGroups.length} 项`;
+    assertUploadOwner(batch);
+    if(!batch.submissionId){const response=await api('/submissions',{method:'POST',body:{category_id:batch.categoryId,year_id:batch.yearId}});batch.submissionId=response.id||response.submission?.id;if(!batch.submissionId)throw new Error('未取得大类申报编号，请重试。');}
+    for(const item of batch.items){
+      if(item.confirmed)continue;
+      item.state='RUNNING';item.error='';item.stage='准备上传小项';drawJobs();
       try{
-        if(!g.applicationId){const created=await api(`/submissions/${S.uploadSubmissionId}/items`,{method:'POST',body:{staged:true}});g.applicationId=created.id || created.application?.id || created.item?.id;}
-        for(let fileIndex=0;fileIndex<g.files.length;fileIndex++){
-          if(g.uploaded.has(fileIndex))continue;
-          const body=new FormData();body.append('file',g.files[fileIndex]);await api(`/applications/${g.applicationId}/files`,{method:'POST',body});g.uploaded.add(fileIndex);
+        assertUploadOwner(batch);
+        if(item.confirmationAttempted){
+          const current=await api(`/submissions/${batch.submissionId}`);const existing=groupItems(current.submission||current).find(value=>value.id===item.applicationId);
+          if(existing?.confirmed_at){item.confirmed=true;item.state='COMPLETED';item.stage='上传已确认';item.files=[];drawJobs();await refreshUploadList(batch);continue;}
         }
-        ready.push(g.applicationId);
-      }catch(e){g.error=e.message;}
+        if(!item.applicationId){assertUploadOwner(batch);const response=await api(`/submissions/${batch.submissionId}/items`,{method:'POST',body:{staged:true}});item.applicationId=response.id||response.application?.id||response.item?.id;if(!item.applicationId)throw new Error('未取得小项编号，请重试。');}
+        for(let index=0;index<item.files.length;index++){
+          if(item.uploaded.has(index))continue;
+          assertUploadOwner(batch);item.stage=`上传并保存第 ${index+1}/${item.totalFiles} 份文件；PDF解析可能需要一些时间`;drawJobs();
+          const body=new FormData();body.append('file',item.files[index]);await api(`/applications/${item.applicationId}/files`,{method:'POST',body});item.uploaded.add(index);drawJobs();
+        }
+        assertUploadOwner(batch);item.stage='文件已保存，确认小项并安排识别';item.confirmationAttempted=true;drawJobs();
+        const response=await api(`/submissions/${batch.submissionId}/confirm-upload`,{method:'POST',body:{item_ids:[item.applicationId]}});
+        if(!Array.isArray(response.confirmed_item_ids)||!response.confirmed_item_ids.includes(item.applicationId))throw new Error('小项尚未确认完成，请重试。');
+        item.confirmed=true;item.state='COMPLETED';item.stage='上传完成，识别已入队';item.files=[];
+        if(response.ocr_errors?.length){item.warning='上传已完成，部分识别未能入队，请在小项中重试识别。';item.stage='上传完成';}
+        if(S.user?.id===batch.ownerId){const jobs=response.jobs||[];S.jobs=[...jobs,...S.jobs.filter(job=>!jobs.some(value=>value.id===job.id))];drawJobs();}
+        await refreshUploadList(batch);
+      }catch(error){item.state='FAILED';item.error=error.message;item.stage='上传未完成';drawJobs();if(S.user?.id!==batch.ownerId)throw error;}
     }
-    let result=null;
-    if(ready.length){button.innerHTML='<span class="tiny-spinner"></span>确认小项，安排后台 OCR';result=await api(`/submissions/${S.uploadSubmissionId}/confirm-upload`,{method:'POST',body:{item_ids:ready}});const confirmed=result.confirmed_item_ids||ready;S.uploadGroups.forEach(g=>{if(confirmed.includes(g.applicationId))g.confirmed=true;});}
-    const remaining=S.uploadGroups.filter(g=>!g.confirmed);
-    if(!remaining.length){const groupId=S.uploadSubmissionId;S.uploading=false;closeModal();S.expandedSubmission=groupId;S.selectedItem=null;S.workspaceDirty=false;await go('applications');toast('材料已确认上传，后台 OCR 正在处理，可继续操作其他页面。');if(result?.ocr_errors?.length)toast('部分OCR未能入队，可在小项中重试或手工填写。',true);await pollJobs(true);}
-    else {drawOrganizer();modalError(`已确认 ${S.uploadGroups.filter(g=>g.confirmed).length} 项，${remaining.length} 项未完成。请按行内提示处理；已确认项不会重复上传。`);}
-  }catch(e){modalError(e.message);}finally{S.uploading=false;if(button.isConnected){button.innerHTML=old;button.disabled=!S.uploadGroups.some(g=>!g.confirmed);$('#organizer-cancel').disabled=false;}drawOrganizer();}
+    batch.state=batch.items.every(item=>item.confirmed)?'COMPLETED':'FAILED';
+  }catch(error){batch.state='FAILED';batch.error=error.message;for(const item of batch.items)if(!item.confirmed&&item.state!=='FAILED'){item.state='FAILED';item.error=error.message;}}
+  finally{drawJobs();if(batch.state==='COMPLETED'&&S.user?.id===batch.ownerId)toast(`${batch.categoryName}材料已上传完成，可在列表核对。`);}
 }
 
 async function loadWorkspaceItem(id){
@@ -335,7 +393,7 @@ async function loadWorkspaceItem(id){
   const activities=arr(await api('/activities'));if(S.selectedItem!==id||request!==S.comparisonRequest||!target.isConnected)return;S.activities=activities;
   const competition=S.boot.categories.find(c=>c.id===response.category_id)?.requires_eligibility_review;
   const submitAction=edit&&isStudent()&&response.student_user_id===S.user.id&&hasPermission('application.submit')&&itemEditable(response)?`<button type="button" class="btn primary sm" data-action="v2-submit-item" data-id="${esc(id)}">${icon('upload')}提交此小项</button>`:'';
-  target.innerHTML=`<div class="comparison-header"><h3>${esc(response.title||'小项对照核对')}</h3><span class="row gap6">${statusTag(itemState(response))}${response.student_modified_score?'<span class="tag purple">学生手动修改过计分</span>':''}</span><button type="button" class="btn sm comparison-close" data-action="v2-close-comparison" aria-label="关闭对照">${icon('close')}关闭对照</button></div><div class="comparison-columns"><section class="comparison-materials"><div class="comparison-column-title"><span>${icon('file')}证明材料与证据</span>${edit?`<button class="btn sm" data-action="v2-supplement-item" data-id="${esc(id)}">${icon('plus')}补充附件</button>`:''}</div><div class="comparison-material-body">${edit?`<div class="material-analysis-tools"><button class="btn sm ${!itemTask(response).busy?'primary':''}" data-action="v2-analyze-item" data-id="${esc(id)}" ${itemTask(response).busy?'disabled':''}>${icon('spark')}分析此小项</button><button class="text-action" data-action="v2-analyze-item" data-id="${esc(id)}" data-force="true">重新分析（仅建议）</button><button class="text-action" data-action="v2-ocr-item" data-id="${esc(id)}">重试 OCR</button></div>`:''}<div id="workspace-processing-notice">${processingNotice(response)}</div>${ocrPolicyNotice()}<div id="workspace-policy-results"></div><div id="workspace-evidence-results">${workspaceEvidenceHtml(response.crops||[],edit)}</div><div class="source-file-list">${workspaceFilesHtml(response.files||[],edit)}</div></div></section><section class="comparison-information"><div class="comparison-column-title"><span>${icon('edit')}加分信息与审核</span><span class="small muted">${edit?'可核对修改':'已提交内容'}</span></div><div class="comparison-information-body"><form id="workspace-item-form" class="form-grid"><div class="field span2"><label for="workspace-title">具体活动与条目名称</label>${edit?`<input id="workspace-title" name="title" maxlength="255" required value="${esc(r.title||response.title||'')}" placeholder="应包含具体活动名称，不使用泛称">`:`<div class="read-value">${esc(r.title||response.title)}</div>`}</div><div class="field"><label for="workspace-score">申报分值</label>${edit?`<input id="workspace-score" name="requested_score" type="number" min="0" step="0.01" required value="${esc(r.requested_score??response.requested_score)}">`:`<div class="read-value score-num big">${fmt(r.requested_score??response.requested_score)} 分</div>`}</div><div class="field"><label>分类上限</label><div class="read-value">${fmt(S.boot.categories.find(c=>c.id===response.category_id)?.default_cap)} 分</div></div><div class="field span2"><label for="workspace-activity">规范活动匹配</label>${edit?`<select id="workspace-activity" name="activity_id">${options(activities,r.activity_id,'canonical_name','未匹配 / 需要人工认定')}</select>`:`<div class="read-value">${esc(activities.find(a=>a.id===r.activity_id)?.canonical_name||response.activity?.canonical_name||'未匹配活动')}</div>`}</div><div class="field span2"><label for="workspace-subtype">加分细项</label>${edit?`<input id="workspace-subtype" name="subtype" value="${esc(payload.subtype||'')}" maxlength="200" placeholder="活动次数、获奖情况或任职信息">`:`<div class="read-value">${esc(payload.subtype||'—')}</div>`}</div>${competition?competitionFields(payload,edit):''}${response.category_code==='SERVICE'?`<div class="field span2"><label>志愿服务工时（可选）</label>${edit?`<input name="volunteer_hours" type="number" min="0" step="0.01" value="${esc(payload.volunteer_hours??'')}">`:`<div class="read-value">${esc(payload.volunteer_hours??'—')} 小时</div>`}</div>`:''}<div class="field span2"><label for="workspace-note">补充说明</label>${edit?`<textarea id="workspace-note" name="note" maxlength="4000">${esc(payload.note||'')}</textarea>`:`<div class="read-value">${esc(payload.note||'暂无')}</div>`}</div></form>${edit?`<p class="small muted mt16">可以修改AI内容及计分，无需填写修改理由。后续增补不会使其他已通过小项重新审核。</p>`:''}<div class="comparison-actions">${edit?`<button class="btn primary sm" data-action="v2-save-item">${icon('check')}保存此小项</button>`:''}${response.can_withdraw&&!S.workspaceHistorical?`<button class="btn sm" data-action="v2-withdraw-item" data-id="${esc(id)}">撤回此小项</button>`:''}${response.can_review?`<button class="btn ${itemState(response)==='APPROVED'?'danger':'primary'} sm" data-action="v2-review-item" data-id="${esc(id)}">${icon('review')}${itemState(response)==='APPROVED'?'驳回已通过小项':'审核此小项'}</button>`:''}<button class="btn sm" data-action="detail" data-id="${esc(id)}" data-deleted="${response.viewing_history?'true':'false'}">完整版本与历史</button><button type="button" class="btn sm comparison-close" data-action="v2-close-comparison">${icon('back')}返回列表</button></div><div id="workspace-analysis-suggestion"></div><div class="divider"></div><h3 class="mb16">处理记录</h3>${historyHtml(response)}</div></section></div>`;
+  target.innerHTML=`<div class="comparison-header"><h3>${esc(response.title||'小项对照核对')}</h3><span class="row gap6">${statusTag(itemState(response))}${response.student_modified_score?'<span class="tag purple">学生手动修改过计分</span>':''}</span><button type="button" class="btn sm comparison-close" data-action="v2-close-comparison" aria-label="关闭对照">${icon('close')}关闭对照</button></div><div class="comparison-columns"><section class="comparison-materials"><div class="comparison-column-title"><span>${icon('file')}证明材料与证据</span>${edit?`<button class="btn sm" data-action="v2-supplement-item" data-id="${esc(id)}">${icon('plus')}补充附件</button>`:''}</div><div class="comparison-material-body">${edit?`<div class="material-analysis-tools"><button class="btn sm ${!itemTask(response).busy?'primary':''}" data-action="v2-analyze-item" data-id="${esc(id)}" ${itemTask(response).busy?'disabled':''}>${icon('spark')}分析此小项</button><button class="text-action" data-action="v2-analyze-item" data-id="${esc(id)}" data-force="true">重新分析（仅建议）</button><button class="text-action" data-action="v2-ocr-item" data-id="${esc(id)}">重试 OCR</button></div>`:''}<div id="workspace-processing-notice">${processingNotice(response)}</div>${ocrPolicyNotice()}<div id="workspace-policy-results"></div><div id="workspace-evidence-results">${workspaceEvidenceHtml(response.crops||[],edit)}</div><div class="source-file-list">${workspaceFilesHtml(response.files||[],edit)}</div></div></section><section class="comparison-information"><div class="comparison-column-title"><span>${icon('edit')}加分信息与审核</span><span class="small muted">${edit?'可核对修改':'已提交内容'}</span></div><div class="comparison-information-body"><form id="workspace-item-form" class="form-grid"><div class="field span2"><label for="workspace-title">具体活动与条目名称</label>${edit?`<input id="workspace-title" name="title" maxlength="255" required value="${esc(r.title||response.title||'')}" placeholder="应包含具体活动名称，不使用泛称">`:`<div class="read-value">${esc(r.title||response.title)}</div>`}</div><div class="field"><label for="workspace-score">申报分值</label>${edit?`<input id="workspace-score" name="requested_score" type="number" min="0" step="0.01" required value="${esc(r.requested_score??response.requested_score)}">`:`<div class="read-value score-num big">${fmt(r.requested_score??response.requested_score)} 分</div>`}</div><div class="field"><label>分类上限</label><div class="read-value">${fmt(S.boot.categories.find(c=>c.id===response.category_id)?.default_cap)} 分</div></div><div class="field span2"><label for="workspace-activity">规范活动匹配</label>${edit?`<select id="workspace-activity" name="activity_id">${options(activities,r.activity_id,'canonical_name','未匹配 / 需要人工认定')}</select>`:`<div class="read-value">${esc(activities.find(a=>a.id===r.activity_id)?.canonical_name||response.activity?.canonical_name||'未匹配活动')}</div>`}</div><div class="field span2"><label for="workspace-subtype">加分细项</label>${edit?`<input id="workspace-subtype" name="subtype" value="${esc(payload.subtype||'')}" maxlength="200" placeholder="活动次数、获奖情况或任职信息">`:`<div class="read-value">${esc(payload.subtype||'—')}</div>`}</div>${competition?competitionFields(payload,edit):''}${response.category_code==='SERVICE'?`<div class="field span2"><label>志愿服务工时（可选）</label>${edit?`<input name="volunteer_hours" type="number" min="0" step="0.01" value="${esc(payload.volunteer_hours??'')}">`:`<div class="read-value">${esc(payload.volunteer_hours??'—')} 小时</div>`}</div>`:''}<div class="field span2"><label for="workspace-note">补充说明</label>${edit?`<textarea id="workspace-note" name="note" maxlength="4000">${esc(payload.note||'')}</textarea>`:`<div class="read-value">${esc(payload.note||'暂无')}</div>`}</div></form>${edit?`<p class="small muted mt16">可以修改AI内容及计分，无需填写修改理由。后续增补不会使其他已通过小项重新审核。</p>`:''}<div class="comparison-actions">${edit?`<button class="btn primary sm" data-action="v2-save-item">${icon('check')}保存此小项</button>`:''}${response.can_withdraw&&!S.workspaceHistorical?`<button class="btn sm" data-action="v2-withdraw-item" data-id="${esc(id)}">撤回此小项</button>`:''}${reviewButtonsHtml(response)}<button class="btn sm" data-action="detail" data-id="${esc(id)}" data-deleted="${response.viewing_history?'true':'false'}">完整版本与历史</button><button type="button" class="btn sm comparison-close" data-action="v2-close-comparison">${icon('back')}返回列表</button></div><div id="workspace-analysis-suggestion"></div><div class="divider"></div><h3 class="mb16">处理记录</h3>${historyHtml(response)}</div></section></div>`;
   $('#workspace-policy-results').innerHTML=itemPolicySummary(response);
   if(submitAction){const save=$('[data-action="v2-save-item"]',target);save.classList.remove('primary');save.insertAdjacentHTML('afterend',submitAction);}
   if(edit){$('#workspace-item-form').onsubmit=e=>e.preventDefault();$('#workspace-item-form').oninput=()=>S.workspaceDirty=true;$('#workspace-item-form').onchange=()=>S.workspaceDirty=true;}

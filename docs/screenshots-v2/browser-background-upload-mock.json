@@ -1,0 +1,423 @@
+{
+  "source": "Every API mocked; fixture writes only; no real database or provider calls",
+  "checks": [
+    "确认立即关窗，另一大类并行完成；原表单与新上传窗口均保留，新组增量出现且离页提醒只覆盖未完成本地文件",
+    "最多两批上传并行，第三批真实排队；站内切页后持续上传，完成不会抢回申报页",
+    "排队期间管理员切换学年，批次仍携带确认时旧学年，由服务端拒绝而不串入新学年",
+    "附件失败不阻塞其它小项，重试复用小项和已保存文件，全部附件成功后才确认安排识别",
+    "确认响应丢失且小项已被提交时，重试读取服务端确认状态，不重传或重复确认",
+    "跨账号停止后续文件写入并隐藏原队列；迟到任务/401不能污染新会话，失败批次可明确放弃"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "held-a.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-b",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-2/files",
+      "body": {
+        "filename": "fast-b.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-2"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "limit-a.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-b",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-2/files",
+      "body": {
+        "filename": "limit-b.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-c",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-c/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-3/files",
+      "body": {
+        "filename": "limit-c.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-c/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-3"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-2"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "year-a.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-b",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-2/files",
+      "body": {
+        "filename": "year-b.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-c",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-2"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "retry-main.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "retry-supplement.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-2/files",
+      "body": {
+        "filename": "good-other-row.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-2"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "retry-supplement.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "lost-confirm.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "owner-first.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-a",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-1/files",
+      "body": {
+        "filename": "screenshot-a.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions",
+      "body": {
+        "category_id": "upload-b",
+        "year_id": "upload-year"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/items",
+      "body": {
+        "staged": true
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/applications/upload-item-2/files",
+      "body": {
+        "filename": "screenshot-b.pdf"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-a/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-1"
+        ]
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/submissions/group-upload-b/confirm-upload",
+      "body": {
+        "item_ids": [
+          "upload-item-2"
+        ]
+      }
+    }
+  ],
+  "createdAt": "2026-10-26T05:41:36.053Z"
+}

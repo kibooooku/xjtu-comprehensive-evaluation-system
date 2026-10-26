@@ -1,0 +1,124 @@
+{
+  "source": "All APIs mocked; write entries are fixtures only, zero actual API/database/cloud writes",
+  "checks": [
+    "学生审查显示绿色批准和红色驳回，批准单击直接提交且不打开确认弹窗",
+    "红色驳回才弹窗，必须选择原因，无结果二次选择且备注可选",
+    "辅导员批准沿后端默认有效认定，无额外确认；已通过条目仅保留红色驳回",
+    "辅导员驳回保留不改变资格/有效/无效选择，可认定有效并驳回个人证明",
+    "本人、无权限、非当前审核阶段和普通学生已通过记录不显示越权审核按钮",
+    "同一小项批准和驳回共享进行中锁，重复点击不会发起第二次审批",
+    "响应丢失后的重试复用同一幂等键，已生效的审批不重复执行",
+    "版本冲突保留核对页面并明确要求刷新核对，不盲目修改版本重批",
+    "迟到的批准响应不会关闭新弹窗或刷新其背景核对页面",
+    "审批途中切换其它小项，迟到响应不覆盖当前详情或改变选择",
+    "驳回请求发出后关闭窗口，迟到成功不关闭后来打开的新窗口",
+    "完整详情使用相同两个按钮，批准流程也直接执行"
+  ],
+  "errors": [],
+  "mock_writes": [
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "527dd4ff-5d56-41bd-b69e-f58474defe6c"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "REJECT",
+        "expected_version": 3,
+        "reason": "MISSING_VALIDITY",
+        "comment": "虚构材料缺少对应本人信息",
+        "idempotency_key": "e4997e5e-fb59-4624-89b1-a8331b247d04"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "3ad494c6-cd22-4679-8ad4-fb2991af1e0b"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "REJECT",
+        "expected_version": 4,
+        "reason": "MISSING_VALIDITY",
+        "comment": "",
+        "activity_decision": "VALID",
+        "idempotency_key": "cd45d8a6-7aaf-4102-9962-5303c49109e3"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "7252fabf-ff30-405d-a786-9d6e4ba24a73"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "97dc42b5-212c-4917-8fcd-555bfe1bdfcf"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "97dc42b5-212c-4917-8fcd-555bfe1bdfcf"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "38022e45-80f0-41db-8911-03f2a81d5e86"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "7d3f75e2-7d71-4e96-8424-794ed8f321a0"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "558d8c31-ecdf-4dbe-a544-340a373ff226"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "REJECT",
+        "expected_version": 3,
+        "reason": "MISSING_VALIDITY",
+        "comment": "",
+        "idempotency_key": "0845e71c-720d-4276-8a91-aa9236bab814"
+      }
+    },
+    {
+      "path": "/api/applications/direct-item/review",
+      "body": {
+        "action": "APPROVE",
+        "expected_version": 3,
+        "idempotency_key": "87a1c8c7-4789-4920-b7c9-9bb3c38626c6"
+      }
+    }
+  ],
+  "createdAt": "2026-10-26T05:36:24.372Z"
+}
