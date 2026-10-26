@@ -62,6 +62,12 @@ def test_explicit_assessment_label_can_ground_a_prose_result():
     assert len(tokens) == 1 and tokens[0]["kind"] == "ASSESSMENT" and tokens[0]["value"] == "EXCELLENT"
 
 
+@pytest.mark.parametrize("text,level", [("国赛一等奖", "NATIONAL"), ("高水平国际竞赛一等奖", "INTERNATIONAL"), ("国际总决赛二等奖", "INTERNATIONAL"), ("省一等奖", "PROVINCIAL"), ("省一等级奖", "PROVINCIAL"), ("学校一等奖", "SCHOOL"), ("行业级竞赛一等奖", "LOCAL_OR_INDUSTRY"), ("市级竞赛一等奖", "LOCAL_OR_INDUSTRY")])
+def test_checked_certificate_scope_retains_supported_policy_levels(text, level):
+    regions = [{"text": text, "polygon_json": materials._polygon([100, 100, 300, 30])}]
+    assert outcome_evidence._certificate_levels(regions) == {level}
+
+
 @pytest.mark.parametrize("text,expected", [("优", "EXCELLENT"), ("良", "GOOD"), ("优先安排", None), ("心地善良", None)])
 def test_single_character_assessments_require_a_standalone_cell(text, expected):
     tokens = outcome_evidence._grade_tokens({"id": "test-only", "text": text, "polygon_json": materials._polygon([10, 10, 160, 20]), "extra_json": {}})
@@ -195,6 +201,84 @@ def test_certificate_result_far_from_name_gets_second_context(material_app):
         crops = _suggestions(conn, context, pages)
         assert [crop["participation_role"] for crop in crops] == ["PRIMARY", "OUTCOME"]
         assert all(crop["box"][0] == 0 and crop["box"][2:] == [1000, 400] for crop in crops)
+
+
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_wrapped_provincial_certificate_uses_geometry_not_ocr_order(material_app, reverse_order):
+    from app.policy_suggestions import normalize_policy_suggestion
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    lines = [("荣获第十七届蓝桥杯全国大学生软件和信息", 130, 700),
+             ("技术大赛软件赛Python程序设计大学A组陕西", 100, 750),
+             ("赛区一等奖。", 100, 800)]
+    if reverse_order:
+        lines.reverse()
+    with db.write() as conn:
+        _line(conn, pages[0], context["user"]["display_name"], 100, 200)
+        for text, x, y in lines:
+            _line(conn, pages[0], text, x, y, height=24)
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and not result["is_roster"]
+        assert result["facts"] == {"award_grade": "FIRST", "award_level": "PROVINCIAL"}
+        suggestion, policy, warnings = normalize_policy_suggestion("RESEARCH", [{"text": text} for text, _, _ in lines], {"requested_score": "0"}, {"requested_score": "0", "payload_json": {}}, linked_outcome=result)
+        assert suggestion["requested_score"] == "8.00" and policy["status"] == "RULE_APPLIED" and not warnings
+
+
+@pytest.mark.parametrize("province_position,award_position", [((100, 650), (700, 650)), ((100, 650), (700, 690)), ((100, 650), (100, 1000))])
+def test_certificate_does_not_join_columns_or_distant_labels_into_provincial_scope(material_app, province_position, award_position):
+    from app.policy_suggestions import normalize_policy_suggestion
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], context["user"]["display_name"], 100, 200)
+        _line(conn, pages[0], "蓝桥杯软件大赛陕西", *province_position)
+        _line(conn, pages[0], "赛区一等奖", *award_position)
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and result["facts"]["award_grade"] == "FIRST"
+        assert "award_level" not in result["facts"] and result["award_level_checked"]
+        # Even a misleading serialized order must not bypass the checked layout.
+        suggestion, policy, _ = normalize_policy_suggestion("RESEARCH", [{"text": "蓝桥杯软件大赛陕西\n赛区一等奖"}], {"requested_score": "0"}, {"requested_score": "8", "payload_json": {}}, linked_outcome=result)
+        assert suggestion["requested_score"] == "0.00" and policy["requires_confirmation"]
+
+
+def test_wrapped_province_conflicting_with_national_final_requires_review(material_app):
+    from app.policy_suggestions import normalize_policy_suggestion
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], context["user"]["display_name"], 100, 200)
+        _line(conn, pages[0], "赛区一等奖", 100, 800, height=24)
+        _line(conn, pages[0], "蓝桥杯全国总决赛陕西", 100, 750, height=24)
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and "award_level" not in result["facts"]
+        suggestion, policy, _ = normalize_policy_suggestion("RESEARCH", [{"text": "赛区一等奖\n蓝桥杯全国总决赛陕西"}], {"requested_score": "0"}, {"requested_score": "10", "payload_json": {}}, linked_outcome=result)
+        assert suggestion["requested_score"] == "0.00" and policy["requires_confirmation"]
+
+
+def test_single_person_same_row_award_keeps_its_common_certificate_level(material_app):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"))
+    with db.write() as conn:
+        _line(conn, pages[0], "蓝桥杯省赛", 100, 100)
+        _line(conn, pages[0], context["user"]["display_name"] + "一等奖", 100, 300)
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and result["anchors"][0]["association"] == "SAME_ROW"
+        assert result["facts"] == {"award_grade": "FIRST", "award_level": "PROVINCIAL"}
+
+
+def test_one_clear_certificate_does_not_erase_another_certificates_scope_conflict(material_app):
+    _, login = material_app
+    _, context, _, pages = _input(login("student"), 2)
+    with db.write() as conn:
+        for page in pages:
+            _line(conn, page, context["user"]["display_name"], 100, 200)
+        _line(conn, pages[0], "蓝桥杯省赛一等奖", 100, 650)
+        _line(conn, pages[1], "蓝桥杯全国总决赛陕西", 100, 700, height=24)
+        _line(conn, pages[1], "赛区一等奖", 100, 750, height=24)
+        result = _result(conn, context, pages)
+        assert result["status"] == "MATCHED" and result["facts"]["award_grade"] == "FIRST"
+        assert "award_level" not in result["facts"] and result["warnings"]
+        assert any(anchor["award_level_conflict"] for anchor in result["anchors"])
 
 
 def test_continued_roster_section_on_previous_page_is_a_second_real_image(material_app):

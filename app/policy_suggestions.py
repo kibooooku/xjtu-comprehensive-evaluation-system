@@ -154,7 +154,9 @@ def normalize_policy_suggestion(category_code, texts, revision, suggestion, link
     requires_result = True
     linked = linked_outcome or {}
     linked_facts = linked.get("facts") if linked.get("status") == "MATCHED" and isinstance(linked.get("facts"), dict) else {}
-    scope = linked_facts.get("award_level") or ("" if linked.get("is_roster") else _scope(compact))
+    # Do not undo a completed layout check by concatenating raw OCR response
+    # order again: it can join separate columns or hide a conflicting round.
+    scope = linked_facts.get("award_level") or ("" if linked.get("is_roster") or linked.get("award_level_checked") else _scope(compact))
     # A document containing multiple people's results cannot provide the user's
     # grade merely because a grade appears somewhere in its text. The geometry
     # linkage service supplies the grade/assessment attached to this applicant.

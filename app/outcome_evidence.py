@@ -177,19 +177,62 @@ def _same_table_record(image, identity_box, grade_cell):
     return False
 
 
-def _scope(text):
+_PROVINCES = r"(?:北京|天津|上海|重庆|河北|山西|辽宁|吉林|黑龙江|江苏|浙江|安徽|福建|江西|山东|河南|湖北|湖南|广东|海南|四川|贵州|云南|陕西|甘肃|青海|台湾|内蒙古|广西|西藏|宁夏|新疆)"
+
+
+def _scope_levels(text):
     value = compact(text)
     found = set()
-    for pattern, level in ((r"国际(?:级|赛|赛事|比赛|竞赛|一等|二等|三等|特等)|世界(?:赛|大赛|比赛)", "INTERNATIONAL"),
-                           (r"国家(?:级|赛|一等|二等|三等|特等)|全国(?:总决赛|赛|大赛|竞赛|比赛|一等|二等|三等|特等)", "NATIONAL"),
-                           (r"省(?:级|赛)|省级比赛|省赛", "PROVINCIAL"), (r"校级|校赛", "SCHOOL")):
+    for pattern, level in ((r"高水平国际|国际(?:级|赛|赛事|比赛|竞赛|总决赛|一等|二等|三等|特等)|世界(?:赛|大赛|比赛)", "INTERNATIONAL"),
+                           (r"国赛|国家(?:级|赛|一等|二等|三等|特等)|全国(?:总决赛|赛|大赛|竞赛|比赛|一等|二等|三等|特等)", "NATIONAL"),
+                           (r"省(?:级|赛|[一二三特]等(?:级)?奖)", "PROVINCIAL"),
+                           (r"校级|校赛|学校[一二三特]等(?:级)?奖", "SCHOOL"),
+                           (r"地方行政部门级|行业级|企业级|学会级|协会级|市级竞赛|县级竞赛", "LOCAL_OR_INDUSTRY")):
         if re.search(pattern, value):
             found.add(level)
     if "全国" in value and "总决赛" in value:
         found.add("NATIONAL")
-    if re.search(r"(?:北京|天津|上海|重庆|河北|山西|辽宁|吉林|黑龙江|江苏|浙江|安徽|福建|江西|山东|河南|湖北|湖南|广东|海南|四川|贵州|云南|陕西|甘肃|青海|台湾|内蒙古|广西|西藏|宁夏|新疆)(?:省|市|自治区)?赛区", value):
+    if re.search(_PROVINCES + r"(?:省|市|自治区)?赛区", value):
         found.add("PROVINCIAL")
+    return found
+
+
+def _scope(text):
+    found = _scope_levels(text)
     return next(iter(found)) if len(found) == 1 else None
+
+
+def _certificate_levels(regions):
+    """Resolve located certificate lines without trusting OCR response order.
+
+    A provincial qualifier can wrap from ``...陕西`` to ``赛区一等奖``.
+    Join only nearby, left-aligned paragraph lines; separate columns and far
+    apart labels must not create a qualifier merely by string concatenation.
+    """
+    lines, levels = [], set()
+    for region in regions:
+        text = compact(region.get("text"))
+        levels.update(_scope_levels(text))
+        box = _box(region.get("polygon_json"))
+        if text and box:
+            lines.append((text, box))
+    # Preserve the existing explicit national-final check when these two words
+    # are returned on separate certificate lines. A national event brand alone
+    # still cannot establish the level of its provincial award.
+    text = "\n".join(compact(region.get("text")) for region in regions)
+    if "全国" in text and "总决赛" in text:
+        levels.add("NATIONAL")
+    for before, a in lines:
+        if not re.search(_PROVINCES + r"(?:省|市|自治区)?$", before):
+            continue
+        for after, b in lines:
+            height = max(a[3], b[3])
+            gap = b[1] - a[1] - a[3]
+            if (after.startswith("赛区") and b[1] >= a[1] + a[3] * .5
+                    and -.15 * height <= gap <= 1.5 * height
+                    and abs(a[0] - b[0]) <= 1.25 * height):
+                levels.add("PROVINCIAL")
+    return levels
 
 
 def _heading_outcome(data, identity, information):
@@ -331,11 +374,16 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
                 continue
             seen.add(key)
             level = value.get("award_level")
-            if association in ("SAME_ROW", "TABLE_CELL"):
-                level = _scope("\n".join(region.get("text") or "" for region in row))
-            elif association == "CERTIFICATE":
-                level = _scope(data["text"])
-            all_anchors.append({**value, "award_level": level, "page_id": source_page["id"], "page_number": source_page["page_index"], "file_id": source_page["file_id"], "identity_page_id": identity["page_id"], "identity_box": identity["box"], "association": association})
+            scope_conflict = False
+            if association in ("SAME_ROW", "TABLE_CELL", "CERTIFICATE") and not data["roster"]:
+                certificate_levels = _certificate_levels(regions)
+                level = next(iter(certificate_levels)) if len(certificate_levels) == 1 else None
+                scope_conflict = len(certificate_levels) > 1
+            elif association in ("SAME_ROW", "TABLE_CELL"):
+                row_levels = _scope_levels("\n".join(region.get("text") or "" for region in row))
+                level = next(iter(row_levels)) if len(row_levels) == 1 else None
+                scope_conflict = len(row_levels) > 1
+            all_anchors.append({**value, "award_level": level, "award_level_conflict": scope_conflict, "page_id": source_page["id"], "page_number": source_page["page_index"], "file_id": source_page["file_id"], "identity_page_id": identity["page_id"], "identity_box": identity["box"], "association": association})
     kinds = {(value["kind"], value["value"]) for value in all_anchors}
     # Do not let a certificate and an unrelated roster dictate two different
     # awards for a single small item. Mixed outcomes require human confirmation.
@@ -348,6 +396,8 @@ def linked_outcome(conn, pages, student, student_user, class_name, automatic=Tru
     all_anchors.sort(key=lambda anchor: (anchor["association"] != "SAME_ROW", anchor["page_number"], anchor["box"][1]))
     facts = {"award_grade" if kind == "AWARD" else "assessment_result": value}
     levels = {anchor["award_level"] for anchor in all_anchors if anchor.get("award_level")}
-    if len(levels) == 1:
+    scope_conflict = len(levels) > 1 or any(anchor.get("award_level_conflict") for anchor in all_anchors)
+    if len(levels) == 1 and not scope_conflict:
         facts["award_level"] = next(iter(levels))
-    return {"status": "MATCHED", "facts": facts, "anchors": all_anchors, "warnings": [], "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities)}
+    warnings = ["材料中的赛事级别有冲突，请核对本人比赛轮次。"] if scope_conflict else []
+    return {"status": "MATCHED", "facts": facts, "anchors": all_anchors, "warnings": warnings, "is_roster": roster, "identity_count": len(validated_identities), "identity_matched": bool(validated_identities), "award_level_checked": True}
